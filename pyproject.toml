@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "robot-policy-benchmark"
+version = "0.1.0"
+description = "A pilot benchmark of LLM supervision of fixed learned robot policies"
+requires-python = ">=3.11,<3.13"
+dependencies = []
+
+[project.scripts]
+robot-benchmark = "robot_benchmark.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/robot_benchmark"]

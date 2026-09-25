@@ -1,0 +1,8 @@
+{
+  "provider": "json_http",
+  "model": "REPLACE_WITH_PINNED_MODEL_ID",
+  "endpoint": "http://127.0.0.1:9000/decide",
+  "api_key_env": null,
+  "max_tokens": 1024,
+  "timeout_seconds": 120
+}

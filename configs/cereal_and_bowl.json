@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "status": "development_unqualified",
+  "task": "CerealAndBowl",
+  "split": "pretrain",
+  "goal": "Move the cereal box and the bowl from the cabinet onto the adjacent counter, and leave the cabinet closed. Declare completion when both objects are on the counter and the cabinet is closed.",
+  "max_steps": 4350,
+  "max_decisions": 100,
+  "max_interval": 100,
+  "camera_size": 256,
+  "video_record_interval": 2,
+  "agent_image_history": "current_frame_only_plus_decision_history",
+  "artificial_disturbances": false,
+  "skills": [
+    {"id": "open_cabinet", "instruction": "Open the cabinet.", "description": "Open the cabinet containing the cereal box and bowl.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
+    {"id": "transfer_cereal", "instruction": "Pick the cereal box from the cabinet and place it on the counter.", "description": "Transfer the cereal box from the cabinet to the adjacent counter.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
+    {"id": "transfer_bowl", "instruction": "Pick the bowl from the cabinet and place it on the counter.", "description": "Transfer the bowl from the cabinet to the adjacent counter.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
+    {"id": "close_cabinet", "instruction": "Close the cabinet.", "description": "Close the cabinet doors after retrieving the objects.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}}
+  ]
+}

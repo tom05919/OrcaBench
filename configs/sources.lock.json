@@ -1,0 +1,124 @@
+{
+  "status": "source_revisions_resolved_not_runtime_qualified",
+  "retrieved_on": "2026-09-25",
+  "repositories": {
+    "robocasa": {
+      "url": "https://github.com/robocasa/robocasa.git",
+      "revision": "456174f62b89b8fca99eaaf33949c29fec9cfc2a",
+      "files": {
+        "robocasa/environments/kitchen/composite/snack_preparation/cereal_and_bowl.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/environments/kitchen/composite/snack_preparation/cereal_and_bowl.py",
+          "sha256": "64b607331c129fd6bab20befc81abf0472e243a297c4085711cb7fc9646d0dc7"
+        },
+        "robocasa/utils/env_utils.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/utils/env_utils.py",
+          "sha256": "2543d593897008b104c0fa7bb83c987675b4e583ae519b324de98f99c71a5fcd"
+        },
+        "robocasa/utils/dataset_registry_utils.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/utils/dataset_registry_utils.py",
+          "sha256": "9ea74602711ab9c499314bc3d94c4b61db6fe85bebf616cce573b9d39ba02e3b"
+        },
+        "robocasa/utils/dataset_registry.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/utils/dataset_registry.py",
+          "sha256": "23e8e31bb56bae80de86c34eafadfe32dd1e1eba6608376152ba9fdda5532a4b"
+        },
+        "robocasa/__init__.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/__init__.py",
+          "sha256": "5be2bcb2be1639d30747ff6382e23611e6e3038721bca7d20ea97fa69d4e36f8"
+        },
+        "setup.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/setup.py",
+          "sha256": "9bb7055c345a50c69417c9978277f82a0d782ae17cb369939a35e5faaa6a83e5"
+        },
+        "robocasa/wrappers/gym_wrapper.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/wrappers/gym_wrapper.py",
+          "sha256": "356d61ca9e4b777ca0515323d38167cb7560b837cb37ea460f16ba01b4cf2d49"
+        },
+        "robocasa/scripts/download_kitchen_assets.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/scripts/download_kitchen_assets.py",
+          "sha256": "60e4524869434d0391f4f8a9801b15408338a43bd18192bb68f5d2eae6531033"
+        },
+        "robocasa/scripts/setup_macros.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/scripts/setup_macros.py",
+          "sha256": "1a9c42606ce2b885bf171475f10e825c85fc31329ca0cfb1c914273af36fd34f"
+        },
+        "robocasa/macros.py": {
+          "url": "https://raw.githubusercontent.com/robocasa/robocasa/456174f62b89b8fca99eaaf33949c29fec9cfc2a/robocasa/macros.py",
+          "sha256": "0fc3554f2e6e031e592e2d0352188154f19ecb3f0145309be96c4cf9cc0412af"
+        }
+      }
+    },
+    "robosuite": {
+      "url": "https://github.com/ARISE-Initiative/robosuite.git",
+      "revision": "5ce6643f3092639d08f7b0f90ed1c6a84f50552c",
+      "files": {
+        "pyproject.toml": {
+          "url": "https://raw.githubusercontent.com/ARISE-Initiative/robosuite/5ce6643f3092639d08f7b0f90ed1c6a84f50552c/pyproject.toml",
+          "sha256": "18f793488e126b1332e81bb13e46ca4934179f262799f6b91d84e96dca48a450"
+        }
+      }
+    },
+    "groot": {
+      "url": "https://github.com/robocasa-benchmark/Isaac-GR00T.git",
+      "revision": "9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10",
+      "files": {
+        "pyproject.toml": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/Isaac-GR00T/9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10/pyproject.toml",
+          "sha256": "975e5c6e318eaf82f8c03b927272d55023cb7d445caeff13800bb0c18802baf1"
+        },
+        "scripts/run_eval.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/Isaac-GR00T/9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10/scripts/run_eval.py",
+          "sha256": "db6a47a61837c7cbc66e823855ffb582e76f1ba8c33846f2b7c66aa9b3c7a95e"
+        },
+        "gr00t/eval/simulation.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/Isaac-GR00T/9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10/gr00t/eval/simulation.py",
+          "sha256": "da6dd610d169a84717393769cd4b6ec19bb1872022634a1e9cd8cc9beb539111"
+        },
+        "gr00t/eval/robot.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/Isaac-GR00T/9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10/gr00t/eval/robot.py",
+          "sha256": "ffd76b784e1b7a6fb46729d81ed1ffc3413dddacd0465b9166e91b0791b2ecc2"
+        },
+        "gr00t/experiment/data_config.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/Isaac-GR00T/9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10/gr00t/experiment/data_config.py",
+          "sha256": "83107d265debc96b4215e31a10fbb522f090203dec2672b0a7a1969e5ee33ee9"
+        },
+        "gr00t/model/policy.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/Isaac-GR00T/9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10/gr00t/model/policy.py",
+          "sha256": "c6bd0bfb1356ac0185d2c6971dbc1208d01e84cb2b70854bd00fa80c3fb5c6c1"
+        },
+        "gr00t/eval/service.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/Isaac-GR00T/9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10/gr00t/eval/service.py",
+          "sha256": "8b45c65e855dab170736de63af7afe5f6ab02f479ed6401b447f72fc3563a9e2"
+        },
+        "gr00t/eval/wrappers/multistep_wrapper.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/Isaac-GR00T/9d7d7a9eb7ad30bd8ce30448d9ab53a918b45b10/gr00t/eval/wrappers/multistep_wrapper.py",
+          "sha256": "18d583355cc3580930b0436987469767863d10b0d95903454de1be3baa6d02d1"
+        }
+      }
+    },
+    "openpi": {
+      "url": "https://github.com/robocasa-benchmark/openpi.git",
+      "revision": "5a6beda9ff99da30b4e1b59320f6a32971d7c397",
+      "files": {
+        "pyproject.toml": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/openpi/5a6beda9ff99da30b4e1b59320f6a32971d7c397/pyproject.toml",
+          "sha256": "03607c742e33fe7d3151ee708b44b2cafab2f42ab4cdc0620e4014a3794eb717"
+        },
+        "examples/robocasa/main.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/openpi/5a6beda9ff99da30b4e1b59320f6a32971d7c397/examples/robocasa/main.py",
+          "sha256": "8c4edf073b97db0a7c996a15925802c3ad2a079d71500d74eae4af5620884e4f"
+        },
+        "src/openpi/training/config.py": {
+          "url": "https://raw.githubusercontent.com/robocasa-benchmark/openpi/5a6beda9ff99da30b4e1b59320f6a32971d7c397/src/openpi/training/config.py",
+          "sha256": "b82bd22cfc12abb3e71faf486193f619ecad2aeb525d2a7dc619028ca419c1da"
+        }
+      }
+    }
+  },
+  "checkpoint": {
+    "repo_id": "robocasa/robocasa365_checkpoints",
+    "revision": "c484448aba1a9b60a04c9b0ca117241518ea69f3",
+    "groot_subdir": "gr00t_n1-5/multitask_learning/checkpoint-120000",
+    "pi05_subdir": "pi05_pretrain_human300/multitask_learning/75000"
+  }
+}
