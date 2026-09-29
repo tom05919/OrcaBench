@@ -19,8 +19,8 @@ def qualification_config_view(config):
     value.pop("checkpoint_manifest_sha256", None)
     value.pop("diagnostic_full_task_performance", None)
     value.pop("supervisory_relevance", None)
-    for skill in value["skills"]:
-        skill.pop("performance", None)
+    for item in value["reference_prompts"]:
+        item.pop("performance", None)
     return value
 
 
@@ -32,10 +32,10 @@ def public_task_config(config, report, report_sha256):
     by_skill = {}
     for row in report["skill_conditions"]:
         by_skill.setdefault(row["skill"], []).append(row)
-    for skill in value["skills"]:
-        rows = sorted(by_skill.get(skill["id"], []), key=lambda row: row["condition"])
+    for item in value["reference_prompts"]:
+        rows = sorted(by_skill.get(item["id"], []), key=lambda row: row["condition"])
         if len(rows) != 2:
-            raise ValueError(f"missing qualification rows for {skill['id']}")
+            raise ValueError(f"missing qualification rows for {item['id']}")
         successes = sum(row["successes"] for row in rows)
         trials = sum(row["trials"] for row in rows)
         limitations = []
@@ -43,7 +43,7 @@ def public_task_config(config, report, report_sha256):
             for limitation in row["limitations"]:
                 if limitation not in limitations:
                     limitations.append(limitation)
-        skill["performance"] = {
+        item["performance"] = {
             "status": "qualified_screening",
             "checkpoint_manifest_sha256": report["checkpoint_manifest_sha256"],
             "successes": successes,
@@ -91,9 +91,9 @@ class OrdinaryPolicySupervisor:
         if self.env.evaluate()["success"]:
             return ModelReply({"op": "complete"})
         steps = min(observation["max_interval"], observation["remaining_steps"])
-        decision = {"op": "continue", "steps": steps} if observation["active_skill"] else {
-            "op": "start", "skill": "full_task", "steps": steps,
-        }
+        decision = {"op": "run_policy", "steps": steps}
+        if observation["active_instruction"] is None:
+            decision["prompt"] = next(item["prompt"] for item in observation["reference_prompts"] if item["id"] == "full_task")
         return ModelReply(decision)
 
 
@@ -117,10 +117,10 @@ class DiagnosticSupervisor:
         else:
             skill = "close_cabinet"
         steps = min(self.interval, observation["max_interval"], observation["remaining_steps"])
-        active = observation["active_skill"]
-        decision = {"op": "continue", "steps": steps} if active == skill else {
-            "op": "start" if active is None else "switch", "skill": skill, "steps": steps,
-        }
+        prompt = next(item["prompt"] for item in observation["reference_prompts"] if item["id"] == skill)
+        decision = {"op": "run_policy", "steps": steps}
+        if observation["active_instruction"] != prompt:
+            decision["prompt"] = prompt
         return ModelReply(decision)
 
 

@@ -61,8 +61,11 @@ class FakeEnvironment:
     def policy_observation(self) -> dict:
         return {"world_step": self.world_step, "policy_only": {"secret": SENTINEL}}
 
-    def recording_frame(self) -> str:
-        return PNG_URL
+    def recording_frames(self) -> dict[str, str]:
+        return {name: PNG_URL for name in CAMERAS}
+
+    def sim_time_seconds(self) -> float:
+        return self.world_step * 0.05
 
     def step(self, value: dict) -> None:
         self.step_attempts.append(copy.deepcopy(value))
@@ -145,12 +148,11 @@ class CaptureRecords:
         self.writes[name] = copy.deepcopy(value)
 
 
-def skills() -> list[Skill]:
+def reference_prompts() -> list[Skill]:
     return [
         Skill("pick", "pick the objects", "fixture skill", {"success_rate": None}),
         Skill("place", "place the objects", "fixture skill", {"success_rate": None}),
     ]
-
 
 def make_runner(
     replies,
@@ -159,13 +161,13 @@ def make_runner(
     policy=None,
     limits=None,
     records=None,
-    skill_list=None,
+    reference_prompt_list=None,
 ) -> Runner:
     return Runner(
         env or FakeEnvironment(),
         policy or FakePolicy(),
         FakeAgent(replies),
-        skill_list or skills(),
+        reference_prompt_list or reference_prompts(),
         "put the cereal and bowl on the counter and close the cabinet",
         limits or Limits(max_steps=10, max_decisions=10, max_interval=5),
         records,

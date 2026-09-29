@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from .contracts import CAMERAS
+
 
 def jsonable(value):
     if hasattr(value, "tolist"):
@@ -26,6 +28,9 @@ class Records:
         (self.path / "evaluator").mkdir(mode=0o700)
         (self.path / "frames").mkdir()
         (self.path / "video_frames").mkdir()
+        (self.path / "videos").mkdir()
+        for camera in CAMERAS:
+            (self.path / "video_frames" / camera.removeprefix("video.")).mkdir()
         self.write("manifest.json", manifest)
 
     def write(self, name, value):
@@ -45,8 +50,11 @@ class Records:
             stored["images"][camera] = name
         self.append("observations.jsonl", stored)
 
-    def video_frame(self, step, data_url):
-        if not isinstance(data_url, str) or not data_url.startswith("data:image/png;base64,"):
-            raise ValueError("recording frame must be a PNG data URL")
-        target = self.path / "video_frames" / f"{step:06d}.png"
-        target.write_bytes(base64.b64decode(data_url.split(",", 1)[1], validate=True))
+    def video_frames(self, step, images):
+        if set(images) != set(CAMERAS):
+            raise ValueError("recording requires every benchmark camera")
+        for camera, data_url in images.items():
+            if not isinstance(data_url, str) or not data_url.startswith("data:image/png;base64,"):
+                raise ValueError("recording frame must be a PNG data URL")
+            target = self.path / "video_frames" / camera.removeprefix("video.") / f"{step:06d}.png"
+            target.write_bytes(base64.b64decode(data_url.split(",", 1)[1], validate=True))

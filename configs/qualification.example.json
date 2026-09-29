@@ -5,5 +5,5 @@
   "skill_conditions": [],
   "full_task": {"successes": 0, "trials": 0, "trace_paths": []},
   "supervisory_relevance": {"verified": false, "paired_trace_paths": []},
-  "note": "Populate the contract hash, backend, checkpoint digest, performance metadata, and counts only from audited recorded runs under one diagnostic contract. Required skill conditions: nominal_entry and natural_intermediate for each of the four skills. No artificial disturbances. Counts alone are not a release certificate."
+  "note": "Populate the contract hash, backend, checkpoint digest, performance metadata, and counts only from audited recorded runs under one diagnostic contract. The historical skill_conditions key covers nominal_entry and natural_intermediate for each of four exact reference prompts; it does not restrict model-authored prompts. No artificial disturbances. Counts alone are not a release certificate."
 }

@@ -1,13 +1,22 @@
-# Robot Policy Orchestration Benchmark
+# OrcaBench
 
-This pilot compares different LLM orchestrators while holding one fixed library
-of learned robot skills constant. The LLM sees RGB, proprioception, the task,
-and public execution history. It chooses which skill runs and when to observe,
-interrupt, switch, retry, or declare completion; the learned policy alone emits
-low-level controls.
+**Work in progress — an experimental benchmark for LLM orchestration of robot policies.**
 
-The task is RoboCasa `CerealAndBowl` in MuJoCo/robosuite. The four fixed skills
-are `open_cabinet`, `transfer_cereal`, `transfer_bowl`, and `close_cabinet`.
+The harness is implemented, but the first task is not yet qualified and no
+controlled model comparison has been completed. This repository is a development
+snapshot, not a validated benchmark release.
+
+This pilot compares different LLM orchestrators while holding one learned robot
+policy constant. The LLM sees RGB, proprioception, the task, and public execution
+history. It may send any natural-language instruction to that policy, choose how
+many control steps to run before observing again, or declare completion; the
+learned policy alone emits low-level controls.
+
+The task is RoboCasa `CerealAndBowl` in MuJoCo/robosuite. Four reference prompts
+cover opening the cabinet, transferring each object, and closing the cabinet.
+They are qualification probes with public performance cards, not an allowlist:
+the LLM may compose a different prompt at any decision boundary. Arbitrary and
+dynamically changed prompts are not yet systematically qualified.
 There are no artificial disturbances, scripted manipulation substitutes, or
 training. The model may make at most 100 calls, choose 1–100 control steps per
 advancing decision, and use at most the upstream 4,350-step horizon. Physics
@@ -15,13 +24,19 @@ pauses while the LLM reasons.
 
 ## Status
 
-The local foundation is implemented: source and checkpoint identities are
-pinned, the coordinator and isolated learned-policy worker have runnable entry
-points, and contract tests cover observation isolation, step accounting, policy
-state, queue cancellation, budget handling, scoring, qualification, and result
-aggregation. The Prime Intellect GPU worker is not provisioned, so this project
-does **not** claim any learned-policy rollout, skill success rate, full-task
-success rate, or LLM benchmark result.
+The local foundation is implemented and the first live development pass ran
+on a temporary Prime Intellect RTX 6000 Ada GPU on September 27, 2026. The
+pinned GR00T worker, simulator smoke test, ordinary rollout, hand-authored
+supervisor rollout, and one Opus 5.5 harness episode all executed. None of the
+three episodes met the physical goal. This is **not** a qualified task or a
+model-comparison result: no reference-prompt entry condition has completed its
+10-trial gate, and the full-task supervisor has only one trial. See the
+[development results and limitations](docs/feasibility.md#first-live-development-pass-september-27-2026).
+
+Nine camera videos, per-step images and timings, and 47 Opus API-visible traces
+were retained locally under `runs/prime_20260927_1454/`. Raw run artifacts are
+not included in this repository. Model checkpoints, simulator assets, dependency
+environments, caches, and credentials are also excluded from Git.
 
 The first policy candidate is the official GR00T checkpoint at
 `gr00t_n1-5/multitask_learning/checkpoint-120000`; the official π0.5 checkpoint
@@ -30,6 +45,14 @@ versions, so policy inference runs in a separate HTTP worker environment rather
 than a combined dependency environment.
 
 ## Evaluation contract
+
+The model-facing API has two operations. `run_policy(prompt, steps)` starts or
+redirects the policy with a nonblank prompt of at most 512 characters;
+`run_policy(steps)` continues the active instruction and preserves queued actions.
+Accepted prompt text is forwarded verbatim. Supplying a prompt, even the same
+text as the active instruction, discards pending actions before execution. There
+is no standalone interrupt operation because physics is already paused at every
+model decision boundary. `complete` evaluates and terminates the episode.
 
 Primary success requires both of the following before either budget is exhausted:
 
@@ -48,12 +71,21 @@ Read the complete [protocol](docs/protocol.md), [feasibility plan](docs/feasibil
 [policy card](docs/policy_card.md), [GPU runbook](docs/compute.md), and
 [roadmap](docs/roadmap.md).
 
+## Repository layout
+
+- `src/robot_benchmark/`: policy and model adapters, runner, scoring, records, and video capture.
+- `configs/`: task, model, qualification, split, and pinned dependency manifests.
+- `scripts/`: GPU bootstrap, checkpoint downloads, artifact sync, and shutdown watchdog.
+- `tests/`: contract, isolation, scoring, and infrastructure tests.
+- `docs/`: protocol, research, feasibility evidence, policy card, and roadmap.
+
 ## Local foundation checks
 
 The dependency-free contract suite runs on Python 3.11 or 3.12:
 
 ```bash
-cd /Users/tomwang/robot_benchmark
+git clone https://github.com/tom05919/OrcaBench.git
+cd OrcaBench
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 python3 scripts/bootstrap_gpu.py --dry-run --skip-gpu-check
 ```
@@ -69,7 +101,7 @@ GR00T, the benchmark, assets, and the verified GR00T checkpoint in separate
 project-local environments:
 
 ```bash
-cd /path/to/robot_benchmark
+cd /path/to/OrcaBench
 source scripts/project_env.sh
 python3 scripts/bootstrap_gpu.py --download-assets --download-checkpoint
 .venv-groot/bin/python -m robot_benchmark.policy_worker \
@@ -81,7 +113,7 @@ python3 scripts/bootstrap_gpu.py --download-assets --download-checkpoint
 In a second shell on the same worker:
 
 ```bash
-cd /path/to/robot_benchmark
+cd /path/to/OrcaBench
 source scripts/project_env.sh
 .venv-sim/bin/robot-benchmark doctor --policy-url http://127.0.0.1:8765
 .venv-sim/bin/robot-benchmark smoke-sim --seed 0 --output runs/smoke/seed-0
@@ -147,5 +179,5 @@ paired evaluation seeds:
 Pinned external source metadata is in
 [`configs/sources.lock.json`](configs/sources.lock.json). The planned October 16,
 2026 pilot requires a backend to pass 8/10 valid trials for every declared
-skill-entry condition, 16/20 valid diagnostic full tasks, and the matched
-continuation relevance check before any LLM result is reported.
+reference-prompt-entry condition, 16/20 valid diagnostic full tasks, and the
+matched continuation relevance check before any LLM result is reported.

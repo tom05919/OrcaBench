@@ -1,32 +1,38 @@
 """Synchronous physics with interruptible learned-policy execution."""
 from collections import deque
 from dataclasses import asdict
-from time import perf_counter
+from time import perf_counter, time_ns
 import copy
 
 from .contracts import Limits, ModelReply, sensor_payload, validate_action, validate_decision
 
 
 class Runner:
-    def __init__(self, env, policy, agent, skills, goal, limits: Limits, records=None, recording_interval=2):
+    def __init__(self, env, policy, agent, reference_prompts, goal, limits: Limits, records=None, recording_interval=1):
         self.env, self.policy, self.agent = env, policy, agent
-        self.skills = {skill.id: skill for skill in skills}
-        if len(self.skills) != len(skills) or not skills or any(not isinstance(s.id, str) or not s.id for s in skills):
-            raise ValueError("skill IDs must be nonempty and unique")
+        self.reference_prompts = {item.id: item for item in reference_prompts}
+        if len(self.reference_prompts) != len(reference_prompts) or not reference_prompts or any(
+            not isinstance(item.id, str) or not item.id for item in reference_prompts
+        ):
+            raise ValueError("reference prompt IDs must be nonempty and unique")
         self.goal, self.limits, self.records = goal, limits, records
         if type(recording_interval) is not int or recording_interval < 1:
             raise ValueError("recording interval must be a positive integer")
         self.recording_interval = recording_interval
         self.steps = self.decisions = self.policy_calls = 0
-        self.active = self.last_skill = None
+        self.active_instruction = None
         self.queue = deque()
+        self.prompt_submissions = self.prompt_changes = self.prompt_restarts = self.discarded_actions = 0
         self.history = []
         self.usage = []
         self.physical_any = False
         self.last_physical = None
         self.last_error = None
         self.status = "not_started"
-        self.model_seconds = self.policy_seconds = 0.0
+        self._episode_start = perf_counter()
+        self.model_seconds = self.policy_seconds = self.simulation_seconds = 0.0
+        self.simulated_seconds = 0.0
+        self.recording_seconds = self.evaluation_seconds = 0.0
 
     def _record(self, name, value):
         if self.records:
@@ -42,12 +48,11 @@ class Runner:
 
     def observation(self):
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "goal": self.goal,
             **sensor_payload(self.env.sensors()),
-            "skills": [s.public() for s in self.skills.values()],
-            "active_skill": self.active,
-            "last_skill": self.last_skill,
+            "reference_prompts": [item.public() for item in self.reference_prompts.values()],
+            "active_instruction": self.active_instruction,
             "step": self.steps,
             "remaining_steps": self.limits.max_steps - self.steps,
             "remaining_decisions": self.limits.max_decisions - self.decisions,
@@ -57,76 +62,137 @@ class Runner:
         }
 
     def _validate_state(self, decision):
-        op = decision["op"]
-        if op == "start" and self.active is not None:
-            raise ValueError("start requires no active skill; use switch")
-        if op in ("continue", "interrupt", "switch") and self.active is None:
-            raise ValueError(f"{op} requires an active skill")
-        if op == "switch" and decision["skill"] == self.active:
-            raise ValueError("switch requires a different skill; use retry or continue")
-        if op == "retry" and self.last_skill is None:
-            raise ValueError("retry requires a previously selected skill")
+        if decision["op"] == "run_policy" and "prompt" not in decision and self.active_instruction is None:
+            raise ValueError("run_policy requires a prompt when no instruction is active")
         if decision.get("steps", 0) > self.limits.max_steps - self.steps:
             raise ValueError("requested interval exceeds remaining steps")
 
     def apply(self, decision):
         """Validate fully before mutation; physics only advances here."""
-        decision = validate_decision(decision, self.skills, self.limits)
+        decision = validate_decision(decision, self.limits)
         self._validate_state(decision)
         op = decision["op"]
         if op == "complete":
             self._evaluate()
             self.status = "success" if self.last_physical else "false_completion"
             return
-        if op in ("start", "switch", "retry", "interrupt"):
+        if "prompt" in decision:
+            prior = self.active_instruction
+            discarded = len(self.queue)
+            self.prompt_submissions += 1
+            if prior is not None:
+                if decision["prompt"] == prior:
+                    self.prompt_restarts += 1
+                else:
+                    self.prompt_changes += 1
+            self.discarded_actions += discarded
             self.queue.clear()
             self.policy.reset_skill()
-            if op == "interrupt":
-                self.active = None
-                return
-            self.active = self.last_skill = decision.get("skill", self.last_skill)
+            self.active_instruction = decision["prompt"]
+            self._record("policy_transitions.jsonl", {
+                "step": self.steps,
+                "previous_instruction": prior,
+                "instruction": self.active_instruction,
+                "discarded_actions": discarded,
+            })
         for _ in range(decision["steps"]):
+            step_start = perf_counter()
+            started_at_unix_ns = time_ns()
+            sim_time_before = self.env.sim_time_seconds()
+            policy_wait_seconds = 0.0
             if not self.queue:
                 start = perf_counter()
+                policy_started_at_unix_ns = time_ns()
                 self.policy_calls += 1
                 self._record("policy_requests.jsonl", {
                     "policy_call": self.policy_calls,
                     "step": self.steps,
-                    "skill": self.active,
-                    "instruction": self.skills[self.active].instruction,
+                    "instruction": self.active_instruction,
                 })
                 try:
-                    chunk = self.policy.predict(self.env.policy_observation(), self.skills[self.active].instruction)
+                    chunk = self.policy.predict(self.env.policy_observation(), self.active_instruction)
                 finally:
-                    self.policy_seconds += perf_counter() - start
+                    policy_wait_seconds = perf_counter() - start
+                    self.policy_seconds += policy_wait_seconds
+                    self._record("policy_timings.jsonl", {"policy_call": self.policy_calls,
+                        "step_before": self.steps, "started_at_unix_ns": policy_started_at_unix_ns,
+                        "episode_elapsed_seconds": perf_counter() - self._episode_start,
+                        "wall_seconds": policy_wait_seconds})
                 if not isinstance(chunk, list) or not chunk:
                     raise RuntimeError("policy returned an empty or invalid action chunk")
                 self.queue.extend(validate_action(action) for action in chunk)
                 self._record("policy_calls.jsonl", {"policy_call": self.policy_calls,
-                    "step": self.steps, "skill": self.active, "actions": list(self.queue)})
+                    "step": self.steps, "instruction": self.active_instruction, "actions": list(self.queue)})
             action = self.queue.popleft()
             # Record an attempted step before calling physics; a failure may leave
             # simulator state uncertain and must never be retried automatically.
             self._record("action_attempts.jsonl", {"step": self.steps + 1, "action": action})
-            self.env.step(action)
+            physics_start = perf_counter()
+            try:
+                self.env.step(action)
+            except Exception:
+                physics_seconds = perf_counter() - physics_start
+                self.simulation_seconds += physics_seconds
+                self._record("step_timings.jsonl", {"attempted_step": self.steps + 1,
+                    "started_at_unix_ns": started_at_unix_ns, "status": "step_error",
+                    "physics_seconds": physics_seconds, "policy_wait_seconds": policy_wait_seconds,
+                    "sim_time_before": sim_time_before,
+                    "episode_elapsed_seconds": perf_counter() - self._episode_start,
+                    "wall_seconds": perf_counter() - step_start})
+                raise
+            physics_seconds = perf_counter() - physics_start
+            self.simulation_seconds += physics_seconds
+            sim_time_after = self.env.sim_time_seconds()
+            self.simulated_seconds += sim_time_after - sim_time_before
             self.steps += 1
-            self._record("actions.jsonl", {"step": self.steps, "skill": self.active, "action": action})
-            if self.records and hasattr(self.records, "video_frame") and self.steps % self.recording_interval == 0:
-                self.records.video_frame(self.steps, self.env.recording_frame())
-            self._evaluate()
-            self._record("evaluator/states.jsonl", {"step": self.steps, **self.env.snapshot()})
+            self._record("actions.jsonl", {"step": self.steps, "instruction": self.active_instruction, "action": action})
+            recording_start = perf_counter()
+            recording_seconds = evaluation_seconds = 0.0
+            try:
+                if self.records and hasattr(self.records, "video_frames") and self.steps % self.recording_interval == 0:
+                    self.records.video_frames(self.steps, self.env.recording_frames())
+                recording_seconds = perf_counter() - recording_start
+                self.recording_seconds += recording_seconds
+                evaluation_start = perf_counter()
+                try:
+                    self._evaluate()
+                    self._record("evaluator/states.jsonl", {"step": self.steps, **self.env.snapshot()})
+                finally:
+                    evaluation_seconds = perf_counter() - evaluation_start
+                    self.evaluation_seconds += evaluation_seconds
+            except Exception:
+                self._record("step_timings.jsonl", {"step": self.steps,
+                    "started_at_unix_ns": started_at_unix_ns, "status": "post_step_error",
+                    "physics_seconds": physics_seconds, "policy_wait_seconds": policy_wait_seconds,
+                    "recording_seconds": perf_counter() - recording_start if not recording_seconds else recording_seconds,
+                    "evaluation_seconds": evaluation_seconds,
+                    "sim_time_before": sim_time_before, "sim_time_after": sim_time_after,
+                    "sim_step_seconds": sim_time_after - sim_time_before,
+                    "episode_elapsed_seconds": perf_counter() - self._episode_start,
+                    "wall_seconds": perf_counter() - step_start})
+                raise
+            self._record("step_timings.jsonl", {"step": self.steps,
+                "started_at_unix_ns": started_at_unix_ns, "status": "ok",
+                "physics_seconds": physics_seconds, "policy_wait_seconds": policy_wait_seconds,
+                "recording_seconds": recording_seconds, "evaluation_seconds": evaluation_seconds,
+                "sim_time_before": sim_time_before, "sim_time_after": sim_time_after,
+                "sim_step_seconds": sim_time_after - sim_time_before,
+                "episode_elapsed_seconds": perf_counter() - self._episode_start,
+                "wall_seconds": perf_counter() - step_start})
 
     def run(self, seed):
         if self.status != "not_started":
             raise RuntimeError("Runner instances execute exactly one episode")
         start = perf_counter()
+        self._episode_start = start
+        episode_started_at_unix_ns = time_ns()
         infrastructure_error = None
         self.status = "running"
         try:
             self.env.reset(seed)
             self.policy.reset_episode(seed)
-            if self.records and hasattr(self.records, "video_frame"):
-                self.records.video_frame(0, self.env.recording_frame())
+            if self.records and hasattr(self.records, "video_frames"):
+                self.records.video_frames(0, self.env.recording_frames())
             self._record("evaluator/states.jsonl", {"step": 0, **self.env.snapshot()})
             self._evaluate()
             while self.status == "running":
@@ -141,10 +207,19 @@ class Runner:
                     self.records.observation(self.decisions, observation)
                 self.decisions += 1  # malformed outputs and transport failures count
                 tick = perf_counter()
+                started_at_unix_ns = time_ns()
                 try:
                     reply = self.agent.decide(observation)
                 finally:
-                    self.model_seconds += perf_counter() - tick
+                    model_seconds = perf_counter() - tick
+                    self.model_seconds += model_seconds
+                    self._record("model_timings.jsonl", {"decision_index": self.decisions,
+                        "started_at_unix_ns": started_at_unix_ns,
+                        "episode_elapsed_seconds": perf_counter() - self._episode_start,
+                        "wall_seconds": model_seconds})
+                    api_trace = getattr(self.agent, "last_trace", None)
+                    if api_trace is not None:
+                        self._record("model_api_traces.jsonl", {"decision_index": self.decisions, **api_trace})
                 if not isinstance(reply, ModelReply):
                     raise TypeError("agent adapter must return ModelReply")
                 self.usage.append(reply.usage)
@@ -153,7 +228,7 @@ class Runner:
                 self.last_error = None
                 # Catch agent validation errors separately from executor failures.
                 try:
-                    decision = validate_decision(reply.decision, self.skills, self.limits)
+                    decision = validate_decision(reply.decision, self.limits)
                     self._validate_state(decision)
                 except ValueError as error:
                     self.last_error = str(error)
@@ -175,17 +250,25 @@ class Runner:
             except Exception as error:
                 self.status = "infrastructure_error"
                 infrastructure_error = f"close failed: {type(error).__name__}: {error}"
-        ops = [e["decision"]["op"] for e in self.history if e["accepted"]]
         result = {
+            "started_at_unix_ns": episode_started_at_unix_ns,
+            "ended_at_unix_ns": time_ns(),
             "status": self.status,
             "success": self.status == "success",
             "physical_success_final": self.last_physical,
             "physical_success_any": self.physical_any,
             "false_completion": self.status == "false_completion",
             "steps": self.steps, "model_calls": self.decisions, "policy_calls": self.policy_calls,
-            "switches": ops.count("switch"), "retries": ops.count("retry"), "interrupts": ops.count("interrupt"),
+            "prompt_submissions": self.prompt_submissions,
+            "prompt_changes": self.prompt_changes,
+            "prompt_restarts": self.prompt_restarts,
+            "discarded_actions": self.discarded_actions,
             "intervals": [e["decision"]["steps"] for e in self.history if e["accepted"] and "steps" in e["decision"]],
             "model_seconds": self.model_seconds, "policy_seconds": self.policy_seconds,
+            "simulation_seconds": self.simulation_seconds,
+            "simulated_seconds": self.simulated_seconds,
+            "recording_seconds": self.recording_seconds,
+            "evaluation_seconds": self.evaluation_seconds,
             "wall_seconds": perf_counter() - start, "usage": self.usage,
             "infrastructure_error": infrastructure_error,
         }

@@ -9,6 +9,7 @@ from pathlib import Path
 import platform
 import shutil
 import sys
+from time import perf_counter, time_ns
 import traceback
 from urllib.parse import urlparse
 
@@ -26,6 +27,7 @@ from .feasibility import (
 )
 from .records import Records, digest
 from .runner import Runner
+from .video import encode_episode_videos
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_TASK = PROJECT_ROOT / "configs" / "cereal_and_bowl.json"
@@ -37,6 +39,10 @@ CONTRACT_FILES = (
     "src/robot_benchmark/adapters/robocasa.py",
     "src/robot_benchmark/adapters/policy.py",
     "src/robot_benchmark/adapters/agents.py",
+    "src/robot_benchmark/adapters/http.py",
+    "src/robot_benchmark/policy_worker.py",
+    "src/robot_benchmark/records.py",
+    "src/robot_benchmark/video.py",
 )
 FULL_TASK_INSTRUCTION = (
     "Open the cabinet. Pick the cereal and bowl from the cabinet and place them "
@@ -47,7 +53,7 @@ SCORED_GOAL = (
     "and leave the cabinet closed. Declare completion when both objects are on the "
     "counter and the cabinet is closed."
 )
-SKILL_INSTRUCTIONS = {
+REFERENCE_PROMPTS = {
     "open_cabinet": "Open the cabinet.",
     "transfer_cereal": "Pick the cereal box from the cabinet and place it on the counter.",
     "transfer_bowl": "Pick the bowl from the cabinet and place it on the counter.",
@@ -101,29 +107,30 @@ def validate_splits(value):
 
 def task_parts(path: Path):
     config = read_json(path)
-    expected = {"task", "split", "goal", "max_steps", "max_decisions", "max_interval", "camera_size", "video_record_interval", "skills"}
+    expected = {"task", "split", "goal", "max_steps", "max_decisions", "max_interval", "camera_size", "video_record_interval", "reference_prompts"}
     fixed = (
-        config.get("task") == "CerealAndBowl"
+        config.get("schema_version") == 2
+        and config.get("task") == "CerealAndBowl"
         and config.get("split") == "pretrain"
         and config.get("goal") == SCORED_GOAL
         and (config.get("max_steps"), config.get("max_decisions"), config.get("max_interval")) == (4350, 100, 100)
         and config.get("camera_size") == 256
-        and config.get("video_record_interval") == 2
+        and config.get("video_record_interval") == 1
         and config.get("agent_image_history") == "current_frame_only_plus_decision_history"
         and config.get("artificial_disturbances") is False
     )
     if not expected <= config.keys() or not fixed:
         raise ValueError("this pilot supports only the audited CerealAndBowl task config")
-    if not isinstance(config["skills"], list) or not all(isinstance(item, dict) for item in config["skills"]):
-        raise ValueError("skills must be a list of objects")
-    if [item.get("id") for item in config["skills"]] != list(SKILL_INSTRUCTIONS) or any(
-        item.get("instruction") != SKILL_INSTRUCTIONS[item["id"]] for item in config["skills"]
+    if not isinstance(config["reference_prompts"], list) or not all(isinstance(item, dict) for item in config["reference_prompts"]):
+        raise ValueError("reference_prompts must be a list of objects")
+    if [item.get("id") for item in config["reference_prompts"]] != list(REFERENCE_PROMPTS) or any(
+        item.get("prompt") != REFERENCE_PROMPTS[item["id"]] for item in config["reference_prompts"]
     ):
-        raise ValueError("the fixed CerealAndBowl skill library changed")
-    skills = [Skill(item["id"], item["instruction"], item["description"], item["performance"])
-              for item in config["skills"]]
+        raise ValueError("the CerealAndBowl reference prompts changed")
+    reference_prompts = [Skill(item["id"], item["prompt"], item["description"], item["performance"])
+                         for item in config["reference_prompts"]]
     limits = Limits(config["max_steps"], config["max_decisions"], config["max_interval"])
-    return config, skills, limits
+    return config, reference_prompts, limits
 
 
 def implementation_hashes():
@@ -140,13 +147,9 @@ def contract_payload(task_config, policy_identity, splits=None):
     source_identity = {
         name: entry["revision"] for name, entry in lock["repositories"].items()
     }
-
-
-def qualification_contract_payload(task_config, policy_identity):
-    return contract_payload(qualification_config_view(task_config), policy_identity)
     source_identity["checkpoint_registry_revision"] = lock["checkpoint"]["revision"]
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "task_config": task_config,
         "source_revisions": source_identity,
         "policy_identity": policy_identity,
@@ -157,19 +160,28 @@ def qualification_contract_payload(task_config, policy_identity):
     }
 
 
+def qualification_contract_payload(task_config, policy_identity):
+    return contract_payload(qualification_config_view(task_config), policy_identity)
+
+
 def episode_path(output: Path, seed: int):
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
     return output / f"seed-{seed}-{stamp}"
 
 
-def infrastructure_result(error):
+def infrastructure_result(error, started_at_unix_ns=None, wall_seconds=0.0):
     return {
+        "started_at_unix_ns": started_at_unix_ns,
+        "ended_at_unix_ns": time_ns(),
         "status": "infrastructure_error", "success": False,
         "physical_success_final": None, "physical_success_any": False,
         "false_completion": False, "steps": 0, "model_calls": 0,
-        "policy_calls": 0, "switches": 0, "retries": 0, "interrupts": 0,
+        "policy_calls": 0, "prompt_submissions": 0, "prompt_changes": 0,
+        "prompt_restarts": 0, "discarded_actions": 0,
         "intervals": [], "model_seconds": 0.0, "policy_seconds": 0.0,
-        "wall_seconds": 0.0, "usage": [],
+        "simulation_seconds": 0.0, "simulated_seconds": 0.0,
+        "recording_seconds": 0.0,
+        "evaluation_seconds": 0.0, "wall_seconds": wall_seconds, "usage": [],
         "infrastructure_error": f"{type(error).__name__}: {error}",
     }
 
@@ -188,7 +200,9 @@ def resolve_audit_paths(values, project_root=PROJECT_ROOT):
     return resolved_paths
 
 
-def run_episode(*, seed, output, task_config, skills, limits, policy, agent_factory, kind, contract_hash):
+def run_episode(*, seed, output, task_config, reference_prompts, limits, policy, agent_factory, kind, contract_hash):
+    started_at_unix_ns = time_ns()
+    started = perf_counter()
     path = episode_path(output, seed)
     manifest = {
         "artifact_type": "episode", "schema_version": 1, "created_at": datetime.now(timezone.utc).isoformat(),
@@ -207,7 +221,7 @@ def run_episode(*, seed, output, task_config, skills, limits, policy, agent_fact
         agent = agent_factory(env)
         manifest["agent"] = agent.identity
         records.write("manifest.json", manifest)
-        runner = Runner(env, policy, agent, skills, task_config["goal"], limits, records,
+        runner = Runner(env, policy, agent, reference_prompts, task_config["goal"], limits, records,
                         recording_interval=task_config["video_record_interval"])
         result = runner.run(seed)
     except Exception as error:
@@ -216,9 +230,15 @@ def run_episode(*, seed, output, task_config, skills, limits, policy, agent_fact
                 env.close()
             except Exception:
                 pass
-        result = infrastructure_result(error)
+        result = infrastructure_result(error, started_at_unix_ns, perf_counter() - started)
         records.append("evaluator/errors.jsonl", {"error": result["infrastructure_error"], "traceback": traceback.format_exc()})
         records.write("result.json", result)
+    try:
+        videos = encode_episode_videos(path)
+        records.write("videos/manifest.json", videos)
+    except Exception as error:
+        records.append("artifact_errors.jsonl", {"kind": "video_encoding",
+            "error": f"{type(error).__name__}: {error}"})
     print(json.dumps({"seed": seed, "episode": str(path), "status": result["status"], "success": result["success"]}))
     return result
 
@@ -231,6 +251,8 @@ def command_doctor(args):
         "platform": platform.platform(), "free_gib": round(shutil.disk_usage(PROJECT_ROOT).free / 1024**3, 2),
         "task": task["task"], "horizon": limits.max_steps,
         "source_lock_status": lock.get("status"), "core_import": True,
+        "video_encoder": {"ok": shutil.which("ffmpeg") is not None,
+                          "path": shutil.which("ffmpeg")},
     }
     try:
         import robocasa
@@ -245,7 +267,7 @@ def command_doctor(args):
             checks["policy_worker"] = {"ok": False, "error": f"{type(error).__name__}: {error}"}
     write_json(args.output, checks)
     print(json.dumps(checks, indent=2))
-    ok = checks["sim_import"]["ok"] and checks.get("policy_worker", {"ok": True})["ok"]
+    ok = checks["sim_import"]["ok"] and checks["video_encoder"]["ok"] and checks.get("policy_worker", {"ok": True})["ok"]
     return 0 if ok else 1
 
 
@@ -271,29 +293,29 @@ def command_smoke_sim(args):
 
 
 def command_feasibility(args):
-    config, public_skills, limits = task_parts(args.task_config)
+    config, public_prompts, limits = task_parts(args.task_config)
     if not 1 <= args.supervisor_interval <= limits.max_interval:
         raise ValueError(f"supervisor interval must be in [1, {limits.max_interval}]")
     policy = RemotePolicy(args.policy_url)
     if args.mode == "ordinary":
-        skills = [Skill("full_task", FULL_TASK_INSTRUCTION, "Unmodified whole-task policy diagnostic.",
-                        {"status": "diagnostic"})]
+        reference_prompts = [Skill("full_task", FULL_TASK_INSTRUCTION, "Unmodified whole-task policy diagnostic.",
+                                   {"status": "diagnostic"})]
         factory = lambda env: OrdinaryPolicySupervisor(env)
     else:
-        skills = public_skills
+        reference_prompts = public_prompts
         factory = lambda env: DiagnosticSupervisor(env, interval=args.supervisor_interval)
     payload = qualification_contract_payload(config, policy.identity)
     contract_hash = digest(payload)
     args.output.mkdir(parents=True, exist_ok=True)
     write_json(args.output / "contract.json", payload)
     for seed in args.seeds:
-        run_episode(seed=seed, output=args.output, task_config=config, skills=skills, limits=limits,
+        run_episode(seed=seed, output=args.output, task_config=config, reference_prompts=reference_prompts, limits=limits,
                     policy=policy, agent_factory=factory, kind=f"diagnostic_{args.mode}", contract_hash=contract_hash)
     return 0
 
 
 def command_run(args):
-    config, skills, limits = task_parts(args.task_config)
+    config, reference_prompts, limits = task_parts(args.task_config)
     model_config = read_json(args.agent_config)
     policy = RemotePolicy(args.policy_url)
     splits = validate_splits(read_json(args.splits))
@@ -314,7 +336,7 @@ def command_run(args):
     args.output.mkdir(parents=True, exist_ok=True)
     write_json(args.output / "contract.json", payload)
     for seed in args.seeds:
-        run_episode(seed=seed, output=args.output, task_config=config, skills=skills, limits=limits,
+        run_episode(seed=seed, output=args.output, task_config=config, reference_prompts=reference_prompts, limits=limits,
                     policy=policy, agent_factory=lambda env, value=agent: value, kind=kind,
                     contract_hash=contract_hash)
     return 0
@@ -365,7 +387,7 @@ def command_release(args):
     if not resolved_paths or any(not path.is_file() for path in resolved_paths):
         raise ValueError("all audited qualification and relevance trace paths must exist under the project")
     payload = contract_payload(config, policy.identity, splits)
-    release = {"schema_version": 1, "status": "frozen", "created_at": datetime.now(timezone.utc).isoformat(),
+    release = {"schema_version": 2, "status": "frozen", "created_at": datetime.now(timezone.utc).isoformat(),
                "contract_hash": digest(payload), "qualification_report_sha256": digest(qualification),
                "evaluation_seeds": splits["evaluation_seeds"], "contract": payload}
     write_json(args.output, release)

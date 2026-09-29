@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "status": "development_unqualified",
   "task": "CerealAndBowl",
   "split": "pretrain",
@@ -8,13 +8,13 @@
   "max_decisions": 100,
   "max_interval": 100,
   "camera_size": 256,
-  "video_record_interval": 2,
+  "video_record_interval": 1,
   "agent_image_history": "current_frame_only_plus_decision_history",
   "artificial_disturbances": false,
-  "skills": [
-    {"id": "open_cabinet", "instruction": "Open the cabinet.", "description": "Open the cabinet containing the cereal box and bowl.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
-    {"id": "transfer_cereal", "instruction": "Pick the cereal box from the cabinet and place it on the counter.", "description": "Transfer the cereal box from the cabinet to the adjacent counter.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
-    {"id": "transfer_bowl", "instruction": "Pick the bowl from the cabinet and place it on the counter.", "description": "Transfer the bowl from the cabinet to the adjacent counter.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
-    {"id": "close_cabinet", "instruction": "Close the cabinet.", "description": "Close the cabinet doors after retrieving the objects.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}}
+  "reference_prompts": [
+    {"id": "open_cabinet", "prompt": "Open the cabinet.", "description": "Exact qualification prompt for opening the cabinet containing the cereal box and bowl; not an allowlist entry.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
+    {"id": "transfer_cereal", "prompt": "Pick the cereal box from the cabinet and place it on the counter.", "description": "Exact qualification prompt for transferring the cereal box to the adjacent counter; not an allowlist entry.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
+    {"id": "transfer_bowl", "prompt": "Pick the bowl from the cabinet and place it on the counter.", "description": "Exact qualification prompt for transferring the bowl to the adjacent counter; not an allowlist entry.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}},
+    {"id": "close_cabinet", "prompt": "Close the cabinet.", "description": "Exact qualification prompt for closing the cabinet after retrieving the objects; not an allowlist entry.", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}}
   ]
 }

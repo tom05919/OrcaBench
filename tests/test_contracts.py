@@ -13,7 +13,7 @@ from robot_benchmark.contracts import (
     validate_decision,
 )
 
-from tests.fakes import SENTINEL, action, skills
+from tests.fakes import SENTINEL, action
 
 
 class LimitsContractTests(unittest.TestCase):
@@ -30,21 +30,17 @@ class LimitsContractTests(unittest.TestCase):
 
 class DecisionContractTests(unittest.TestCase):
     def setUp(self):
-        self.skill_map = {skill.id: skill for skill in skills()}
         self.limits = Limits(10, 10, 3)
 
     def test_each_operation_requires_its_exact_schema(self):
         valid = [
-            {"op": "start", "skill": "pick", "steps": 1},
-            {"op": "continue", "steps": 2},
-            {"op": "interrupt"},
-            {"op": "switch", "skill": "place", "steps": 3},
-            {"op": "retry", "steps": 1},
+            {"op": "run_policy", "prompt": "Pick either object.", "steps": 1},
+            {"op": "run_policy", "steps": 3},
             {"op": "complete"},
         ]
         for decision in valid:
             with self.subTest(decision=decision):
-                self.assertEqual(validate_decision(decision, self.skill_map, self.limits), decision)
+                self.assertEqual(validate_decision(decision, self.limits), decision)
 
         invalid = [
             None,
@@ -52,20 +48,38 @@ class DecisionContractTests(unittest.TestCase):
             {"op": 1},
             {"op": "unknown"},
             {"op": "complete", "steps": 1},
-            {"op": "start", "skill": "pick"},
-            {"op": "continue", "steps": 1, "skill": "pick"},
-            {"op": "switch", "skill": "missing", "steps": 1},
+            {"op": "run_policy"},
+            {"op": "run_policy", "steps": 1, "skill": "pick"},
+            {"op": "run_policy", "steps": 1, "prompt": "ok", "extra": True},
         ]
         for decision in invalid:
             with self.subTest(decision=decision):
                 with self.assertRaises(ValueError):
-                    validate_decision(decision, self.skill_map, self.limits)
+                    validate_decision(decision, self.limits)
 
     def test_step_count_rejects_booleans_and_out_of_range_values(self):
         for value in (True, False, 0, 4, 1.0):
             with self.subTest(value=value):
                 with self.assertRaisesRegex(ValueError, "steps must be an integer"):
-                    validate_decision({"op": "continue", "steps": value}, self.skill_map, self.limits)
+                    validate_decision({"op": "run_policy", "steps": value}, self.limits)
+
+    def test_prompt_must_be_nonblank_text_within_the_length_limit(self):
+        for value in (None, True, 1, "", " \t\n", "x" * 513):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "prompt"):
+                    validate_decision(
+                        {"op": "run_policy", "prompt": value, "steps": 1},
+                        self.limits,
+                    )
+
+        prompt = "  preserve my spacing exactly  "
+        self.assertEqual(
+            validate_decision(
+                {"op": "run_policy", "prompt": prompt, "steps": 1},
+                self.limits,
+            )["prompt"],
+            prompt,
+        )
 
 
 class ActionContractTests(unittest.TestCase):
@@ -132,12 +146,13 @@ class ObservationProjectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid proprioception"):
             sensor_payload({"images": images, "proprio": bad_proprio})
 
-    def test_skill_public_value_is_a_deep_copy(self):
+    def test_reference_prompt_public_value_is_a_deep_copy(self):
         performance = {"metric": {"trials": [1]}}
-        skill = Skill("id", "instruction", "description", performance)
-        public = skill.public()
+        reference = Skill("id", "instruction", "description", performance)
+        public = reference.public()
         public["performance"]["metric"]["trials"].append(2)
-        self.assertEqual(skill.performance, {"metric": {"trials": [1]}})
+        self.assertEqual(public["prompt"], "instruction")
+        self.assertEqual(reference.performance, {"metric": {"trials": [1]}})
 
 
 if __name__ == "__main__":

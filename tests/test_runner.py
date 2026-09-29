@@ -1,4 +1,3 @@
-import copy
 import unittest
 
 from robot_benchmark.contracts import Limits, Skill
@@ -15,7 +14,7 @@ from tests.fakes import (
 
 
 class RunnerValidationTests(unittest.TestCase):
-    def test_skill_ids_must_be_nonempty_and_unique(self):
+    def test_reference_prompt_ids_must_be_nonempty_and_unique(self):
         common = (FakeEnvironment(), FakePolicy(), FakeAgent([]), "goal", Limits(1))
         with self.assertRaisesRegex(ValueError, "nonempty and unique"):
             from robot_benchmark.runner import Runner
@@ -31,7 +30,7 @@ class RunnerValidationTests(unittest.TestCase):
         env = FakeEnvironment()
         runner = make_runner(
             [
-                {"op": "start", "skill": "pick"},
+                {"op": "run_policy", "prompt": "pick", "steps": 0},
                 {"op": "complete", "unexpected": True},
             ],
             env=env,
@@ -53,8 +52,8 @@ class RunnerValidationTests(unittest.TestCase):
         policy = FakePolicy(chunks=[[action(1), action(2), action(3)]])
         runner = make_runner(
             [
-                {"op": "start", "skill": "pick", "steps": 2},
-                {"op": "continue", "steps": 2},
+                {"op": "run_policy", "prompt": "pick", "steps": 2},
+                {"op": "run_policy", "steps": 2},
                 {"op": "complete"},
             ],
             env=env,
@@ -84,14 +83,17 @@ class RunnerValidationTests(unittest.TestCase):
             "video.robot0_eye_in_hand",
         })
         observation["history"][0]["nested"]["items"].append(2)
-        observation["skills"][0]["performance"]["success_rate"] = 1.0
+        self.assertEqual(observation["active_instruction"], None)
+        self.assertNotIn("active_skill", observation)
+        self.assertNotIn("last_skill", observation)
+        observation["reference_prompts"][0]["performance"]["success_rate"] = 1.0
         self.assertEqual(runner.history[0]["nested"]["items"], [1])
-        self.assertIsNone(runner.skills["pick"].performance["success_rate"])
+        self.assertIsNone(runner.reference_prompts["pick"].performance["success_rate"])
 
     def test_policy_observation_never_enters_agent_observation(self):
         policy = FakePolicy(chunks=[[action()]])
         runner = make_runner(
-            [{"op": "start", "skill": "pick", "steps": 1}, {"op": "complete"}],
+            [{"op": "run_policy", "prompt": "pick", "steps": 1}, {"op": "complete"}],
             policy=policy,
         )
         runner.run(seed=3)
@@ -102,68 +104,79 @@ class RunnerValidationTests(unittest.TestCase):
 
 
 class RunnerPolicyStateTests(unittest.TestCase):
-    def test_continue_consumes_the_existing_action_chunk(self):
+    def test_omitted_prompt_consumes_the_existing_action_chunk(self):
         env = FakeEnvironment()
         policy = FakePolicy(chunks=[[action(1), action(2), action(3)]])
         runner = make_runner([], env=env, policy=policy)
 
-        runner.apply({"op": "start", "skill": "pick", "steps": 1})
-        runner.apply({"op": "continue", "steps": 2})
+        runner.apply({"op": "run_policy", "prompt": "pick the red bowl", "steps": 1})
+        runner.apply({"op": "run_policy", "steps": 2})
 
         self.assertEqual(len(policy.predict_calls), 1)
         self.assertEqual([value["action.end_effector_position"][0] for value in env.step_attempts], [1, 2, 3])
 
-    def test_switch_retry_and_interrupt_discard_queued_actions(self):
-        cases = {
-            "switch": [{"op": "switch", "skill": "place", "steps": 1}],
-            "retry": [{"op": "retry", "steps": 1}],
-            "interrupt": [{"op": "interrupt"}, {"op": "retry", "steps": 1}],
-        }
-        for name, operations in cases.items():
-            with self.subTest(operation=name):
-                env = FakeEnvironment()
-                policy = FakePolicy(
-                    chunks=[
-                        [action(1), action(2), action(3)],
-                        [action(10), action(11)],
-                    ]
-                )
-                runner = make_runner([], env=env, policy=policy)
-                runner.apply({"op": "start", "skill": "pick", "steps": 1})
-                for operation in operations:
-                    runner.apply(operation)
-
-                markers = [value["action.end_effector_position"][0] for value in env.step_attempts]
-                self.assertEqual(markers, [1, 10])
-                self.assertEqual(len(policy.predict_calls), 2)
-
-    def test_interrupt_preserves_world_and_last_skill_for_retry(self):
+    def test_new_prompt_is_forwarded_verbatim_and_discards_stale_actions(self):
         env = FakeEnvironment()
-        policy = FakePolicy(chunks=[[action(1), action(2)]])
+        policy = FakePolicy(chunks=[[action(1), action(2), action(3)], [action(10)]])
         runner = make_runner([], env=env, policy=policy)
-        runner.apply({"op": "start", "skill": "pick", "steps": 1})
-        before = copy.deepcopy(env.snapshot())
+        first = "  grasp whichever object is nearest  "
+        second = "close the left cabinet door"
 
-        runner.apply({"op": "interrupt"})
+        runner.apply({"op": "run_policy", "prompt": first, "steps": 1})
+        runner.apply({"op": "run_policy", "prompt": second, "steps": 1})
 
-        self.assertEqual(env.snapshot(), before)
-        self.assertEqual(runner.steps, 1)
-        self.assertIsNone(runner.active)
-        self.assertEqual(runner.last_skill, "pick")
-        self.assertEqual(len(runner.queue), 0)
+        self.assertEqual([call[1] for call in policy.predict_calls], [first, second])
+        self.assertEqual(
+            [value["action.end_effector_position"][0] for value in env.step_attempts],
+            [1, 10],
+        )
+        self.assertEqual(runner.active_instruction, second)
 
-    def test_active_and_last_skill_follow_explicit_transitions(self):
-        policy = FakePolicy(chunks=[[action()], [action()], [action()]])
-        runner = make_runner([], policy=policy)
+    def test_resubmitting_same_prompt_restarts_policy_and_discards_queue(self):
+        env = FakeEnvironment()
+        policy = FakePolicy(chunks=[[action(1), action(2)], [action(10)]])
+        runner = make_runner([], env=env, policy=policy)
+        prompt = "pick the bowl"
 
-        runner.apply({"op": "start", "skill": "pick", "steps": 1})
-        self.assertEqual((runner.active, runner.last_skill), ("pick", "pick"))
-        runner.apply({"op": "interrupt"})
-        self.assertEqual((runner.active, runner.last_skill), (None, "pick"))
-        runner.apply({"op": "retry", "steps": 1})
-        self.assertEqual((runner.active, runner.last_skill), ("pick", "pick"))
-        runner.apply({"op": "switch", "skill": "place", "steps": 1})
-        self.assertEqual((runner.active, runner.last_skill), ("place", "place"))
+        runner.apply({"op": "run_policy", "prompt": prompt, "steps": 1})
+        runner.apply({"op": "run_policy", "prompt": prompt, "steps": 1})
+
+        self.assertEqual([call[1] for call in policy.predict_calls], [prompt, prompt])
+        self.assertEqual(
+            [value["action.end_effector_position"][0] for value in env.step_attempts],
+            [1, 10],
+        )
+        self.assertEqual(policy.reset_skill_calls, 2)
+
+    def test_prompt_is_required_before_continuation(self):
+        runner = make_runner([])
+        with self.assertRaisesRegex(ValueError, "prompt"):
+            runner.apply({"op": "run_policy", "steps": 1})
+
+    def test_prompt_metrics_distinguish_submissions_changes_and_restarts(self):
+        policy = FakePolicy(chunks=[
+            [action(1), action(2), action(3), action(4)],
+            [action(10), action(11)],
+            [action(20)],
+        ])
+        runner = make_runner(
+            [
+                {"op": "run_policy", "prompt": "pick", "steps": 1},
+                {"op": "run_policy", "steps": 1},
+                {"op": "run_policy", "prompt": "place", "steps": 1},
+                {"op": "run_policy", "prompt": "place", "steps": 1},
+                {"op": "complete"},
+            ],
+            policy=policy,
+        )
+
+        result = runner.run(seed=1)
+
+        self.assertEqual(result["prompt_submissions"], 3)
+        self.assertEqual(result["prompt_changes"], 1)
+        self.assertEqual(result["prompt_restarts"], 1)
+        self.assertEqual(result["discarded_actions"], 3)
+        self.assertEqual(result["intervals"], [1, 1, 1, 1])
 
     def test_run_resets_policy_episode_with_environment_seed(self):
         env = FakeEnvironment()
@@ -180,7 +193,7 @@ class RunnerOutcomeTests(unittest.TestCase):
     def test_success_requires_physical_success_and_complete(self):
         env = FakeEnvironment(success=lambda step: step >= 1)
         runner = make_runner(
-            [{"op": "start", "skill": "pick", "steps": 1}, {"op": "complete"}],
+            [{"op": "run_policy", "prompt": "pick", "steps": 1}, {"op": "complete"}],
             env=env,
         )
 
@@ -206,7 +219,7 @@ class RunnerOutcomeTests(unittest.TestCase):
     def test_physical_success_reached_then_lost_tracks_final_and_any(self):
         env = FakeEnvironment(success=lambda step: step == 1)
         runner = make_runner(
-            [{"op": "start", "skill": "pick", "steps": 2}, {"op": "complete"}],
+            [{"op": "run_policy", "prompt": "pick", "steps": 2}, {"op": "complete"}],
             env=env,
         )
 
@@ -219,7 +232,7 @@ class RunnerOutcomeTests(unittest.TestCase):
     def test_reaching_physical_horizon_does_not_grant_success(self):
         env = FakeEnvironment(success=lambda step: step >= 2)
         runner = make_runner(
-            [{"op": "start", "skill": "pick", "steps": 2}],
+            [{"op": "run_policy", "prompt": "pick", "steps": 2}],
             env=env,
             limits=Limits(max_steps=2, max_decisions=3, max_interval=2),
         )
@@ -266,13 +279,13 @@ class InfrastructureFailureTests(unittest.TestCase):
                 "needle": "ConnectionError: transport unavailable",
             },
             "inference": {
-                "replies": [{"op": "start", "skill": "pick", "steps": 1}],
+                "replies": [{"op": "run_policy", "prompt": "pick", "steps": 1}],
                 "policy": FakePolicy(predict_error=TimeoutError("inference timeout")),
                 "env": FakeEnvironment(),
                 "needle": "TimeoutError: inference timeout",
             },
             "simulator": {
-                "replies": [{"op": "start", "skill": "pick", "steps": 1}],
+                "replies": [{"op": "run_policy", "prompt": "pick", "steps": 1}],
                 "policy": FakePolicy(chunks=[[action(1)]]),
                 "env": FakeEnvironment(step_error=RuntimeError("simulator failed")),
                 "needle": "RuntimeError: simulator failed",
@@ -298,7 +311,7 @@ class InfrastructureFailureTests(unittest.TestCase):
         env = FakeEnvironment(step_error=RuntimeError("uncertain simulator state"))
         records = CaptureRecords()
         runner = make_runner(
-            [{"op": "start", "skill": "pick", "steps": 3}],
+            [{"op": "run_policy", "prompt": "pick", "steps": 3}],
             env=env,
             policy=FakePolicy(chunks=[[action(1), action(2), action(3)]]),
             records=records,

@@ -1,11 +1,42 @@
+import copy
 import tempfile
 import unittest
 from pathlib import Path
 
-from robot_benchmark.cli import parse_seeds, resolve_audit_paths, validate_splits
+from robot_benchmark.cli import contract_payload, parse_seeds, resolve_audit_paths, validate_splits
+from robot_benchmark.records import digest
 
 
 class CliValidationTests(unittest.TestCase):
+    def test_contract_payload_is_present_and_prompt_sensitive(self):
+        task = {
+            "schema_version": 2,
+            "reference_prompts": [
+                {
+                    "id": "pick",
+                    "prompt": "Pick the bowl.",
+                    "description": "Diagnostic reference prompt.",
+                    "performance": {"status": "untested"},
+                }
+            ],
+        }
+        policy = {"adapter": "fake-policy", "checkpoint": "pinned"}
+        splits = {
+            "development_seeds": [1],
+            "qualification_seeds": [2],
+            "evaluation_seeds": list(range(100, 120)),
+        }
+
+        payload = contract_payload(task, policy, splits)
+        changed = copy.deepcopy(task)
+        changed["reference_prompts"][0]["prompt"] = "Pick the cereal box."
+
+        self.assertIsInstance(payload, dict)
+        self.assertEqual(payload["task_config"], task)
+        self.assertEqual(payload["policy_identity"], policy)
+        self.assertEqual(payload["splits"], splits)
+        self.assertNotEqual(digest(payload), digest(contract_payload(changed, policy, splits)))
+
     def test_seed_sets_must_be_unique_and_bounded(self):
         self.assertEqual(parse_seeds("1,2,3"), [1, 2, 3])
         for value in ("1,1", "-1", str(2**32), "one"):

@@ -25,9 +25,10 @@ def write_episode(root, name, *, model, seed, status, success, kind="llm", agent
         "steps": 12,
         "model_calls": 3,
         "policy_calls": 2,
-        "switches": 1,
-        "retries": 2,
-        "interrupts": 0,
+        "prompt_submissions": 3,
+        "prompt_changes": 1,
+        "prompt_restarts": 1,
+        "discarded_actions": 4,
         "intervals": [4, 8],
         "model_seconds": 1.5,
         "policy_seconds": 2.5,
@@ -53,6 +54,10 @@ class EvaluationTests(unittest.TestCase):
             self.assertEqual(group["success_rate"], 0.5)
             self.assertEqual(group["total_steps"], 24)
             self.assertEqual(group["total_model_calls"], 6)
+            self.assertEqual(group["prompt_submissions"], 6)
+            self.assertEqual(group["prompt_changes"], 2)
+            self.assertEqual(group["prompt_restarts"], 2)
+            self.assertEqual(group["discarded_actions"], 8)
             self.assertEqual(group["interval_histogram"], {"4": 2, "8": 2})
             self.assertEqual(group["token_usage_totals"], {"input_tokens": 20, "output_tokens": 4})
             paired = report["paired_comparisons"][0]

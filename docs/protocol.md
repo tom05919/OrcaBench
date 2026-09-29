@@ -3,19 +3,20 @@
 ## Study question and controlled variables
 
 The benchmark compares multiple LLM orchestrators as supervisors of the same
-fixed learned-policy library. A model may decide which learned skill runs, how
-many control steps elapse before it observes again, whether to interrupt or
-retry, and when to declare completion. It never emits robot controls directly.
+fixed learned policy. A model may write any natural-language instruction for the
+policy, decide how many control steps elapse before it observes again, redirect
+or restart the policy, and declare completion. It never emits robot controls
+directly.
 
 Every reported model comparison must hold these items fixed:
 
 - the source revisions and checkpoint revision in
   [`configs/sources.lock.json`](../configs/sources.lock.json);
 - the selected learned-policy backend and checkpoint;
-- the four skill instructions, policy preprocessing, cameras, proprioception,
-  controller, task split, seeds, and initial states;
+- the reference qualification prompts and their evidence, policy preprocessing,
+  cameras, proprioception, controller, task split, seeds, and initial states;
 - the 4,350-control-step episode horizon, 100-model-call limit, and 1–100-step
-  observation interval, with at most 1,024 output tokens per model call;
+  observation interval, with at most 4,096 output tokens per model call;
 - the model-facing prompt and operation schema, except for provider-required
   serialization;
 - the physical evaluator and result aggregation.
@@ -52,16 +53,26 @@ the gripper to release either object or require contact to remain stable for a
 minimum time. These are limitations of the source task, not extra benchmark
 conditions.
 
-## Fixed learned skills
+## Reference qualification prompts
 
-The library exposes only these four learned-policy instructions:
+The benchmark publishes performance cards for four exact learned-policy prompts:
 
-| Skill ID | Fixed instruction |
+| Reference ID | Prompt |
 |---|---|
 | `open_cabinet` | Open the cabinet. |
 | `transfer_cereal` | Pick the cereal box from the cabinet and place it on the counter. |
 | `transfer_bowl` | Pick the bowl from the cabinet and place it on the counter. |
 | `close_cabinet` | Close the cabinet. |
+
+These prompts are diagnostic probes, not the model's action vocabulary or an
+allowlist. During model evaluation, the orchestrator may send any nonblank
+natural-language prompt of at most 512 characters to the same checkpoint.
+Accepted text is forwarded verbatim, without trimming or other normalization;
+validation only rejects blank or overlength strings. A card supports only its
+exact prompt under its tested entry conditions; it does not establish that
+paraphrases, composed instructions, or prompts changed during execution work.
+Those uses are allowed by the interface but remain unproven until retained GPU
+rollouts provide evidence.
 
 The first policy candidate is the official
 [`robocasa/robocasa365_checkpoints`](https://huggingface.co/robocasa/robocasa365_checkpoints)
@@ -80,12 +91,13 @@ learned actions.
 ## Model-visible information
 
 The only environment sensing available to a model is RGB plus proprioception.
-The model receives the current goal, public skill catalog, active and last skill,
-step and call budgets, accepted-decision history, and the last schema error.
-Each public skill includes the predeployment screening card published from the
-qualified policy: tested entry conditions, counts, success rates, Wilson
-intervals, step-duration summaries, and observed limitations. Private trace
-paths and evaluator state are removed before publication.
+Model observation schema version 2 includes the current goal, public
+reference-prompt catalog, active policy instruction, step and call budgets,
+decision history (including rejected outputs), and the last schema error. Each reference prompt
+includes the predeployment screening card published from the qualified policy:
+tested entry conditions, counts, success rates, Wilson intervals, step-duration
+summaries, and observed limitations. Private trace paths and evaluator state are
+removed before publication.
 The sensor portion contains RGB PNGs from:
 
 - `video.robot0_agentview_left`;
@@ -103,19 +115,20 @@ Each model call returns exactly one operation:
 
 | Operation | Valid state and effect |
 |---|---|
-| `start(skill, steps)` | Requires no active skill. Starts a named skill and advances 1–100 control steps. |
-| `continue(steps)` | Requires an active skill. Keeps its pending policy queue and advances 1–100 steps. |
-| `interrupt` | Requires an active skill. Discards its pending queue, resets policy skill state, and advances no physics. |
-| `switch(skill, steps)` | Requires an active skill and a different target. Discards the queue, resets policy skill state, and advances 1–100 steps with the target. |
-| `retry(steps)` | Requires a previously selected skill. Discards the queue, resets policy skill state, and advances 1–100 steps using that skill again. |
-| `complete` | Advances no physics, evaluates the current state, and terminates the episode. |
+| `{"op":"run_policy","steps":N,"prompt":"..."}` | Requires a nonblank prompt of at most 512 characters and `N` from 1–100 when no instruction is active. At any later boundary, the supplied prompt is preserved verbatim, replaces the active instruction, discards every pending action, invokes the policy reset hook, and advances `N` control steps. These effects apply even when the supplied text equals the active prompt. |
+| `{"op":"run_policy","steps":N}` | Requires an active instruction. Preserves that instruction and its pending action queue, and advances `N` control steps. |
+| `{"op":"complete"}` | Advances no physics, evaluates the current state, and terminates the episode. |
 
-A new `start` also begins with clean policy skill state. Physics is synchronous
-and pauses for the entire LLM inference. Thus model latency changes wall time,
-not simulated dynamics. A malformed or state-invalid response consumes one of
-the 100 model calls, produces a visible schema error on the next call, and does
-not advance physics. Requests that exceed the remaining control-step budget are
-invalid in the same way.
+There is no separate interrupt operation. Physics is synchronous and already
+paused for the entire LLM inference at every decision boundary, so the model can
+inspect the observation and either continue the queue or replace the prompt in
+its next advancing call. Model latency changes wall time, not simulated dynamics.
+The pinned policy backends have no recurrent instruction state; their reset hook
+does not reset the physical world or the policy's episode random stream.
+A malformed or state-invalid response consumes one of the 100 model calls,
+produces a visible schema error on the next call, and does not advance physics.
+Requests that exceed the remaining control-step budget are invalid in the same
+way.
 
 ## Termination and primary score
 
@@ -129,18 +142,22 @@ failure.
 
 Report, at minimum, the following alongside success rate: final and ever-seen
 physical success, false-completion count, budget-exhaustion counts, model and
-policy call counts, chosen intervals, switches, retries, interrupts, model and
-policy time, and infrastructure errors. Preserve every attempted episode.
+policy call counts, chosen intervals, prompt submissions, prompt changes,
+same-prompt restarts, discarded queued actions, model
+and policy time, and infrastructure errors. Preserve every attempted episode.
 Infrastructure-incomplete attempts remain visible but are not silently converted
 into model failures or replaced without provenance.
 
 ## Diagnostic oracle
 
 A hand-authored supervisor may read simulator truth only for feasibility and
-system diagnosis. It may choose among the same four learned skills and the same
-operations, but may not apply scripted robot actions or alter objects. Its
-requests and results are stored separately and never included in model score
-tables. Oracle access does not change what a model adapter can observe.
+system diagnosis. Qualification uses the four declared reference prompts through
+the same `run_policy` semantics, but the supervisor may not apply scripted robot
+actions or alter objects. Existing qualification records call these probes
+`skill` and their conditions `skill_conditions`; those evidence-schema names do
+not restrict the model API. Supervisor requests and results are stored separately
+and never included in model score tables. Oracle access does not change what a
+model adapter can observe.
 
 ## Reproduction record
 
@@ -149,9 +166,13 @@ images or lockfiles, policy backend, model/provider version, adapter settings,
 prompt digest, seed list, budgets, and code revision. Append-only records must
 retain model replies, accepted and rejected decisions, sensor frames, attempted
 and completed actions, policy calls, evaluator-only states/events, final result,
-and infrastructure errors. A left-camera replay frame is retained every two
-control steps, including step zero, so representative episodes can be rendered
-and inspected. Evaluator directories and replay frames are not model inputs.
+and infrastructure errors. All three camera views are retained as PNG frames
+at every control step, including step zero, and encoded as MP4 replays at 20 fps.
+Step timing records include wall time, simulation time, policy wait, recording,
+and evaluation time. For Anthropic model calls, the complete API-visible request,
+response, usage, thinking summaries, and errors are retained without credential
+headers. Raw hidden model reasoning is unavailable. Evaluator directories and
+replay frames are not model inputs.
 
 Primary source anchors:
 

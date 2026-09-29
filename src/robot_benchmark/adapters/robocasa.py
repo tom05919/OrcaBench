@@ -45,11 +45,11 @@ class RoboCasaEnvironment:
             images[key] = "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
         return {"images": images, "proprio": {key: self.obs[key].tolist() for key in PROPRIO}}
 
-    def recording_frame(self):
-        from PIL import Image
-        buffer = BytesIO()
-        Image.fromarray(self.obs[CAMERAS[0]]).save(buffer, format="PNG")
-        return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
+    def recording_frames(self):
+        return self.sensors()["images"]
+
+    def sim_time_seconds(self):
+        return float(self.env.unwrapped.env.sim.data.time)
 
     def policy_observation(self):
         return {key: self.obs[key].copy() for key in (*CAMERAS, *PROPRIO)}
@@ -83,7 +83,8 @@ class RoboCasaEnvironment:
     def snapshot(self):
         raw = self.env.unwrapped.env
         state = raw.sim.get_state().flatten()
-        result = {"state_sha256": hashlib.sha256(state.tobytes()).hexdigest()}
+        result = {"state_sha256": hashlib.sha256(state.tobytes()).hexdigest(),
+                  "sim_time_seconds": float(raw.sim.data.time)}
         if self.frame == 0:
             result.update({"initial_state": state.tolist(), "xml": self.initial_xml,
                            "episode_metadata": raw.get_ep_meta()})

@@ -6,7 +6,12 @@ The authoritative feasibility run requires a persistent Linux CUDA worker. Use
 Python 3.11 and an NVIDIA GPU with enough memory for the selected backend. Record
 the provider instance type, GPU model and count, VRAM, CPU, RAM, disk size,
 CUDA driver, region, rental start/end time, and cost in the feasibility report
-before running counted trials. No machine has been selected yet.
+before running counted trials. The first development pass used one RTX 6000 Ada
+48 GB with 12 vCPUs, 72 GB RAM, and 350 GB disk in `us-central-3`. It was
+terminated after about 76 minutes, with a $0.93 Prime compute charge; the
+[feasibility report](feasibility.md#first-live-development-pass-september-27-2026)
+summarizes the results. Exact records remain in the local, Git-ignored
+`runs/prime_20260927_1454/` directory.
 
 Allocate at least 80 GiB of free persistent storage for the GR00T path. The
 RoboCasa assets are about 10 GB, the verified GR00T inference checkpoint is
@@ -20,14 +25,14 @@ cache directories and headless MuJoCo rendering settings.
 
 ## Transfer and preflight
 
-Copy `/Users/tomwang/robot_benchmark` to persistent storage on the worker. Do
+Clone this repository or copy the project to persistent storage on the worker. Do
 not copy local virtual environments, caches, checkpoints, or runs. Install `git`,
 Python 3.11, `uv`, an NVIDIA driver compatible with the pinned framework wheels,
 and basic EGL system libraries. Then inspect the entire setup without changing
 the worker:
 
 ```bash
-cd /path/to/robot_benchmark
+cd /path/to/OrcaBench
 source scripts/project_env.sh
 python3 scripts/bootstrap_gpu.py --dry-run
 ```
@@ -79,9 +84,9 @@ reset behavior, simulator step, and append-only records have passed inspection.
 ## Feasibility order
 
 First reproduce ordinary whole-task execution with the official task instruction.
-Then run the four fixed instructions under the privileged diagnostic supervisor.
-The supervisor chooses skills from simulator truth but never emits controls;
-every physical action must come from the learned checkpoint.
+Then run the four exact reference prompts under the privileged diagnostic
+supervisor. The supervisor chooses prompts from simulator truth but never emits
+controls; every physical action must come from the learned checkpoint.
 
 ```bash
 .venv-sim/bin/robot-benchmark feasibility \
@@ -96,18 +101,20 @@ every physical action must come from the learned checkpoint.
   --output runs/feasibility/groot-supervisor
 ```
 
-The generic supervisor run establishes full-task feasibility. Per-skill
+The generic supervisor run establishes full-task feasibility. Per-reference-prompt
 qualification and matched continuation evidence must be audited from naturally
 reached entry states as specified in `docs/feasibility.md`; the CLI does not
 infer trial validity from aggregate episode success. Populate a copy of
 `configs/qualification.example.json` with relative trace paths and run
 `robot-benchmark qualify`. Copy the qualification contract hash from the
 diagnostic episode manifests into that evidence file. Preserve incomplete and
-failed attempts.
+failed attempts. The qualification files retain their existing `skill` and
+`skill_conditions` keys for these four diagnostic probes.
 
-After the gate passes, publish the audited skill statistics into a model-visible
-task config. This step strips private trace paths while retaining per-condition
-counts, success rates, Wilson intervals, durations, and observed limitations:
+After the gate passes, publish the audited reference-prompt statistics into a
+model-visible task config. This step strips private trace paths while retaining
+per-condition counts, success rates, Wilson intervals, durations, and observed
+limitations:
 
 ```bash
 .venv-sim/bin/robot-benchmark publish-policy-card \
@@ -148,7 +155,11 @@ model configuration files without secrets, and every episode directory. Rebuild
 on a clean worker from the same source locks and compare these identities before
 calling the release reproducible.
 
-Each episode stores zero-padded PNGs in `video_frames/` at the contract's fixed
-two-step interval. Render representative success and failure sequences with a
-local video tool at 10 fps and retain the command and output beside the episode;
-the PNG sequence remains the canonical recorded artifact.
+Each episode stores zero-padded PNGs for all three public cameras in
+`video_frames/` at every control step, including step zero. The runner encodes
+per-camera MP4s at 20 fps; the PNG sequences remain the canonical artifact.
+`step_timings.jsonl`, `policy_timings.jsonl`, `model_timings.jsonl`, and
+`result.json` retain step, call, simulation, and total wall timings. Anthropic
+model runs additionally retain `model_api_traces.jsonl` with every API-visible
+request and response, including available thinking summaries and usage. Never
+put API keys in model configuration files or traces.

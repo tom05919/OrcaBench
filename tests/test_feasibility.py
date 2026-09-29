@@ -93,8 +93,8 @@ class QualificationReportTests(unittest.TestCase):
         base = {
             "status": "development_unqualified",
             "task": "CerealAndBowl",
-            "skills": [
-                {"id": skill, "instruction": skill, "description": skill,
+            "reference_prompts": [
+                {"id": skill, "prompt": skill, "description": skill,
                  "performance": {"status": "untested"}}
                 for skill in SKILLS
             ],
@@ -104,7 +104,7 @@ class QualificationReportTests(unittest.TestCase):
 
         self.assertEqual(published["status"], "qualified_candidate")
         self.assertEqual(published["policy_backend"], "groot")
-        self.assertEqual(published["skills"][0]["performance"]["trials"], 20)
+        self.assertEqual(published["reference_prompts"][0]["performance"]["trials"], 20)
         self.assertNotIn("trace_paths", repr(published))
         self.assertEqual(qualification_config_view(base), qualification_config_view(published))
 

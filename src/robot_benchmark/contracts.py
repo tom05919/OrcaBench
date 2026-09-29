@@ -23,12 +23,13 @@ ACTION_DIMS = {
     "action.base_motion": 4,
     "action.control_mode": 1,
 }
+MAX_POLICY_PROMPT_CHARS = 512
 
 
 @dataclass(frozen=True)
 class Skill:
     id: str
-    instruction: str
+    prompt: str
     description: str
     performance: dict
 
@@ -61,22 +62,22 @@ def sensor_payload(sensor: dict) -> dict:
     return {"images": images, "proprio": proprio}
 
 
-def validate_decision(value: Any, skills: dict[str, Skill], limits: Limits) -> dict:
-    fields = {
-        "start": {"op", "skill", "steps"},
-        "continue": {"op", "steps"},
-        "interrupt": {"op"},
-        "switch": {"op", "skill", "steps"},
-        "retry": {"op", "steps"},
-        "complete": {"op"},
-    }
+def validate_decision(value: Any, limits: Limits) -> dict:
     if not isinstance(value, dict) or not isinstance(value.get("op"), str):
         raise ValueError("decision must be an object with an op")
     op = value["op"]
-    if op not in fields or set(value) != fields[op]:
+    fields = set(value)
+    if not (
+        (op == "run_policy" and fields in ({"op", "steps"}, {"op", "prompt", "steps"}))
+        or (op == "complete" and fields == {"op"})
+    ):
         raise ValueError("invalid operation or fields; use the documented decision schema")
-    if "skill" in value and (not isinstance(value["skill"], str) or value["skill"] not in skills):
-        raise ValueError("unknown skill")
+    if "prompt" in value and (
+        not isinstance(value["prompt"], str)
+        or not value["prompt"].strip()
+        or len(value["prompt"]) > MAX_POLICY_PROMPT_CHARS
+    ):
+        raise ValueError(f"prompt must be nonblank text of at most {MAX_POLICY_PROMPT_CHARS} characters")
     if "steps" in value and (type(value["steps"]) is not int or not 1 <= value["steps"] <= limits.max_interval):
         raise ValueError(f"steps must be an integer in [1, {limits.max_interval}]")
     return dict(value)
@@ -103,7 +104,8 @@ class Environment(Protocol):
     def step(self, action: dict) -> None: ...
     def evaluate(self) -> dict: ...
     def snapshot(self) -> dict: ...
-    def recording_frame(self) -> str: ...
+    def recording_frames(self) -> dict[str, str]: ...
+    def sim_time_seconds(self) -> float: ...
     def close(self) -> None: ...
 
 
