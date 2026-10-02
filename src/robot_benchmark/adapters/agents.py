@@ -14,8 +14,22 @@ and monitor the resulting motion. You may change or repeat an instruction at any
 decision boundary. Reference prompts and performance cards are examples, not an
 allowed-command list. The policy may fail or ignore an instruction.
 Physics pauses while you reason. You see current RGB views, proprioception,
-the active instruction, and decision history. You do not receive task-success
-labels. Judge progress from observations.
+the active instruction, and decision history. After a run, you also see a few
+keyframes sampled evenly from inside the interval just executed, labeled by
+step. You do not receive task-success labels. Judge progress from observations.
+Proprioception is the robot's own joint-sensor readings as lists of numbers; it
+carries no object or world-state information:
+state.end_effector_position_relative: end-effector (gripper) position (x, y, z)
+in meters, in the robot base frame.
+state.end_effector_rotation_relative: end-effector orientation as a quaternion
+(x, y, z, w), in the robot base frame.
+state.gripper_qpos: the two finger joint positions in meters. Each finger moves
+between 0 (closed) and 0.04 (open) and the second finger reports the negative,
+so fully open is about [0.04, -0.04] and fully closed is about [0, 0].
+state.base_position: mobile-base position (x, y, z) in meters, in the world frame.
+state.base_rotation: mobile-base orientation as a quaternion (x, y, z, w), in the
+world frame.
+Each keyframe also carries the proprioception recorded at its step.
 Reply with exactly one JSON object and no other text, using one of:
 {"op":"run_policy","prompt":"<your instruction>","steps":N}
 {"op":"run_policy","steps":N}
@@ -54,7 +68,7 @@ class HTTPAgent:
             raise ValueError("api_key_env must be a string or null")
         self.config = dict(config)
         self.identity = {key: value for key, value in config.items() if key != "api_key_env"}
-        self.identity["prompt_version"] = 2
+        self.identity["prompt_version"] = 4
         if config["provider"] == "anthropic":
             self.identity["thinking"] = {"type": "adaptive", "display": "summarized"}
             self.identity["output_config"] = {"effort": "medium"}
@@ -81,7 +95,18 @@ class HTTPAgent:
                 {"type": "image", "source": {"type": "base64", "media_type": "image/png",
                     "data": observation["images"][camera].split(",", 1)[1]}},
             ])
-        content.append({"type": "text", "text": json.dumps({k: v for k, v in observation.items() if k != "images"})})
+        for frame in observation.get("interval_frames", []):
+            if frame.get("proprio"):
+                content.append({"type": "text", "text":
+                                f"interval keyframe step {frame['step']} proprioception: {json.dumps(frame['proprio'])}"})
+            for camera in CAMERAS:
+                content.extend([
+                    {"type": "text", "text": f"interval keyframe step {frame['step']}: {camera}"},
+                    {"type": "image", "source": {"type": "base64", "media_type": "image/png",
+                        "data": frame["images"][camera].split(",", 1)[1]}},
+                ])
+        content.append({"type": "text", "text": json.dumps(
+            {k: v for k, v in observation.items() if k not in ("images", "interval_frames")})})
         payload = {
             "model": config["model"], "max_tokens": MAX_MODEL_TOKENS,
             "system": SYSTEM_PROMPT, "messages": [{"role": "user", "content": content}],

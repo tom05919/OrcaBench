@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from robot_benchmark.contracts import CAMERAS
+from robot_benchmark.contracts import CAMERAS, PROPRIO
 from robot_benchmark.records import Records
 
 from tests.fakes import PNG_BYTES, SENTINEL, FakeEnvironment, FakePolicy, action, make_runner
@@ -70,6 +70,28 @@ class RecordsContractTests(unittest.TestCase):
                 self.assertEqual(sorted(path.name for path in frames.glob("*.png")),
                                  ["000000.png", "000001.png"])
                 self.assertTrue(all(path.read_bytes() == PNG_BYTES for path in frames.glob("*.png")))
+
+
+    def test_interval_keyframes_are_archived_as_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            episode = Path(temporary) / "episode-0002"
+            records = Records(episode, {"episode": 2})
+            runner = make_runner(
+                [{"op": "run_policy", "prompt": "pick", "steps": 4}, {"op": "complete"}],
+                policy=FakePolicy(chunks=[[action()] * 4]),
+                records=records,
+                interval_keyframes=1,
+            )
+            runner.run(seed=5)
+
+            text = (episode / "observations.jsonl").read_text()
+            self.assertNotIn("base64", text)
+            frames = json.loads(text.splitlines()[1])["interval_frames"]
+            self.assertEqual([frame["step"] for frame in frames], [2])
+            self.assertEqual(set(frames[0]["proprio"]), set(PROPRIO))
+            for relative in frames[0]["images"].values():
+                self.assertTrue(relative.startswith("frames/"))
+                self.assertEqual((episode / relative).read_bytes(), PNG_BYTES)
 
 
 if __name__ == "__main__":
