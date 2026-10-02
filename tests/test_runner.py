@@ -1,6 +1,6 @@
 import unittest
 
-from robot_benchmark.contracts import Limits, Skill
+from robot_benchmark.contracts import Limits, ModelReply, Skill
 
 from tests.fakes import (
     SENTINEL,
@@ -326,6 +326,25 @@ class InfrastructureFailureTests(unittest.TestCase):
         completed = [value for name, value in records.events if name == "actions.jsonl"]
         self.assertEqual(len(attempts), 1)
         self.assertEqual(completed, [])
+
+    def test_reply_parse_mode_is_retained_for_every_decision(self):
+        records = CaptureRecords()
+        runner = make_runner(
+            [ModelReply({"op": "run_policy", "prompt": "pick", "steps": 1}, raw_text="Looking.\n{...}",
+                        parse="extracted"),
+             ModelReply("Hmm, let me think about this.", parse="unparsed"),
+             ModelReply({"op": "complete"}, parse="strict")],
+            policy=FakePolicy(chunks=[[action(1)]]),
+            records=records,
+        )
+
+        result = runner.run(seed=3)
+
+        replies = [value for name, value in records.events if name == "model_replies.jsonl"]
+        self.assertEqual([reply["parse"] for reply in replies], ["extracted", "unparsed", "strict"])
+        self.assertEqual([entry["accepted"] for entry in runner.history], [True, False, True])
+        self.assertEqual(result["steps"], 1)  # the recovered decision advanced physics
+        self.assertEqual(result["model_calls"], 3)  # the unparsed one still cost a call
 
 
 if __name__ == "__main__":

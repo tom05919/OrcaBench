@@ -1,4 +1,5 @@
 """Model adapters receive public observations only and expose no filesystem tools."""
+import copy
 import json
 import os
 from urllib.parse import urlparse
@@ -7,6 +8,52 @@ from ..contracts import CAMERAS, ModelReply
 from .http import request_json
 
 MAX_MODEL_TOKENS = 4096
+
+# Constrains the reply text to a single JSON object, so a model cannot narrate
+# inside it. Kept flat: the API documents no root-level anyOf and ignores numeric
+# and length limits, so validate_decision stays the authority on the per-operation
+# fields, ranges, and prompt length.
+DECISION_FORMAT = {"type": "json_schema", "schema": {
+    "type": "object",
+    "properties": {
+        "op": {"type": "string", "enum": ["run_policy", "complete"]},
+        "prompt": {"type": "string"},
+        "steps": {"type": "integer"},
+    },
+    "required": ["op"],
+    "additionalProperties": False,
+}}
+
+
+def parse_decision_text(text, stop_reason):
+    """Return (decision, parse_mode) for a model's reply text.
+
+    Whole-text JSON is "strict". Otherwise, if the model finished normally and its
+    text holds exactly one distinct decision-shaped object, that object is
+    "extracted". Conflicting objects are never resolved by guessing: executing the
+    wrong one could end an episode with a false completion. Truncated or refused
+    replies never yield an extracted decision. Anything else is handed on as
+    "unparsed" text to be rejected and charged.
+    """
+    try:
+        return json.loads(text), "strict"
+    except (json.JSONDecodeError, RecursionError):  # degenerate nesting is just unparseable
+        pass
+    if stop_reason == "end_turn":
+        found, decoder, index = [], json.JSONDecoder(), text.find("{")
+        while index != -1:
+            try:
+                value, end = decoder.raw_decode(text, index)
+            except (json.JSONDecodeError, RecursionError):
+                index = text.find("{", index + 1)
+                continue
+            if isinstance(value, dict) and isinstance(value.get("op"), str) and value not in found:
+                found.append(value)
+            index = text.find("{", end)
+        if len(found) == 1:
+            return found[0], "extracted"
+    return text, "unparsed"
+
 
 SYSTEM_PROMPT = """You supervise a robot controlled by a language-conditioned learned policy.
 Interpret the household goal, write natural-language instructions to the policy,
@@ -57,7 +104,7 @@ class HTTPAgent:
         self.identity["prompt_version"] = 2
         if config["provider"] == "anthropic":
             self.identity["thinking"] = {"type": "adaptive", "display": "summarized"}
-            self.identity["output_config"] = {"effort": "medium"}
+            self.identity["output_config"] = self._output_config()
         self.last_trace = None
         key_name = config.get("api_key_env")
         self.key = os.environ.get(key_name) if key_name else None
@@ -86,18 +133,19 @@ class HTTPAgent:
             "model": config["model"], "max_tokens": MAX_MODEL_TOKENS,
             "system": SYSTEM_PROMPT, "messages": [{"role": "user", "content": content}],
             "thinking": {"type": "adaptive", "display": "summarized"},
-            "output_config": {"effort": "medium"},
+            "output_config": self._output_config(),
         }
         response = self._request(payload,
             {"x-api-key": self.key, "anthropic-version": "2023-06-01"},
             {"Content-Type": "application/json", "anthropic-version": "2023-06-01"})
         raw = "".join(block["text"] for block in response["content"] if block["type"] == "text")
-        try:
-            decision = json.loads(raw)
-        except json.JSONDecodeError:
-            decision = raw  # charged as malformed output; no free repair request
-        usage = response.get("usage")
-        return ModelReply(decision, usage, raw)
+        # Unrecoverable text is charged as malformed output; no free repair request.
+        decision, parse = parse_decision_text(raw, response.get("stop_reason"))
+        return ModelReply(decision, response.get("usage"), raw, parse)
+
+    @staticmethod
+    def _output_config():
+        return {"effort": "medium", "format": copy.deepcopy(DECISION_FORMAT)}
 
     def _request(self, payload, headers, safe_headers):
         self.last_trace = {"request": {"url": self.config["endpoint"],

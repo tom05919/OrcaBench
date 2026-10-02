@@ -130,6 +130,23 @@ produces a visible schema error on the next call, and does not advance physics.
 Requests that exceed the remaining control-step budget are invalid in the same
 way.
 
+### Reply format
+
+The model's reply must be one JSON object in the schema above. Anthropic
+requests enforce the shape with `output_config.format` (`op` of `run_policy` or
+`complete`, optional `prompt`, optional integer `steps`, no other keys); the schema
+cannot express per-operation fields or ranges, so the runner still validates
+those. Tolerance is deliberately narrow. Text that is not itself a JSON value is
+accepted only when the model finished normally (`end_turn`) and the text contains
+exactly one distinct object whose `op` is a string; the same decision repeated is
+still one decision. Two different candidate objects, a truncated (`max_tokens`)
+or refused reply, or no candidate leaves the reply rejected, charged, and
+reported on the next call as an ordinary schema error. The retained record keeps
+the raw text and a `parse` label (`strict`, `extracted`, or `unparsed`) for every
+reply, so recovered replies can be audited or excluded. The same rule applies to
+every Anthropic-provider model; a `json_http` server must return the parsed
+decision itself.
+
 ## Termination and primary score
 
 The primary per-episode score is binary success. Success requires the model to

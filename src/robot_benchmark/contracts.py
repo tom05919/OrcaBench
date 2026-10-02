@@ -121,6 +121,10 @@ class ModelReply:
     decision: Any
     usage: dict | None = None
     raw_text: str | None = None
+    # How a text reply became a decision: "strict" (whole text was JSON),
+    # "extracted" (one unambiguous decision object amid other text), or
+    # "unparsed" (raw text passed on for rejection). None if not text-derived.
+    parse: str | None = None
 
 
 class Agent(Protocol):
