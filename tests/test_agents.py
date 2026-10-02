@@ -69,11 +69,11 @@ class AgentConfigurationTests(unittest.TestCase):
     def test_system_prompt_describes_every_proprioception_field_with_units_and_frame(self):
         for name in PROPRIO:
             self.assertIn(name, SYSTEM_PROMPT)
-        for phrase in ("meters", "robot base frame", "(x, y, z, w)", "0.04", "world frame"):
+        for phrase in ("meters", "robot base frame", "(x, y, z, w)", "0.04", "world frame", "negation"):
             self.assertIn(phrase, SYSTEM_PROMPT)
         agent = HTTPAgent({"provider": "json_http", "model": "provider/model-version",
                            "endpoint": "http://127.0.0.1:9000/decide"})
-        self.assertEqual(agent.identity["prompt_version"], 4)
+        self.assertEqual(agent.identity["prompt_version"], 5)
 
     def test_anthropic_request_labels_interval_keyframes_and_omits_base64_from_text(self):
         config = {"provider": "anthropic", "model": "claude-opus-5-5",

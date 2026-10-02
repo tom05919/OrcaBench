@@ -29,7 +29,8 @@ so fully open is about [0.04, -0.04] and fully closed is about [0, 0].
 state.base_position: mobile-base position (x, y, z) in meters, in the world frame.
 state.base_rotation: mobile-base orientation as a quaternion (x, y, z, w), in the
 world frame.
-Each keyframe also carries the proprioception recorded at its step.
+A quaternion and its negation describe the same orientation, so signs may flip
+between readings. Each keyframe also carries the proprioception recorded at its step.
 Reply with exactly one JSON object and no other text, using one of:
 {"op":"run_policy","prompt":"<your instruction>","steps":N}
 {"op":"run_policy","steps":N}
@@ -68,7 +69,7 @@ class HTTPAgent:
             raise ValueError("api_key_env must be a string or null")
         self.config = dict(config)
         self.identity = {key: value for key, value in config.items() if key != "api_key_env"}
-        self.identity["prompt_version"] = 4
+        self.identity["prompt_version"] = 5
         if config["provider"] == "anthropic":
             self.identity["thinking"] = {"type": "adaptive", "display": "summarized"}
             self.identity["output_config"] = {"effort": "medium"}

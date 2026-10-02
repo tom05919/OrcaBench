@@ -38,7 +38,7 @@ def load_scored_episodes(root):
         folder = manifest_path.parent
         result = read_result(folder / "result.json")
         events = _jsonl(folder / "evaluator" / "events.jsonl")
-        episodes.append({"manifest": manifest, "result": result, "transitions": _jsonl(folder / "policy_transitions.jsonl"),
+        episodes.append({"folder": str(folder), "manifest": manifest, "result": result, "transitions": _jsonl(folder / "policy_transitions.jsonl"),
                          "success_steps": [e["step"] for e in events if e.get("success")]})
     return episodes
 

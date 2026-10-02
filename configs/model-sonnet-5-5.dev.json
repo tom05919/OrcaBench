@@ -1,0 +1,8 @@
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-5-5",
+  "endpoint": "https://api.anthropic.com/v1/messages",
+  "api_key_env": "ANTHROPIC_API_KEY",
+  "max_tokens": 4096,
+  "timeout_seconds": 120
+}

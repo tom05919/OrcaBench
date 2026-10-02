@@ -316,6 +316,7 @@ class LoadTests(unittest.TestCase):
             events.write_text('{"step": 1, "success": false}\n{"step": 2, "success": true}\n{"step": 3, "succ')
             (episode,) = load_scored_episodes(temporary)
             self.assertEqual(episode["success_steps"], [2])
+            self.assertEqual(Path(episode["folder"]), folder)
             events.write_text('{"step": 1, "succ\n{"step": 2, "success": true}\n')
             with self.assertRaises(json.JSONDecodeError):
                 load_scored_episodes(temporary)
