@@ -31,6 +31,11 @@ def _usage_totals(rows):
     return totals
 
 
+def _seed_pair(manifest):
+    """Legacy manifests without a policy seed used the scene seed for the policy."""
+    return manifest["seed"], manifest.get("policy_seed", manifest["seed"])
+
+
 def summarize(root):
     episodes = []
     for manifest_path in sorted(Path(root).rglob("manifest.json")):
@@ -45,7 +50,7 @@ def summarize(root):
         agent = manifest.get("agent") or {}
         key = (manifest["contract_hash"], agent.get("model", "setup_pending"), manifest["kind"])
         group = groups.setdefault(key, [])
-        if any(item[0]["seed"] == manifest["seed"] for item in group):
+        if any(_seed_pair(item[0]) == _seed_pair(manifest) for item in group):
             raise ValueError("duplicate model/contract/seed: summarize one complete attempt set at a time")
         group.append((manifest, result))
     reports = []
@@ -81,9 +86,13 @@ def summarize(root):
             "model_seconds": sum(r.get("model_seconds", 0.0) for _, r in usable),
             "policy_seconds": sum(r.get("policy_seconds", 0.0) for _, r in usable),
             "wall_seconds": sum(r.get("wall_seconds", 0.0) for _, r in usable),
+            "simulated_seconds": sum(r.get("simulated_seconds", 0.0) for _, r in usable),
+            "mean_simulated_seconds": _mean([r.get("simulated_seconds", 0.0) for _, r in usable]),
+            "mean_wall_seconds": _mean([r.get("wall_seconds", 0.0) for _, r in usable]),
+            "mean_model_seconds": _mean([r.get("model_seconds", 0.0) for _, r in usable]),
             "token_usage_totals": _usage_totals(usable),
-            "seeds": sorted(m["seed"] for m, _ in rows),
-            "usable_seeds": sorted(m["seed"] for m, _ in usable),
+            "seeds": sorted([*_seed_pair(m)] for m, _ in rows),
+            "usable_seeds": sorted([*_seed_pair(m)] for m, _ in usable),
         })
     # A paired model comparison is only possible when both model results exist
     # and are usable on the same episodes. Never silently fill missing runs.
@@ -93,11 +102,11 @@ def summarize(root):
         for right_key, right_rows in model_groups[i+1:]:
             if left_key[0] != right_key[0] or left_key[1] == right_key[1]:
                 continue
-            left = {m["seed"]: r for m, r in left_rows if r["status"] != "infrastructure_error"}
-            right = {m["seed"]: r for m, r in right_rows if r["status"] != "infrastructure_error"}
+            left = {_seed_pair(m): r for m, r in left_rows if r["status"] != "infrastructure_error"}
+            right = {_seed_pair(m): r for m, r in right_rows if r["status"] != "infrastructure_error"}
             paired = sorted(left.keys() & right.keys())
             comparisons.append({"models": [left_key[1], right_key[1]], "contract_hash": left_key[0],
-                "paired_seeds": paired, "paired_n": len(paired),
+                "paired_seeds": [[*pair] for pair in paired], "paired_n": len(paired),
                 "left_only_success": sum(left[s]["success"] and not right[s]["success"] for s in paired),
                 "right_only_success": sum(right[s]["success"] and not left[s]["success"] for s in paired),
                 "both_success": sum(left[s]["success"] and right[s]["success"] for s in paired)})

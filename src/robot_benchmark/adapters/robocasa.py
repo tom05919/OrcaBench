@@ -45,6 +45,12 @@ class RoboCasaEnvironment:
             images[key] = "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
         return {"images": images, "proprio": {key: self.obs[key].tolist() for key in PROPRIO}}
 
+    def native_instruction(self):
+        text = self.obs["annotation.human.task_description"]
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError("RoboCasa returned a blank task description")
+        return text.strip()
+
     def recording_frames(self):
         return self.sensors()["images"]
 
@@ -66,6 +72,16 @@ class RoboCasaEnvironment:
 
     def evaluate(self):
         raw = self.env.unwrapped.env
+        if self.task != "CerealAndBowl":
+            from ..tasks.predicates import task_predicates
+            success = bool(raw._check_success())
+            try:
+                extra = task_predicates(self.task, raw)
+            except Exception as error:  # diagnostic predicates must never break official scoring
+                return {"success": success, "predicate_error": f"{type(error).__name__}: {error}"}
+            if "success" in extra:
+                raise RuntimeError("task predicates must not redefine success")
+            return {"success": success, **extra}
         from robocasa.utils import object_utils as ou
         cereal = bool(ou.check_obj_fixture_contact(raw, "cereal", raw.counter))
         bowl = bool(ou.check_obj_fixture_contact(raw, "bowl", raw.counter))

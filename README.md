@@ -7,7 +7,7 @@ controlled model comparison has been completed. This repository is a development
 snapshot, not a validated benchmark release.
 
 This pilot compares different LLM orchestrators while holding one learned robot
-policy constant. The LLM sees RGB, proprioception, the task, and public execution
+policy constant. The LLM sees RGB, proprioception (described in its prompt and sampled with each keyframe), the task, and public execution
 history. It may send any natural-language instruction to that policy, choose how
 many control steps to run before observing again, or declare completion; the
 learned policy alone emits low-level controls.
@@ -18,7 +18,7 @@ They are qualification probes with public performance cards, not an allowlist:
 the LLM may compose a different prompt at any decision boundary. Arbitrary and
 dynamically changed prompts are not yet systematically qualified.
 There are no artificial disturbances, scripted manipulation substitutes, or
-training. The model may make at most 100 calls, choose 1–100 control steps per
+training. The model may make at most 100 calls, choose 1–400 control steps per
 advancing decision, and use at most the upstream 4,350-step horizon. Physics
 pauses while the LLM reasons.
 
@@ -181,3 +181,102 @@ Pinned external source metadata is in
 2026 pilot requires a backend to pass 8/10 valid trials for every declared
 reference-prompt-entry condition, 16/20 valid diagnostic full tasks, and the
 matched continuation relevance check before any LLM result is reported.
+
+## Intervention-judgement benchmark
+
+**Not yet GPU-verified.** The commands below are implemented and unit-tested
+with mocks only. No task has been screened, and no predicate or native
+instruction has been checked in the real simulator. No release has been frozen.
+This is work in progress, and none of these commands has produced a result yet.
+
+The benchmark measures whether an LLM supervising the frozen GR00T policy steps
+in when the policy did not need help (harm, on `leave_alone` scene seeds) or
+fails to step in when it did (rescue, on `needs_help` seeds). Tasks are the
+16-candidate pool in `configs/tasks/` with native RoboCasa instructions and
+official checkers. See the [protocol section](docs/protocol.md#intervention-judgement-benchmark),
+the [task catalog](docs/task_catalog.md), and the [decision log](docs/decisions.md).
+
+The intended sequence, with `rb` standing for `.venv-sim/bin/robot-benchmark`.
+Every command that runs episodes needs a live policy worker, and so does
+`freeze-benchmark`, which reads the worker identity into the contract hash. Pass
+`--video-record-interval 10` to every episode command (see "Disk and copy-back").
+
+```bash
+SCENES=1000,1001,1002,1003,1004,1005,1006,1007,1008,1009
+# 1. Screening set A (policy seeds 0-4): plain-policy reference on all scenes, then label.
+rb screen --task-configs configs/tasks/*.json --scene-seeds $SCENES --policy-seeds 0,1,2,3,4 \
+  --mode reference --video-record-interval 10 --skip-existing --output runs/screening
+rb label-seeds runs/screening --output runs/groups-reference.json
+# 2. Rescue diagnostics only on low-success scenes (full set-A reference, at most 1 success), then relabel.
+rb screen --task-configs configs/tasks/*.json --scene-seeds $SCENES --policy-seeds 0,1,2,3,4 \
+  --mode retry --scenes-from runs/groups-reference.json --video-record-interval 10 --skip-existing \
+  --output runs/screening
+rb screen --task-configs configs/tasks/{ScrubCuttingBoard,RinseSinkBasin,KettleBoiling,WashLettuce,LoadDishwasher,PrepareCoffee}.json \
+  --scene-seeds $SCENES --policy-seeds 0,1,2,3,4 --mode sequencer --scenes-from runs/groups-reference.json \
+  --video-record-interval 10 --skip-existing --output runs/screening
+rb label-seeds runs/screening --output runs/groups.json
+# 3. Publish the native-instruction cards (set-A rates) into configs/tasks/*.json.
+#    This edits hashed configs, so it must come before any set-B run. Copy the configs back.
+rb publish-cards runs/screening --task-configs configs/tasks/*.json
+# 4. Reference set B (policy seeds 5-9) on each qualified task's selected scene seeds.
+rb screen --task-configs configs/tasks/OpenDrawer.json --scene-seeds <selected seeds> \
+  --policy-seeds 5,6,7,8,9 --mode reference --video-record-interval 10 --skip-existing \
+  --output runs/benchmark/reference
+# 5. Freeze: checks that every selected scene x set-B seed has a usable reference episode under this hash.
+rb freeze-benchmark --groups runs/groups.json --task-configs configs/tasks/*.json \
+  --reference-root runs/benchmark/reference \
+  --models claude-opus-5-5 claude-sonnet-5-5 --output runs/benchmark-release.json
+# 6. Baselines and models on the release's scenes, one set-B policy seed per scene by default.
+rb baseline --release runs/benchmark-release.json --task-configs configs/tasks/OpenDrawer.json \
+  --scene-seeds <selected seeds> --policy-seeds 5 --agent always_defer --video-record-interval 10 \
+  --skip-existing --output runs/benchmark/always-defer
+rb baseline --release runs/benchmark-release.json --task-configs configs/tasks/OpenDrawer.json \
+  --scene-seeds <selected seeds> --policy-seeds 5 --agent reissue --video-record-interval 10 \
+  --skip-existing --output runs/benchmark/reissue
+rb run --release runs/benchmark-release.json --task-config configs/tasks/OpenDrawer.json \
+  --agent-config configs/my-model.json --seeds <selected seeds> --policy-seeds 5 \
+  --video-record-interval 10 --skip-existing --output runs/benchmark/my-model
+# 7. Score harm and rescue against the paired set-B reference.
+rb scorecard runs/benchmark --release runs/benchmark-release.json --output runs/scorecard.json
+```
+
+Steps 4 and 6 run once per qualified task, because selected scene seeds differ
+by task. LLM and baseline runs use one policy seed per scene by default (the
+first `reference_policy_seed`, 5), which matches the planned cost; adding more
+set-B seeds is allowed and they pair the same way. If more than 10 tasks qualify,
+`freeze-benchmark` keeps the top 10 by a predeclared ranking (see the
+[decision log](docs/decisions.md)).
+
+Every command from step 4 on shares one contract hash. It covers every config in
+`configs/tasks/`, the splits, the policy identity (including the GPU name), and
+the implementation. Run set B, the baselines and the models on the **same GPU type,
+code, configs and splits** as the freeze; changing any of them makes earlier
+episodes stop matching the release. The analysis modules (`scorecard.py`,
+`screening.py`) are not hashed; the release records them under `analysis_sha256`.
+`--video-record-interval` changes only how often frames are stored and does not
+change the hash. Each command writes its payload to `contract-<hash>.json`.
+
+`--skip-existing` resumes an interrupted grid. It skips any (task, scene seed,
+policy seed, kind, agent model) that already has a non-infrastructure-error result
+under `--output` recorded under the current contract hash. Episodes under any other
+hash are re-run, but they stay on disk, where later commands filter them by contract.
+A task with 3 consecutive infrastructure errors is abandoned and the grid continues
+with the next task; if two tasks in a row are abandoned (usually a dead policy
+worker or simulator), the whole grid stops. Written episodes are kept and the
+command exits nonzero; fix the cause, then rerun with `--skip-existing`.
+Recording every 10 steps also saves the final step's frame, so replays end on
+the final state.
+
+### Disk and copy-back
+
+With `--video-record-interval 10`, PNG frames and replays are stored every tenth
+control step. Size the pod volume at about 150 GB for full screening plus
+benchmark runs. When copying results back, copy JSON/JSONL only. Exclude
+`frames/`, `video_frames/` and `videos/` unless you need a specific replay, for
+example:
+
+```bash
+rsync -av --exclude='frames/' --exclude='video_frames/' --exclude='videos/' \
+  --include='*/' --include='*.json' --include='*.jsonl' --exclude='*' \
+  pod:/path/to/OrcaBench/runs/ runs/
+```

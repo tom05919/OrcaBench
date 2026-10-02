@@ -82,18 +82,19 @@ def public_task_config(config, report, report_sha256):
 class OrdinaryPolicySupervisor:
     identity = {"kind": "diagnostic", "model": "ordinary_full_task_policy"}
 
-    def __init__(self, env):
-        self.env = env
+    def __init__(self, env, interval=100):
+        self.env, self.interval = env, interval
 
     def decide(self, observation):
         # Match the upstream evaluator's privileged stopping behavior. This is
         # a diagnostic reproduction and never a scored LLM run.
         if self.env.evaluate()["success"]:
             return ModelReply({"op": "complete"})
-        steps = min(observation["max_interval"], observation["remaining_steps"])
+        steps = min(self.interval, observation["max_interval"], observation["remaining_steps"])
         decision = {"op": "run_policy", "steps": steps}
         if observation["active_instruction"] is None:
-            decision["prompt"] = next(item["prompt"] for item in observation["reference_prompts"] if item["id"] == "full_task")
+            decision["prompt"] = next((item["prompt"] for item in observation["reference_prompts"]
+                                       if item["id"] == "full_task"), observation["goal"])
         return ModelReply(decision)
 
 

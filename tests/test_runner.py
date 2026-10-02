@@ -1,6 +1,6 @@
 import unittest
 
-from robot_benchmark.contracts import Limits, ModelReply, Skill
+from robot_benchmark.contracts import CAMERAS, PROPRIO, Limits, ModelReply, Skill
 
 from tests.fakes import (
     SENTINEL,
@@ -101,6 +101,70 @@ class RunnerValidationTests(unittest.TestCase):
         self.assertIn(SENTINEL, repr(policy.predict_calls[0][0]))
         for observation in runner.agent.observations:
             self.assertNotIn(SENTINEL, repr(observation))
+
+
+class IntervalKeyframeTests(unittest.TestCase):
+    def test_keyframes_are_evenly_spaced_inside_the_executed_interval(self):
+        runner = make_runner(
+            [{"op": "run_policy", "prompt": "pick", "steps": 6},
+             {"op": "run_policy", "steps": 3},
+             {"op": "complete"}],
+            policy=FakePolicy(chunks=[[action()] * 9]),
+            limits=Limits(max_steps=10, max_decisions=3, max_interval=6),
+            interval_keyframes=2,
+        )
+        runner.run(seed=1)
+
+        steps = [[frame["step"] for frame in obs["interval_frames"]] for obs in runner.agent.observations]
+        self.assertEqual(steps, [[], [2, 4], [7, 8]])
+        self.assertEqual(runner.agent.observations[0]["schema_version"], 4)
+        for observation in runner.agent.observations:
+            for frame in observation["interval_frames"]:
+                self.assertEqual(set(frame["images"]), set(CAMERAS))
+                self.assertEqual(set(frame["proprio"]), set(PROPRIO))
+            self.assertNotIn(SENTINEL, repr(observation))
+
+    def test_keyframe_proprioception_is_sampled_at_the_keyframe_step(self):
+        class SteppedProprio(FakeEnvironment):
+            def sensors(self):
+                sensed = super().sensors()
+                sensed["proprio"]["state.base_position"] = [float(self.world_step), 0.0, 0.0]
+                return sensed
+
+        runner = make_runner(
+            [{"op": "run_policy", "prompt": "pick", "steps": 6}, {"op": "complete"}],
+            env=SteppedProprio(), policy=FakePolicy(chunks=[[action()] * 6]),
+            limits=Limits(max_steps=10, max_decisions=3, max_interval=6), interval_keyframes=2,
+        )
+        runner.run(seed=1)
+        observation = runner.agent.observations[1]
+        self.assertEqual([f["step"] for f in observation["interval_frames"]], [2, 4])
+        self.assertEqual([f["proprio"]["state.base_position"][0] for f in observation["interval_frames"]], [2.0, 4.0])
+        self.assertEqual(observation["proprio"]["state.base_position"][0], 6.0)
+
+    def test_rejected_or_single_step_decisions_produce_no_keyframes(self):
+        runner = make_runner(
+            [{"op": "run_policy", "prompt": "pick", "steps": 1},
+             {"op": "run_policy", "steps": 99},
+             {"op": "complete"}],
+            policy=FakePolicy(chunks=[[action()]]),
+            limits=Limits(max_steps=10, max_decisions=3, max_interval=5),
+            interval_keyframes=4,
+        )
+        runner.run(seed=1)
+
+        self.assertEqual([obs["interval_frames"] for obs in runner.agent.observations], [[], [], []])
+
+    def test_keyframes_default_off_and_count_must_be_nonnegative(self):
+        runner = make_runner(
+            [{"op": "run_policy", "prompt": "pick", "steps": 4}, {"op": "complete"}],
+            policy=FakePolicy(chunks=[[action()] * 4]),
+        )
+        runner.run(seed=1)
+        self.assertEqual(runner.agent.observations[1]["interval_frames"], [])
+        for bad in (-1, 1.5, True):
+            with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, "keyframe"):
+                make_runner([], interval_keyframes=bad)
 
 
 class RunnerPolicyStateTests(unittest.TestCase):
@@ -345,6 +409,70 @@ class InfrastructureFailureTests(unittest.TestCase):
         self.assertEqual([entry["accepted"] for entry in runner.history], [True, False, True])
         self.assertEqual(result["steps"], 1)  # the recovered decision advanced physics
         self.assertEqual(result["model_calls"], 3)  # the unparsed one still cost a call
+
+
+class FinalFrameTests(unittest.TestCase):
+    def test_final_step_frame_is_recorded_when_off_the_recording_grid(self):
+        for steps, expected in ((7, [0, 5, 7]), (10, [0, 5, 10])):
+            records = CaptureRecords()
+            records.frames = []
+            records.video_frames = lambda step, images, sink=records.frames: sink.append(step)
+            runner = make_runner([{"op": "run_policy", "prompt": "pick", "steps": steps}, {"op": "complete"}],
+                                 records=records, limits=Limits(max_steps=20, max_decisions=5, max_interval=10))
+            runner.recording_interval = 5
+            runner.run(seed=1)
+            self.assertEqual(records.frames, expected)
+
+
+class TimingTests(unittest.TestCase):
+    def test_result_records_simulated_and_real_time(self):
+        runner = make_runner([{"op": "run_policy", "prompt": "pick", "steps": 4}, {"op": "complete"}],
+                             policy=FakePolicy(chunks=[[action()] * 4]))
+        result = runner.run(seed=1)
+        self.assertAlmostEqual(result["simulated_seconds"], 4 * 0.05)
+        for name in ("wall_seconds", "model_seconds", "policy_seconds", "simulation_seconds"):
+            self.assertGreaterEqual(result[name], 0.0, name)
+        self.assertGreaterEqual(result["wall_seconds"], result["model_seconds"] + result["policy_seconds"])
+
+
+class SeedAndGoalTests(unittest.TestCase):
+    def test_policy_seed_defaults_to_scene_seed_and_can_differ(self):
+        for policy_seed, expected in ((None, 7), (3, 3)):
+            policy = FakePolicy(chunks=[[action()]])
+            env = FakeEnvironment()
+            runner = make_runner([{"op": "complete"}], env=env, policy=policy)
+            result = runner.run(seed=7, policy_seed=policy_seed)
+            self.assertEqual(env.reset_seeds, [7])
+            self.assertEqual(policy.reset_episode_seeds, [expected])
+            self.assertEqual((result["scene_seed"], result["policy_seed"]), (7, expected))
+
+    def test_native_goal_is_read_after_reset(self):
+        env = FakeEnvironment(native="Open the left drawer.")
+        runner = make_runner([{"op": "complete"}], env=env, goal=None)
+        result = runner.run(seed=1)
+        self.assertEqual(runner.agent.observations[0]["goal"], "Open the left drawer.")
+        self.assertEqual(result["goal"], "Open the left drawer.")
+
+    def test_goal_template_card_shows_the_goal_text_only_in_the_observation(self):
+        import json
+        card = Skill("native_instruction", "{goal}", "Card for the native instruction.", {"status": "untested"})
+        runner = make_runner([{"op": "complete"}], env=FakeEnvironment(native="Open the left drawer."), goal=None,
+                             reference_prompt_list=[card])
+        runner.run(seed=1)
+        observation = runner.agent.observations[0]
+        self.assertEqual(observation["reference_prompts"][0]["prompt"], "Open the left drawer.")
+        self.assertNotIn("{goal}", json.dumps(observation))
+        self.assertEqual(runner.reference_prompts["native_instruction"].prompt, "{goal}")
+        plain = make_runner([{"op": "complete"}])
+        plain.run(seed=1)
+        self.assertEqual([item["prompt"] for item in plain.agent.observations[0]["reference_prompts"]],
+                         [item.prompt for item in plain.reference_prompts.values()])
+
+    def test_blank_native_goal_is_an_infrastructure_error(self):
+        runner = make_runner([], env=FakeEnvironment(native="  "), goal=None)
+        result = runner.run(seed=1)
+        self.assertEqual(result["status"], "infrastructure_error")
+        self.assertIn("native instruction must be nonblank text", result["infrastructure_error"])
 
 
 if __name__ == "__main__":

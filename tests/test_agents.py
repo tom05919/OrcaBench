@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent, MAX_MODEL_TOKENS
+from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent, MAX_MODEL_TOKENS, SYSTEM_PROMPT
 from robot_benchmark.contracts import CAMERAS, PROPRIO, Limits, validate_decision
 from tests.fakes import PNG_URL
 
@@ -66,6 +66,36 @@ class AgentConfigurationTests(unittest.TestCase):
         self.assertEqual(reply.decision, {"op": "run_policy", "steps": 5})
         self.assertEqual(agent.last_trace["response"]["body"], response)
         self.assertNotIn("secret-test-key", repr(agent.last_trace))
+
+    def test_system_prompt_describes_every_proprioception_field_with_units_and_frame(self):
+        for name in PROPRIO:
+            self.assertIn(name, SYSTEM_PROMPT)
+        for phrase in ("meters", "robot base frame", "(x, y, z, w)", "0.04", "world frame", "negation"):
+            self.assertIn(phrase, SYSTEM_PROMPT)
+        agent = HTTPAgent({"provider": "json_http", "model": "provider/model-version",
+                           "endpoint": "http://127.0.0.1:9000/decide"})
+        self.assertEqual(agent.identity["prompt_version"], 5)
+
+    def test_anthropic_request_labels_interval_keyframes_and_omits_base64_from_text(self):
+        config = {"provider": "anthropic", "model": "claude-opus-5-5",
+                  "endpoint": "https://api.anthropic.com/v1/messages",
+                  "api_key_env": "ANTHROPIC_API_KEY"}
+        response = {"content": [{"type": "text", "text": '{"op":"complete"}'}]}
+        observation = {"images": {camera: PNG_URL for camera in CAMERAS},
+                       "interval_frames": [{"step": 3, "images": {camera: PNG_URL for camera in CAMERAS},
+                                            "proprio": {"state.gripper_qpos": [0.04, -0.04]}}],
+                       "goal": "Cereal"}
+        with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "secret-test-key"}), \
+             patch("robot_benchmark.adapters.agents.request_json",
+                   return_value=(response, {"status": 200, "headers": {}})) as request:
+            HTTPAgent(config).decide(observation)
+        content = request.call_args.args[1]["messages"][0]["content"]
+        self.assertEqual(len([block for block in content if block["type"] == "image"]), 6)
+        texts = [block["text"] for block in content if block["type"] == "text"]
+        self.assertIn(f"interval keyframe step 3: {CAMERAS[0]}", texts)
+        self.assertIn('interval keyframe step 3 proprioception: {"state.gripper_qpos": [0.04, -0.04]}', texts)
+        self.assertNotIn("base64", texts[-1])
+        self.assertNotIn("interval_frames", texts[-1])
 
     def test_anthropic_transport_error_retains_attempted_request(self):
         config = {"provider": "anthropic", "model": "claude-opus-5-5",

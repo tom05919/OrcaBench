@@ -163,3 +163,41 @@ per-camera MP4s at 20 fps; the PNG sequences remain the canonical artifact.
 model runs additionally retain `model_api_traces.jsonl` with every API-visible
 request and response, including available thinking summaries and usage. Never
 put API keys in model configuration files or traces.
+
+## Intervention-judgement benchmark: worker setup (October 2, 2026)
+
+**Instance choice.** The September 27 timings show the run is CPU-bound, not GPU-bound: of 382 s wall time for
+4,350 steps, simulation took 181 s, video recording 139 s, and policy inference 45 s. Pick the cheapest card with
+enough memory for the 7 GiB GR00T checkpoint and a graphics-capable driver. The October 2 pass used one RTX A6000
+48 GB (6 vCPUs, 48 GB RAM, 256 GB disk, Massed Compute, `ubuntu_22_cuda_12`, $0.54/hr).
+
+**Images without NVIDIA EGL.** A first A10 pod (Lambda, $1.29/hr, driver 570.148.08) shipped only the NVIDIA compute
+libraries, so headless MuJoCo failed with `EGL_BAD_DISPLAY`, and the packaged `libnvidia-gl` versions did not
+match the running kernel driver. That pod was abandoned. `scripts/setup_nvidia_gl.sh` is a fallback for such images:
+it downloads NVIDIA's installer for the running driver version, extracts it under `.cache/nvidia-gl` (no system
+install, no reboot), and `scripts/project_env.sh` then points EGL at it. **It has been written and syntax-checked but
+never run on a pod that needed it**, so treat it as untested. Check `ldconfig -p | grep libEGL_nvidia` before
+renting more than a few minutes of time.
+
+**Setup order on a fresh worker.**
+
+```bash
+# Package from the working tree. COPYFILE_DISABLE stops macOS tar adding ._* files, which break the config glob.
+git ls-files -co --exclude-standard | COPYFILE_DISABLE=1 tar czf orcabench.tgz -T -
+scp orcabench.tgz ubuntu@<ip>:~ && ssh ubuntu@<ip> 'mkdir -p ~/robot_benchmark && tar xzf ~/orcabench.tgz -C ~/robot_benchmark'
+bash scripts/setup_remote_worker.sh      # system libraries, uv, EGL fallback if needed
+source scripts/project_env.sh
+python3 scripts/bootstrap_gpu.py --download-assets --download-checkpoint     # about 20 minutes, 46 GB
+# detach the policy worker so it outlives the SSH session
+setsid -f .venv-groot/bin/python -m robot_benchmark.policy_worker --backend groot \
+    --checkpoint checkpoints/groot/checkpoint-120000 --port 8765 > ~/worker.log 2>&1 < /dev/null
+.venv-sim/bin/robot-benchmark doctor --policy-url http://127.0.0.1:8765 --output runs/preflight.json
+.venv-sim/bin/python scripts/check_task_pool.py --seed 1000     # builds all 16 pool tasks, checks predicates
+```
+
+Put `ANTHROPIC_API_KEY` in the Git-ignored `.env` (mode 600) and `set -a; source .env; set +a` before model runs.
+
+**Cost control.** Arm `scripts/arm_prime_watchdog.py` before creating a pod, then bind the pod ID into its
+`config.json`. The watchdog worked as designed on October 2: the first pod was left idle while a decision waited on
+the user, and it was terminated at its 5-hour deadline ($6.36 billed). Do not leave a paid pod idle waiting on a
+question; ask before renting, or terminate and re-create.

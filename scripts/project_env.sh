@@ -22,6 +22,11 @@ export HF_HUB_DISABLE_TELEMETRY=1
 
 if [[ "$(uname -s)" == "Linux" ]]; then
     export MUJOCO_GL="${MUJOCO_GL:-egl}"
+    # Present only after scripts/setup_nvidia_gl.sh, for images without NVIDIA's EGL libraries.
+    if [[ -f "${ROBOT_BENCHMARK_ROOT}/.cache/nvidia-gl/10_nvidia.json" ]]; then
+        export __EGL_VENDOR_LIBRARY_FILENAMES="${ROBOT_BENCHMARK_ROOT}/.cache/nvidia-gl/10_nvidia.json"
+        export LD_LIBRARY_PATH="${ROBOT_BENCHMARK_ROOT}/.cache/nvidia-gl${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+    fi
 fi
 
 mkdir -p \

@@ -48,6 +48,14 @@ class Records:
             name = f"frames/{index:04d}-{camera.removeprefix('video.')}.png"
             (self.path / name).write_bytes(base64.b64decode(url.split(",", 1)[1], validate=True))
             stored["images"][camera] = name
+        stored["interval_frames"] = []
+        for frame in value.get("interval_frames", []):
+            paths = {}
+            for camera, url in frame["images"].items():
+                name = f"frames/{index:04d}-step{frame['step']:06d}-{camera.removeprefix('video.')}.png"
+                (self.path / name).write_bytes(base64.b64decode(url.split(",", 1)[1], validate=True))
+                paths[camera] = name
+            stored["interval_frames"].append({"step": frame["step"], "images": paths, "proprio": frame["proprio"]})
         self.append("observations.jsonl", stored)
 
     def video_frames(self, step, images):

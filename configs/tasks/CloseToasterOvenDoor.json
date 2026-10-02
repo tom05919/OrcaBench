@@ -1,0 +1,20 @@
+{
+  "schema_version": 3,
+  "status": "candidate_unscreened",
+  "task": "CloseToasterOvenDoor",
+  "task_set": "atomic_seen",
+  "split": "pretrain",
+  "goal": null,
+  "goal_source": "native_instruction",
+  "max_steps": 450,
+  "max_decisions": 100,
+  "max_interval": 400,
+  "camera_size": 256,
+  "video_record_interval": 1,
+  "agent_image_history": "current_frames_plus_interval_keyframes_plus_decision_history",
+  "interval_keyframes": 4,
+  "artificial_disturbances": false,
+  "reference_prompts": [
+    {"id": "native_instruction", "prompt": "{goal}", "description": "Card for the task's native RoboCasa instruction (the goal text)", "performance": {"status": "untested", "trials": 0, "success_rate": null, "conditions": []}}
+  ]
+}

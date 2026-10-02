@@ -8,7 +8,8 @@ from .contracts import Limits, ModelReply, sensor_payload, validate_action, vali
 
 
 class Runner:
-    def __init__(self, env, policy, agent, reference_prompts, goal, limits: Limits, records=None, recording_interval=1):
+    def __init__(self, env, policy, agent, reference_prompts, goal, limits: Limits, records=None, recording_interval=1,
+                 interval_keyframes=0):
         self.env, self.policy, self.agent = env, policy, agent
         self.reference_prompts = {item.id: item for item in reference_prompts}
         if len(self.reference_prompts) != len(reference_prompts) or not reference_prompts or any(
@@ -19,6 +20,10 @@ class Runner:
         if type(recording_interval) is not int or recording_interval < 1:
             raise ValueError("recording interval must be a positive integer")
         self.recording_interval = recording_interval
+        if type(interval_keyframes) is not int or interval_keyframes < 0:
+            raise ValueError("interval keyframe count must be a nonnegative integer")
+        self.interval_keyframes = interval_keyframes
+        self.interval_frames = []
         self.steps = self.decisions = self.policy_calls = 0
         self.active_instruction = None
         self.queue = deque()
@@ -46,12 +51,20 @@ class Runner:
         self.physical_any |= self.last_physical
         self._record("evaluator/events.jsonl", {"step": self.steps, **truth})
 
+    def _public_card(self, item):
+        # A card whose prompt is exactly "{goal}" shows the already-public goal text.
+        card = item.public()
+        if card["prompt"] == "{goal}":
+            card["prompt"] = self.goal
+        return card
+
     def observation(self):
         return {
-            "schema_version": 2,
+            "schema_version": 4,
             "goal": self.goal,
             **sensor_payload(self.env.sensors()),
-            "reference_prompts": [item.public() for item in self.reference_prompts.values()],
+            "interval_frames": copy.deepcopy(self.interval_frames),
+            "reference_prompts": [self._public_card(item) for item in self.reference_prompts.values()],
             "active_instruction": self.active_instruction,
             "step": self.steps,
             "remaining_steps": self.limits.max_steps - self.steps,
@@ -95,6 +108,10 @@ class Runner:
                 "instruction": self.active_instruction,
                 "discarded_actions": discarded,
             })
+        # Evenly spaced frames strictly inside the interval; the next observation
+        # already shows its final step.
+        start, count, k = self.steps, decision["steps"], self.interval_keyframes
+        keyframe_steps = {start + count * i // (k + 1) for i in range(1, k + 1)} - {start, start + count}
         for _ in range(decision["steps"]):
             step_start = perf_counter()
             started_at_unix_ns = time_ns()
@@ -179,8 +196,14 @@ class Runner:
                 "sim_step_seconds": sim_time_after - sim_time_before,
                 "episode_elapsed_seconds": perf_counter() - self._episode_start,
                 "wall_seconds": perf_counter() - step_start})
+            if self.steps in keyframe_steps:
+                sensed = sensor_payload(self.env.sensors())
+                self.interval_frames.append({"step": self.steps, "images": sensed["images"],
+                                             "proprio": sensed["proprio"]})
 
-    def run(self, seed):
+    def run(self, seed, policy_seed=None):
+        """Scene seed resets the simulator; policy seed (default: scene seed) resets the policy."""
+        policy_seed = seed if policy_seed is None else policy_seed
         if self.status != "not_started":
             raise RuntimeError("Runner instances execute exactly one episode")
         start = perf_counter()
@@ -190,7 +213,12 @@ class Runner:
         self.status = "running"
         try:
             self.env.reset(seed)
-            self.policy.reset_episode(seed)
+            if self.goal is None:
+                goal = self.env.native_instruction()
+                if not isinstance(goal, str) or not goal.strip():
+                    raise ValueError("native instruction must be nonblank text")
+                self.goal = goal
+            self.policy.reset_episode(policy_seed)
             if self.records and hasattr(self.records, "video_frames"):
                 self.records.video_frames(0, self.env.recording_frames())
             self._record("evaluator/states.jsonl", {"step": 0, **self.env.snapshot()})
@@ -226,6 +254,7 @@ class Runner:
                 self._record("model_replies.jsonl", {"decision_index": self.decisions, **asdict(reply)})
                 entry = {"decision_index": self.decisions, "step_before": self.steps}
                 self.last_error = None
+                self.interval_frames = []
                 # Catch agent validation errors separately from executor failures.
                 try:
                     decision = validate_decision(reply.decision, self.limits)
@@ -240,6 +269,9 @@ class Runner:
                 entry["step_after"] = self.steps
                 self.history.append(entry)
                 self._record("decisions.jsonl", entry)
+            # Keep the final state in the replay when it falls between recording steps.
+            if self.records and hasattr(self.records, "video_frames") and self.steps % self.recording_interval:
+                self.records.video_frames(self.steps, self.env.recording_frames())
         except Exception as error:
             self.status = "infrastructure_error"
             infrastructure_error = f"{type(error).__name__}: {error}"
@@ -254,6 +286,7 @@ class Runner:
             "started_at_unix_ns": episode_started_at_unix_ns,
             "ended_at_unix_ns": time_ns(),
             "status": self.status,
+            "goal": self.goal, "scene_seed": seed, "policy_seed": policy_seed,
             "success": self.status == "success",
             "physical_success_final": self.last_physical,
             "physical_success_any": self.physical_any,

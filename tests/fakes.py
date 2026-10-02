@@ -31,8 +31,9 @@ def action(marker: float = 0.0) -> dict:
 
 
 class FakeEnvironment:
-    def __init__(self, success=lambda step: False, step_error: Exception | None = None):
+    def __init__(self, success=lambda step: False, step_error: Exception | None = None, native="native goal"):
         self.success = success
+        self.native = native
         self.step_error = step_error
         self.world_step = 0
         self.reset_seeds = []
@@ -43,6 +44,9 @@ class FakeEnvironment:
     def reset(self, seed: int) -> None:
         self.reset_seeds.append(seed)
         self.world_step = 0
+
+    def native_instruction(self) -> str:
+        return self.native
 
     def sensors(self) -> dict:
         return {
@@ -162,13 +166,16 @@ def make_runner(
     limits=None,
     records=None,
     reference_prompt_list=None,
+    interval_keyframes=0,
+    goal="put the cereal and bowl on the counter and close the cabinet",
 ) -> Runner:
     return Runner(
         env or FakeEnvironment(),
         policy or FakePolicy(),
         FakeAgent(replies),
         reference_prompt_list or reference_prompts(),
-        "put the cereal and bowl on the counter and close the cabinet",
+        goal,
         limits or Limits(max_steps=10, max_decisions=10, max_interval=5),
         records,
+        interval_keyframes=interval_keyframes,
     )

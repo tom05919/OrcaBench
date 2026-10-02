@@ -1,6 +1,11 @@
 import unittest
 
-from robot_benchmark.feasibility import public_task_config, qualification_config_view, qualification_report
+from robot_benchmark.feasibility import (
+    OrdinaryPolicySupervisor,
+    public_task_config,
+    qualification_config_view,
+    qualification_report,
+)
 from robot_benchmark.records import digest
 
 
@@ -107,6 +112,24 @@ class QualificationReportTests(unittest.TestCase):
         self.assertEqual(published["reference_prompts"][0]["performance"]["trials"], 20)
         self.assertNotIn("trace_paths", repr(published))
         self.assertEqual(qualification_config_view(base), qualification_config_view(published))
+
+
+class OrdinaryPolicySupervisorTests(unittest.TestCase):
+    class Env:
+        def evaluate(self):
+            return {"success": False}
+
+    def observation(self, prompts):
+        return {"goal": "Open the left drawer.", "active_instruction": None, "max_interval": 400,
+                "remaining_steps": 750, "reference_prompts": prompts}
+
+    def test_uses_full_task_prompt_when_present_else_goal(self):
+        supervisor = OrdinaryPolicySupervisor(self.Env())
+        full = [{"id": "full_task", "prompt": "Do the whole task."}]
+        self.assertEqual(supervisor.decide(self.observation(full)).decision,
+                         {"op": "run_policy", "steps": 100, "prompt": "Do the whole task."})
+        native = [{"id": "native_instruction", "prompt": "Use the goal text verbatim as the instruction."}]
+        self.assertEqual(supervisor.decide(self.observation(native)).decision["prompt"], "Open the left drawer.")
 
 
 if __name__ == "__main__":
