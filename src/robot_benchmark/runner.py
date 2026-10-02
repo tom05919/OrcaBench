@@ -30,6 +30,7 @@ class Runner:
         self.prompt_submissions = self.prompt_changes = self.prompt_restarts = self.discarded_actions = 0
         self.history = []
         self.usage = []
+        self.reply_parse = {}
         self.physical_any = False
         self.last_physical = None
         self.last_error = None
@@ -251,6 +252,8 @@ class Runner:
                 if not isinstance(reply, ModelReply):
                     raise TypeError("agent adapter must return ModelReply")
                 self.usage.append(reply.usage)
+                if reply.parse is not None:
+                    self.reply_parse[reply.parse] = self.reply_parse.get(reply.parse, 0) + 1
                 self._record("model_replies.jsonl", {"decision_index": self.decisions, **asdict(reply)})
                 entry = {"decision_index": self.decisions, "step_before": self.steps}
                 self.last_error = None
@@ -296,6 +299,8 @@ class Runner:
             "prompt_changes": self.prompt_changes,
             "prompt_restarts": self.prompt_restarts,
             "discarded_actions": self.discarded_actions,
+            "rejected_decisions": sum(not entry["accepted"] for entry in self.history),
+            "reply_parse": self.reply_parse,
             "intervals": [e["decision"]["steps"] for e in self.history if e["accepted"] and "steps" in e["decision"]],
             "model_seconds": self.model_seconds, "policy_seconds": self.policy_seconds,
             "simulation_seconds": self.simulation_seconds,

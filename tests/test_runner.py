@@ -409,6 +409,8 @@ class InfrastructureFailureTests(unittest.TestCase):
         self.assertEqual([entry["accepted"] for entry in runner.history], [True, False, True])
         self.assertEqual(result["steps"], 1)  # the recovered decision advanced physics
         self.assertEqual(result["model_calls"], 3)  # the unparsed one still cost a call
+        self.assertEqual(result["rejected_decisions"], 1)
+        self.assertEqual(result["reply_parse"], {"extracted": 1, "unparsed": 1, "strict": 1})
 
 
 class FinalFrameTests(unittest.TestCase):

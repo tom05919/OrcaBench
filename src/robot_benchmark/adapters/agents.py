@@ -2,12 +2,27 @@
 import copy
 import json
 import os
+from time import sleep
+from urllib.error import URLError
 from urllib.parse import urlparse
 
 from ..contracts import CAMERAS, ModelReply
-from .http import request_json
+from .http import HTTPStatusError, request_json
 
 MAX_MODEL_TOKENS = 4096
+
+# A model call changes no simulator or policy state (physics is paused), so a
+# transient provider failure is retried instead of ending the episode as an
+# infrastructure error. Retries are not decisions and are never shown to the model.
+RETRY_DELAYS_SECONDS = (5, 20, 60)
+MAX_RETRY_AFTER_SECONDS = 120
+RETRYABLE_HTTP_STATUS = frozenset({408, 429, 500, 502, 503, 504, 529})
+
+
+def is_transient(error):
+    if isinstance(error, HTTPStatusError):
+        return error.status in RETRYABLE_HTTP_STATUS
+    return isinstance(error, (TimeoutError, ConnectionError, URLError))
 
 # Constrains the reply text to a single JSON object, so a model cannot narrate
 # inside it. Kept flat: the API documents no root-level anyOf and ignores numeric
@@ -176,11 +191,21 @@ class HTTPAgent:
     def _request(self, payload, headers, safe_headers):
         self.last_trace = {"request": {"url": self.config["endpoint"],
                          "headers": safe_headers, "body": payload}}
-        try:
-            response, metadata = request_json(self.config["endpoint"], payload, headers,
-                self.config.get("timeout_seconds", 120), with_metadata=True)
-        except Exception as error:
-            self.last_trace["error"] = {"type": type(error).__name__, "message": str(error)}
-            raise
+        for attempt, delay in enumerate((*RETRY_DELAYS_SECONDS, None), start=1):
+            try:
+                response, metadata = request_json(self.config["endpoint"], payload, headers,
+                    self.config.get("timeout_seconds", 120), with_metadata=True)
+                break
+            except Exception as error:
+                failure = {"type": type(error).__name__, "message": str(error)}
+                if delay is None or not is_transient(error):
+                    self.last_trace["error"] = failure
+                    raise
+                try:
+                    delay = min(max(delay, float(error.retry_after)), MAX_RETRY_AFTER_SECONDS)
+                except (AttributeError, TypeError, ValueError):
+                    pass
+                self.last_trace.setdefault("retries", []).append({"attempt": attempt, **failure, "waited_seconds": delay})
+                sleep(delay)
         self.last_trace["response"] = {"http": metadata, "body": response}
         return response

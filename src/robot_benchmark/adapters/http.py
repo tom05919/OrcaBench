@@ -4,6 +4,12 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 
+class HTTPStatusError(RuntimeError):
+    def __init__(self, status, body, retry_after=None):
+        super().__init__(f"HTTP {status}: {body}")
+        self.status, self.retry_after = status, retry_after
+
+
 def request_json(url, payload=None, headers=None, timeout=120, with_metadata=False):
     data = None if payload is None else json.dumps(payload, allow_nan=False).encode()
     request = Request(url, data=data, headers={"Content-Type": "application/json", **(headers or {})})
@@ -13,7 +19,7 @@ def request_json(url, payload=None, headers=None, timeout=120, with_metadata=Fal
             metadata = {"status": response.status, "headers": dict(response.headers.items())}
     except HTTPError as error:
         body = error.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"HTTP {error.code}: {body}") from error
+        raise HTTPStatusError(error.code, body, error.headers.get("retry-after") if error.headers else None) from error
     if not isinstance(value, dict):
         raise RuntimeError("server response must be a JSON object")
     if "error" in value:

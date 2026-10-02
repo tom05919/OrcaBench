@@ -260,6 +260,7 @@ def infrastructure_result(error, started_at_unix_ns=None, wall_seconds=0.0, scen
         "false_completion": False, "steps": 0, "model_calls": 0,
         "policy_calls": 0, "prompt_submissions": 0, "prompt_changes": 0,
         "prompt_restarts": 0, "discarded_actions": 0,
+        "rejected_decisions": 0, "reply_parse": {},
         "intervals": [], "model_seconds": 0.0, "policy_seconds": 0.0,
         "simulation_seconds": 0.0, "simulated_seconds": 0.0,
         "recording_seconds": 0.0,

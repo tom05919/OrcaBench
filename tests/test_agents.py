@@ -1,7 +1,9 @@
 import unittest
 from unittest.mock import patch
 
-from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent, MAX_MODEL_TOKENS, SYSTEM_PROMPT
+from robot_benchmark.adapters.agents import (DECISION_FORMAT, HTTPAgent, MAX_MODEL_TOKENS,
+                                             MAX_RETRY_AFTER_SECONDS, RETRY_DELAYS_SECONDS, SYSTEM_PROMPT)
+from robot_benchmark.adapters.http import HTTPStatusError
 from robot_benchmark.contracts import CAMERAS, PROPRIO, Limits, validate_decision
 from tests.fakes import PNG_URL
 
@@ -103,13 +105,64 @@ class AgentConfigurationTests(unittest.TestCase):
                   "api_key_env": "ANTHROPIC_API_KEY"}
         observation = {"images": {camera: PNG_URL for camera in CAMERAS}, "goal": "Cereal"}
         with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "secret-test-key"}), \
-             patch("robot_benchmark.adapters.agents.request_json", side_effect=TimeoutError("timed out")):
+             patch("robot_benchmark.adapters.agents.request_json", side_effect=TimeoutError("timed out")) as request, \
+             patch("robot_benchmark.adapters.agents.sleep") as sleep:
             agent = HTTPAgent(config)
             with self.assertRaises(TimeoutError):
                 agent.decide(observation)
+        self.assertEqual(request.call_count, 4)  # first try plus three bounded retries
+        self.assertEqual([call.args[0] for call in sleep.call_args_list], list(RETRY_DELAYS_SECONDS))
+        self.assertEqual(len(agent.last_trace["retries"]), 3)
         self.assertIn("request", agent.last_trace)
         self.assertEqual(agent.last_trace["error"]["type"], "TimeoutError")
         self.assertNotIn("secret-test-key", repr(agent.last_trace))
+
+
+class TransientModelFailureTests(unittest.TestCase):
+    """A model call changes no physical state, so a provider hiccup must not end the episode."""
+
+    CONFIG = {"provider": "anthropic", "model": "claude-opus-5-5",
+              "endpoint": "https://api.anthropic.com/v1/messages", "api_key_env": "ANTHROPIC_API_KEY"}
+    OK = ({"stop_reason": "end_turn", "content": [{"type": "text", "text": '{"op":"complete"}'}], "usage": {}},
+          {"status": 200, "headers": {}})
+
+    def decide(self, side_effect):
+        observation = {"images": {camera: PNG_URL for camera in CAMERAS}, "goal": "g"}
+        with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "secret-test-key"}), \
+             patch("robot_benchmark.adapters.agents.request_json", side_effect=side_effect) as request, \
+             patch("robot_benchmark.adapters.agents.sleep") as sleep:
+            agent = HTTPAgent(self.CONFIG)
+            try:
+                reply = agent.decide(observation)
+            except Exception as error:
+                reply = error
+        return agent, reply, request, sleep
+
+    def test_overload_then_success_returns_the_reply_and_records_the_retry(self):
+        agent, reply, request, sleep = self.decide([HTTPStatusError(529, "overloaded"), self.OK])
+        self.assertEqual(reply.decision, {"op": "complete"})
+        self.assertEqual(request.call_count, 2)
+        sleep.assert_called_once_with(RETRY_DELAYS_SECONDS[0])
+        self.assertEqual(agent.last_trace["retries"][0]["message"], "HTTP 529: overloaded")
+        self.assertNotIn("error", agent.last_trace)
+        self.assertNotIn("secret-test-key", repr(agent.last_trace))
+
+    def test_retry_after_is_honoured_but_capped(self):
+        _, _, _, sleep = self.decide([HTTPStatusError(429, "slow down", retry_after="30"),
+                                      HTTPStatusError(429, "slow down", retry_after="9999"), self.OK])
+        self.assertEqual([call.args[0] for call in sleep.call_args_list], [30.0, MAX_RETRY_AFTER_SECONDS])
+
+    def test_connection_drop_is_retried(self):
+        _, reply, request, _ = self.decide([ConnectionResetError("reset by peer"), self.OK])
+        self.assertEqual((reply.decision, request.call_count), ({"op": "complete"}, 2))
+
+    def test_request_errors_are_not_retried(self):
+        for error in (HTTPStatusError(400, "bad schema"), HTTPStatusError(401, "bad key"), ValueError("bad")):
+            agent, reply, request, sleep = self.decide([error])
+            self.assertIs(reply, error)
+            self.assertEqual(request.call_count, 1)
+            sleep.assert_not_called()
+            self.assertNotIn("retries", agent.last_trace)
 
 
 class DecisionTextParsingTests(unittest.TestCase):
