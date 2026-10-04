@@ -49,8 +49,8 @@ harm data. The set A / set B split in `configs/splits.json` is not used; a relea
 
 User authorized renting the GPU for this run. Caps: one pod, at most 5 hours wall time (independent launchd
 watchdog) and $10 of GPU spend; at most $15 of Anthropic API spend. No second pod without asking. Expected: about
-4 hours, about $2.5 GPU (RTX A6000-class at about $0.54/hr), about $3 API at list prices ($4 / $20 per million
-tokens, from stage 1 token counts). `scripts/run_stage2.sh` starts no new episode after 225 minutes.
+4 hours, about $2.5 GPU if an RTX A6000 at $0.54/hr is in stock (it was not: the run used an A10 at $1.29/hr, about
+$6.2), about $3 API at list prices ($4 / $20 per million tokens, from stage 1 token counts). `scripts/run_stage2.sh` starts no new episode after 225 minutes.
 
 ## Storage
 
