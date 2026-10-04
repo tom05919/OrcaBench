@@ -201,3 +201,35 @@ Put `ANTHROPIC_API_KEY` in the Git-ignored `.env` (mode 600) and `set -a; source
 `config.json`. The watchdog worked as designed on October 2: the first pod was left idle while a decision waited on
 the user, and it was terminated at its 5-hour deadline ($6.36 billed). Do not leave a paid pod idle waiting on a
 question; ask before renting, or terminate and re-create.
+
+## Stage 2: probe first, then the paired development run (October 2, 2026)
+
+**Probe the API before renting.** `scripts/probe_model.py` sends real calls through the same adapter a run uses
+and needs no GPU, simulator, or policy, so run it on the Mac first. It reports whether the API accepts the
+request (structured reply format plus thinking plus images), how each reply parsed, whether the decision
+validates, latency, and output tokens including thinking. Every call is billed; it refuses more than
+`--max-calls` (40) calls.
+
+```bash
+set -a; source .env; set +a
+# Synthetic first-call and 15-image mid-episode observations, both models, two effort levels (8 calls):
+PYTHONPATH=src python3 scripts/probe_model.py \
+  --agent-configs configs/model-opus-5-5.dev.json configs/model-sonnet-5-5.dev.json --efforts medium high
+# Replay what a stage 1 Sonnet episode actually sent (the folder holding observations.jsonl):
+PYTHONPATH=src python3 scripts/probe_model.py --agent-configs configs/model-opus-5-5.dev.json \
+  --episode runs/stage1_remote/<...>/<episode-folder> --observation-indices 0 1 2 --efforts medium high
+```
+
+Exit status 0 means every request succeeded and every reply was strict JSON; 1 means a request failed (for
+example HTTP 400 for the reply schema: do not rent until that is fixed); 2 means a reply needed recovery or was
+unparsable. Results go to `runs/probes/`. Runs keep effort fixed at `medium`; the effort comparison only informs
+that contract decision.
+
+**Paired development run.** `scripts/run_stage2.sh` runs, for each of the eight stage 1 (task, scene) pairs at
+policy seed 0, a fresh plain-policy reference, the always-defer baseline, and each model in `MODELS` (default
+`opus-5-5`; `MODELS="opus-5-5 sonnet-5-5"` also reruns Sonnet under the current reply contract). Pairs are
+interleaved so an interrupted pod still leaves complete pairs, `--skip-existing` makes a rerun resume, and it
+ends by writing `compare-<system>.json` with `scripts/compare_to_reference.py`. From stage 1 timings, expect
+roughly 1 to 4 minutes per episode, about 24 to 32 episodes, plus about 20 minutes of bootstrap. Arm the
+watchdog for 3 hours. These are `llm_development` episodes: eight pairs show direction, not a significant
+difference.
