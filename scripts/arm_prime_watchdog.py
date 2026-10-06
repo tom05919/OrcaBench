@@ -39,7 +39,7 @@ def arm(pod_name, team_id, minutes=120):
                    check=True, stdout=subprocess.DEVNULL)
     # Avoid idle sleep if the Codex app exits. Closing the laptop lid or losing
     # network can still delay termination, so verify the pod is gone afterward.
-    awake = subprocess.Popen(["/usr/bin/caffeinate", "-i", "-t", str(minutes * 60 + 300)],
+    awake = subprocess.Popen(["/usr/bin/caffeinate", "-dimsu", "-t", str(minutes * 60 + 300)],
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                              start_new_session=True)
     (folder / "caffeinate.pid").write_text(f"{awake.pid}\n")

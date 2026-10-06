@@ -15,6 +15,7 @@ import base64
 import json
 import os
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -51,6 +52,17 @@ def pick_steps(timeline, per_episode, last_step):
     return out[:per_episode]
 
 
+def window_steps(timeline, low, high, stride, interval):
+    """Steps from `low` to `high` around the checker's first success (negative = before), every `stride` steps. Shows
+    where the model's answer flips relative to the checker, i.e. how long visual completion precedes it."""
+    true = [s for s, ok in timeline if ok]
+    if not true:
+        return []
+    last = (timeline[-1][0] // interval) * interval
+    steps = [(true[0] + k) // interval * interval for k in range(low, high + 1, stride)]
+    return [("window", s) for s in sorted(set(steps)) if 0 <= s <= last]
+
+
 def frames(folder, step, interval):
     import cv2
     out = {}
@@ -64,6 +76,18 @@ def frames(folder, step, interval):
             return None
         out[camera] = base64.b64encode(cv2.imencode(".png", image)[1].tobytes()).decode()
     return out
+
+
+def ask_with_retries(model, goal, images, key, attempts=4):
+    """The probe can run for an hour; a dropped connection must cost one call, not the run."""
+    for attempt in range(attempts):
+        try:
+            return ask(model, goal, images, key)
+        except Exception as error:
+            if attempt == attempts - 1:
+                print(f"giving up on one call: {type(error).__name__}: {error}", file=sys.stderr, flush=True)
+                return None
+            time.sleep(10 * (attempt + 1))
 
 
 def ask(model, goal, images, key):
@@ -87,6 +111,10 @@ def main():
     parser.add_argument("--model", default="claude-opus-5-5")
     parser.add_argument("--per-episode", type=int, default=6)
     parser.add_argument("--max-calls", type=int, default=200)
+    parser.add_argument("--window", type=int, nargs=2, metavar=("LOW", "HIGH"),
+                        help="instead of spread-out steps, probe every --stride steps from LOW to HIGH around the first success")
+    parser.add_argument("--stride", type=int, default=10)
+    parser.add_argument("--policy-seed", type=int, help="with --window: keep only this policy seed, one episode per task and scene")
     parser.add_argument("--output", type=Path, default=Path("runs/probes/completion.json"))
     parser.add_argument("--dry-run", action="store_true", help="print the plan and a cost estimate, no API calls")
     args = parser.parse_args()
@@ -103,11 +131,17 @@ def main():
             if manifest.get("artifact_type") != "episode" or result["status"] == "infrastructure_error" or not (folder / "videos").is_dir():
                 continue
             interval = manifest["video_record_interval"]
-            for label, step in pick_steps(timeline, args.per_episode, (timeline[-1][0] // interval) * interval):
+            if args.window and args.policy_seed is not None and manifest["policy_seed"] != args.policy_seed:
+                continue
+            picks = (window_steps(timeline, args.window[0], args.window[1], args.stride, interval) if args.window
+                     else pick_steps(timeline, args.per_episode, (timeline[-1][0] // interval) * interval))
+            for label, step in picks:
                 step = (step // interval) * interval
                 truth = dict(timeline).get(step)
+                first = next((s for s, ok in timeline if ok), None)
                 plan.append({"folder": folder, "task": manifest["task"], "scene": manifest["scene_seed"], "policy": manifest["policy_seed"],
-                             "goal": result["goal"], "step": step, "label": label, "interval": interval, "truth": truth})
+                             "goal": result["goal"], "step": step, "label": label, "interval": interval, "truth": truth,
+                             "relative_to_first_success": None if first is None else step - first})
     plan = plan[:args.max_calls]
     rate_in, rate_out = PRICES.get(args.model, (4.0, 20.0))
     print(f"{len(plan)} calls over {len({p['folder'] for p in plan})} episodes; estimated cost about "
@@ -123,14 +157,25 @@ def main():
         print("ANTHROPIC_API_KEY is not set", file=sys.stderr)
         return 2
     rows = []
-    for p in plan:
-        images = frames(p["folder"], p["step"], p["interval"])
-        if images is None:
-            continue
-        answer, thinking, usage = ask(args.model, p["goal"], images, key)
-        rows.append({**{k: (str(v) if k == "folder" else v) for k, v in p.items()}, "answer": answer, "thinking": thinking, "usage": usage})
-        print(p["task"], p["scene"], p["step"], p["label"], "truth", p["truth"], "answer", answer, flush=True)
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    stream_path = args.output.with_suffix(".jsonl")  # one line per answer, written as it arrives
+    done = {(r["folder"], r["step"]) for r in map(json.loads, stream_path.read_text().splitlines())} if stream_path.exists() else set()
+    with stream_path.open("a") as stream:
+        for p in plan:
+            if (str(p["folder"]), p["step"]) in done:
+                continue
+            images = frames(p["folder"], p["step"], p["interval"])
+            if images is None:
+                continue
+            asked = ask_with_retries(args.model, p["goal"], images, key)
+            if asked is None:
+                continue
+            answer, thinking, usage = asked
+            row = {**{k: (str(v) if k == "folder" else v) for k, v in p.items()}, "answer": answer, "thinking": thinking, "usage": usage}
+            stream.write(json.dumps(row) + "\n")
+            stream.flush()
+            print(p["task"], p["scene"], p["step"], p["label"], "truth", p["truth"], "answer", answer, flush=True)
+    rows = [json.loads(line) for line in stream_path.read_text().splitlines()]
     args.output.write_text(json.dumps(rows, indent=1) + "\n")
     stats = defaultdict(lambda: [0, 0])
     for r in rows:

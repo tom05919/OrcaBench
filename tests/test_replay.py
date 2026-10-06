@@ -124,6 +124,12 @@ class ReplayCommandTests(unittest.TestCase):
         self.assertEqual(kwargs["task_config"]["video_record_interval"], 5)
         self.assertEqual(kwargs["expected_start_state"], "a" * 64)  # the replay must start from the source's scene
 
+    def test_expect_state_overrides_the_sources_start_for_a_source_from_another_machine(self):
+        self.assertEqual(self.cli.main(["replay", "--task-config", str(self.config), "--source", str(self.source),
+                                        "--ablation", "exact", "--expect-state", "c" * 64,
+                                        "--output", str(self.root / "out2")]), 0)
+        self.assertEqual(self.run_episode.call_args.kwargs["expected_start_state"], "c" * 64)
+
     def test_refuses_a_source_from_another_task(self):
         other = self.config.with_name("CloseFridge.json")
         self.assertEqual(self.replay(other), 2)

@@ -7,6 +7,10 @@
 # workers        start STREAMS policy workers on one GPU (ports BASE_PORT...)
 # plain          plain policy on new scenes (privileged stop on success)
 # defer_confirm  always-defer on each plain success; confirmed = defer also succeeds from the identical start
+# host_defer     always-defer on the pairs in PAIRS_TSV (task scene policy) on this machine, no expected state
+# host_confirm   a second always-defer from the same start; confirmed = both succeed from one start (this machine's)
+#                (host_defer and host_confirm replace plain, defer_confirm and defer_repeat when the pairs and the
+#                 model episodes come from another machine of the same kitchens, whose start states differ)
 # defer_repeat   a second always-defer run on each confirmed pair: the no-intervention noise floor
 # opus, sonnet   one LLM episode on each confirmed pair
 # reissue        restart-every-100 baseline on each confirmed pair
@@ -37,6 +41,7 @@ SONNET=${SONNET:-sonnet-5-5}
 PLAIN_TASKS=(CloseFridge CloseToasterOvenDoor CoffeeSetupMug KettleBoiling OpenCabinet OpenDrawer
              PickPlaceCounterToCabinet PickPlaceCounterToStove RinseSinkBasin ScrubCuttingBoard TurnOnMicrowave
              TurnOnSinkFaucet WashLettuce)
+[[ -z ${TASK_LIST:-} ]] || read -r -a PLAIN_TASKS <<< "$TASK_LIST"   # e.g. a top-up for a few tasks
 BIN=.venv-sim/bin/robot-benchmark
 PY=.venv-sim/bin/python
 SELECT="$PY scripts/select_stage3.py"
@@ -133,6 +138,23 @@ phase_defer_confirm() {
   stamp "candidates $(tsv_lines "$OUT/candidates.tsv"), confirmed $(tsv_lines "$OUT/confirmed.tsv")"
 }
 
+phase_host_defer() {
+  : > "$OUT/jobs.hostdefer"
+  while read -r task scene policy _; do
+    echo "$BIN baseline --task-configs configs/tasks/$task.json --scene-seeds $scene --policy-seeds $policy --agent always_defer --video-record-interval $VIDEO --skip-existing --policy-url @URL@ --output $OUT/always_defer" >> "$OUT/jobs.hostdefer"
+  done < "${PAIRS_TSV:?set PAIRS_TSV to a file of task scene policy lines}"
+  run_parallel "$OUT/jobs.hostdefer"
+}
+
+phase_host_confirm() {
+  $SELECT candidates --plain-roots "$OUT/always_defer" --cap 99 > "$OUT/hostcandidates.tsv"   # successes, with their start state
+  baseline_jobs always_defer "$OUT/hostcandidates.tsv" | sed "s#--output $OUT/always_defer#--output $OUT/always_defer-r2#" > "$OUT/jobs.hostconfirm"
+  run_parallel "$OUT/jobs.hostconfirm"
+  $SELECT confirmed --plain-roots "$OUT/always_defer" --defer-roots "$OUT/always_defer-r2" --cap 99 \
+    --table "$OUT/confirmed_dropped.json" > "$OUT/confirmed.tsv"
+  stamp "host candidates $(tsv_lines "$OUT/hostcandidates.tsv"), confirmed $(tsv_lines "$OUT/confirmed.tsv")"
+}
+
 phase_defer_repeat() {
   baseline_jobs always_defer "$OUT/confirmed.tsv" | sed "s#--output $OUT/always_defer#--output $OUT/always_defer-r2#" > "$OUT/jobs.defer2"
   run_parallel "$OUT/jobs.defer2"
@@ -148,13 +170,17 @@ phase_repeats() {
 }
 
 phase_replays() {
-  local roots=("$OUT/$OPUS") ablation
+  local roots=("$OUT/$OPUS") ablation extra
   [[ -d $OUT/$OPUS-r2 ]] && roots+=("$OUT/$OPUS-r2")
+  for extra in ${REPLAY_SOURCES:-}; do roots+=("$extra"); done   # e.g. Opus episodes copied from another machine
   $SELECT replays --llm-roots "${roots[@]}" --max-successes 8 > "$OUT/replays.tsv"
   : > "$OUT/jobs.replays"
   for ablation in exact native_text no_interruption; do
     while read -r task scene policy folder; do
-      echo "$BIN replay --task-config configs/tasks/$task.json --source $folder --ablation $ablation --video-record-interval $VIDEO --policy-url @URL@ --output $OUT/replay_$ablation" >> "$OUT/jobs.replays"
+      # A source from another machine needs this machine's start state for the pair; skip pairs that have none.
+      state=$(awk -v t="$task" -v s="$scene" -v p="$policy" '$1==t && $2==s && $3==p {print $4; exit}' "$OUT/confirmed.tsv" 2>/dev/null)
+      [[ -z ${CROSS_HOST:-} || -n $state ]] || continue
+      echo "$BIN replay --task-config configs/tasks/$task.json --source $folder --ablation $ablation ${state:+--expect-state $state} --video-record-interval $VIDEO --policy-url @URL@ --output $OUT/replay_$ablation" >> "$OUT/jobs.replays"
     done < "$OUT/replays.tsv"
   done
   run_parallel "$OUT/jobs.replays" 1

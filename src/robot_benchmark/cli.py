@@ -544,7 +544,9 @@ def command_replay(args):
     write_contract(args.output, payload, contract_hash)
     if args.video_record_interval:
         config = {**config, "video_record_interval": args.video_record_interval}
-    start = json.loads((args.source / "evaluator" / "states.jsonl").read_text().splitlines()[0])["state_sha256"]
+    # By default the replay must start from the source episode's own scene. A source from another machine builds the
+    # same kitchen but a state that differs at floating-point level, so --expect-state names this machine's instead.
+    start = args.expect_state or json.loads((args.source / "evaluator" / "states.jsonl").read_text().splitlines()[0])["state_sha256"]
     result = run_episode(seed=source["scene_seed"], policy_seed=source["policy_seed"], output=args.output,
                          task_config=config, reference_prompts=reference_prompts, limits=limits, policy=policy,
                          agent_factory=lambda env: ReplayAgent(decisions, args.ablation, args.source.name),
@@ -796,6 +798,7 @@ def parser():
     replay.add_argument("--splits", type=Path, default=DEFAULT_SPLITS)
     replay.add_argument("--policy-url", default="http://127.0.0.1:8765")
     replay.add_argument("--video-record-interval", type=positive_int)
+    replay.add_argument("--expect-state", type=state_hash, help="step-0 state hash the scene must reproduce (default: the source's)")
     replay.add_argument("--output", type=Path, required=True)
     replay.set_defaults(function=command_replay)
     for name, choices, function in (("screen", SCREEN_MODES, command_screen),
