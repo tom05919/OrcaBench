@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.select_stage3 import candidates, collect, confirmed, dose, first_per_task, repeats, replays
+from scripts.select_stage3 import candidates, collect, confirmed, dose, first_per_task, repeats, replays, rescue
 
 
 def ep(key, success=True, state="s", layout=1, changes=0, restarts=0, folder="f"):
@@ -58,6 +58,14 @@ class SelectionRuleTests(unittest.TestCase):
         episodes = [ep(("A", 1, 0), success=False, folder="a"), ep(("B", 2, 0), changes=1, folder="b"),
                     ep(("C", 3, 0), changes=1, folder="c"), ep(("D", 4, 0), folder="d")]
         self.assertEqual([e["folder"] for e in replays(episodes, 1)], ["a", "b"])
+
+
+    def test_rescue_needs_a_scene_the_plain_policy_failed_every_time_at_least_twice(self):
+        plain = table(ep(("A", 1000, 0), success=False), ep(("A", 1000, 1), success=False),   # fails repeatedly
+                      ep(("A", 1001, 0), success=False), ep(("A", 1001, 1)),                  # mixed: not rescue
+                      ep(("A", 1002, 0), success=False),                                      # one trial only
+                      ep(("B", 1000, 3), success=False), ep(("B", 1000, 5), success=False))
+        self.assertEqual(rescue(plain, 2), [("A", 1000, 0), ("B", 1000, 3)])
 
 
 class CollectTests(unittest.TestCase):

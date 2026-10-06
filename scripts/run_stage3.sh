@@ -13,6 +13,7 @@
 # repeats        a second Opus episode where the first failed or changed the prompt
 # replays        decision replays (exact, native_text, no_interruption) of Opus failures and some rewrite successes
 # dose           reissue every 50, 200, 400 steps on the pairs of tasks where an arm failed
+# rescue         Opus where the plain policy failed every time: does the LLM ever succeed there?
 # compare        per-arm tables against the plain reference
 #
 # Jobs are shared by STREAMS streams, one policy worker each. Every attempted episode is kept. No new job starts
@@ -61,12 +62,13 @@ stream() {
 # Run every line of $1 across the streams, then a second pass: with --skip-existing it only redoes episodes that
 # ended in an infrastructure error. Pass passes=1 for jobs without --skip-existing.
 run_parallel() {
-  local jobs=$1 passes=${2:-2} p i
+  local jobs=$1 passes=${2:-2} p i pids
   stamp "jobs: $(tsv_lines "$jobs") from $(basename "$jobs")"
   for ((p = 0; p < passes; p++)); do
     echo 0 > "$jobs.next"
-    for ((i = 0; i < STREAMS; i++)); do stream "$jobs" "$jobs.next" "$i" & done
-    wait
+    pids=()
+    for ((i = 0; i < STREAMS; i++)); do stream "$jobs" "$jobs.next" "$i" & pids+=($!); done
+    wait "${pids[@]}"  # the streams only: a bare wait would also wait for the resource monitor, which never ends
   done
 }
 
@@ -166,6 +168,12 @@ phase_dose() {
   run_parallel "$OUT/jobs.dose"
 }
 
+phase_rescue() {
+  $SELECT rescue --plain-roots "$STAGE2_REF" "$OUT/reference" --cap "${RESCUE_CAP:-1}" > "$OUT/rescue.tsv"
+  llm_jobs "$OPUS" "$OUT/rescue.tsv" "$OUT/rescue-$OPUS" > "$OUT/jobs.rescue"
+  run_parallel "$OUT/jobs.rescue"
+}
+
 phase_compare() {
   local system
   for system in "$OPUS" "$OPUS-r2" "$SONNET" always_defer always_defer-r2 reissue reissue_50 reissue_200 reissue_400 replay_exact replay_native_text replay_no_interruption; do
@@ -183,7 +191,7 @@ monitor &
 trap 'kill $(jobs -p) 2>/dev/null' EXIT
 
 phases=("$@")
-(( ${#phases[@]} )) || phases=(workers plain defer_confirm defer_repeat opus sonnet reissue repeats replays dose compare)
+(( ${#phases[@]} )) || phases=(workers plain defer_confirm defer_repeat opus sonnet reissue repeats replays dose rescue compare)
 for phase in "${phases[@]}"; do
   stamp "phase $phase"
   if [[ $phase == workers ]]; then start_workers; else "phase_$phase"; fi

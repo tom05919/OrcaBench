@@ -5,6 +5,8 @@
               the plain run (same step-0 state hash): per task, the first N. Only these pairs get LLM episodes.
   repeats     confirmed pairs whose first LLM episode failed or changed the prompt: they get another LLM episode.
   dose        confirmed pairs of tasks where an LLM or reissue-100 episode failed: they get the interruption sweep.
+  rescue      scenes where the plain policy failed every time (two or more episodes): the LLM runs there to see
+              whether it ever succeeds where the plain policy does not.
   replays     LLM episodes to replay with no model: every failure, plus up to N successes that changed the prompt.
 
 Outcomes are read only to find leave-alone pairs and to aim the follow-up arms; they never choose which result to
@@ -92,6 +94,18 @@ def replays(llm_episodes, max_successes):
     return failures + rewrites[:max_successes]
 
 
+def rescue(plain, cap):
+    """Pairs the plain policy fails repeatedly: (task, scene) where every plain episode failed (at least two of them),
+    taken at that scene's lowest policy seed; per task the first `cap` by scene. The LLM runs there to see whether it
+    ever succeeds where the plain policy does not."""
+    scenes = defaultdict(list)
+    for key, e in plain.items():
+        scenes[(key[0], key[1])].append(e)
+    keys = [min(e["key"] for e in episodes) for episodes in scenes.values()
+            if len(episodes) >= 2 and not any(e["success"] for e in episodes)]
+    return first_per_task(keys, cap)
+
+
 def tsv(keys, plain=None):
     """One line per pair; with the plain table, a fourth column carries the plain run's step-0 state hash, which
     the arms pass as --expect-state so that a different scene ends the episode before any model call."""
@@ -102,12 +116,12 @@ def tsv(keys, plain=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("candidates", "confirmed", "repeats", "dose", "replays"):
+    for name in ("candidates", "confirmed", "repeats", "dose", "replays", "rescue"):
         p = sub.add_parser(name)
         p.add_argument("--table", type=Path, help="write the dropped pairs and reasons here")
-        if name in ("candidates", "confirmed"):
+        if name in ("candidates", "confirmed", "rescue"):
             p.add_argument("--plain-roots", type=Path, nargs="+", required=True)
-            p.add_argument("--cap", type=int, default=6 if name == "candidates" else 4)
+            p.add_argument("--cap", type=int, default={"candidates": 6, "confirmed": 4, "rescue": 1}[name])
         if name == "confirmed":
             p.add_argument("--defer-roots", type=Path, nargs="+", required=True)
         if name in ("repeats", "replays"):
@@ -127,6 +141,9 @@ def main():
         plain = collect(args.plain_roots)
         keys, dropped = confirmed(plain, collect(args.defer_roots), args.cap)
         tsv(keys, plain)
+    elif args.command == "rescue":
+        plain = collect(args.plain_roots)
+        tsv(rescue(plain, args.cap), plain)
     elif args.command == "repeats":
         tsv(repeats(collect(args.llm_roots)))
     elif args.command == "dose":
