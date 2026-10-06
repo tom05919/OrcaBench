@@ -124,7 +124,7 @@ def main():
                                            "prompt_changes": e["result"]["prompt_changes"], "restarts": e["result"]["prompt_restarts"],
                                            "calls": e["result"]["model_calls"], "steps": e["result"]["steps"], "t_star": t_star,
                                            **exposure(e, t_star)})
-    llm = [e for e in report["episodes"] if e["arm"] in ("opus", "opus2")]
+    llm = [e for e in report["episodes"] if e["arm"] in ("opus", "opus2") and e["outcome"] != "invalid"]
     intervened = [e for e in llm if e["restarts"] or e["prompt_changes"]]
     report["opus_exposure"] = {
         "episodes": len(llm), "intervened": len(intervened),

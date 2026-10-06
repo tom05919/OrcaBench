@@ -221,3 +221,19 @@ PYTHONPATH=src python3 scripts/probe_model.py --agent-configs configs/model-opus
 Exit status 0 means every request succeeded and every reply was strict JSON; 1 means a request failed (for
 example HTTP 400 for the reply schema: do not rent until that is fixed); 2 means a reply needed recovery or was
 unparsable. Results go to `runs/probes/`. Runs keep effort fixed at `medium`.
+
+## Stage 3 incident: a sleeping Mac defeats the watchdog (October 5-6, 2026)
+
+The watchdog is a launchd job on the Mac. The stage 3 pod (RunPod A6000, $0.547/hr) was armed for 8 hours, but the
+Mac slept overnight with only brief, network-less wake-ups (the watchdog log has 1 to 1.6 hour gaps from 22:38). It
+could not list pods until the session woke at 09:33, and terminated the pod at 09:34: about 13.75 hours, roughly
+$7.50 against a $5 cap. The pipeline had finished around 23:40, so most of that was idle billing. Everything not
+copied back was lost with the pod: the Sonnet, reissue, repeat, replay, interruption-sweep and rescue arms.
+
+For the next pod:
+- Arm the watchdog for the expected run plus half an hour, not for a night. `arm_prime_watchdog.py` now keeps the Mac
+  awake with `caffeinate -dimsu` (display, idle, disk and system sleep on AC power); keep the laptop plugged in with
+  the lid open, and check `prime pods list` as soon as the session resumes.
+- Copy results back after every phase, not at the end. A phase that finished only on the pod is not saved.
+- Terminate the pod yourself the moment the pipeline ends.
+- Probes that call a model write each answer as it arrives (`probe_completion.py`) and retry dropped connections.
