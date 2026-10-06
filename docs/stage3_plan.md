@@ -26,7 +26,7 @@ form that can be rebuilt as a simplified environment.
 
 | Phase | What | Why |
 |---|---|---|
-| plain | 13 tasks with a plain success in stage 2 x new scenes 1003-1005 x policy seeds 0, 1, privileged stop | More independent (task, scene) clusters. Stage 2's plain episodes are reused for scenes 1000-1002 |
+| plain | 13 tasks with a plain success in stage 2 x scenes 1000-1005 x policy seeds 0, 1, privileged stop, all on the stage 3 machine | Same-machine references. Stage 2's plain episodes cannot pair with this host: the step-0 states differ on every scene 1000-1002 (stable on this host, different from the Lambda A10's), so every stage 2 candidate ended as `scene mismatch` |
 | defer_confirm | `always_defer` on each plain success (cap 6 per task) | Replay check on this GPU |
 | **confirmed pairs** | plain success **and** defer success **and** identical step-0 simulator state; cap 4 per task, ordered by policy seed then scene | Only these get model episodes. Dropped pairs and reasons go to `confirmed_dropped.json` |
 | defer_repeat | a second `always_defer` on each confirmed pair | The no-intervention noise floor. Failures here are replay noise, not LLM harm. Also shows how reproducible rollouts are from one start |
