@@ -5,9 +5,18 @@ from io import BytesIO
 
 from ..contracts import CAMERAS, PROPRIO
 
+# Mean absolute difference between horizontally adjacent pixels. Rendered kitchens score 3 to 14 over the 22,000
+# frames saved in stages 1 and 2; the static a failed renderer returned in one stage 2 episode scored 26.
+CORRUPT_FRAME_SCORE = 20.0
+
+
+def frame_noise(image):
+    wide = image.astype("int16")
+    return float(abs(wide[:, 1:] - wide[:, :-1]).mean())
+
 
 class RoboCasaEnvironment:
-    def __init__(self, task="CerealAndBowl", split="pretrain", camera_size=256):
+    def __init__(self, task="CerealAndBowl", split="pretrain", camera_size=256, expected_start_state=None):
         import numpy as np
         import gymnasium as gym
         import robocasa  # registers the pinned gym environments
@@ -15,6 +24,7 @@ class RoboCasaEnvironment:
 
         self.np, self.gym = np, gym
         self.task, self.split, self.camera_size = task, split, camera_size
+        self.expected_start_state = expected_start_state
         self.horizon = get_task_horizon(task)
         self.env = self.obs = None
         self.frame = 0
@@ -31,8 +41,24 @@ class RoboCasaEnvironment:
         )
         self.obs, _ = self.env.reset(seed=seed)
         self.frame = 0
+        self._check_frames()
         raw = self.env.unwrapped.env
         self.initial_xml = raw.sim.model.get_xml()
+        self._check_start_state(hashlib.sha256(raw.sim.get_state().flatten().tobytes()).hexdigest())
+
+    def _check_start_state(self, state_hash):
+        """The scene seed does not always fix the kitchen (stage 2), so a paired episode can insist on the plain
+        run's step-0 state and end as an infrastructure error, before any model call, when the scene differs."""
+        if self.expected_start_state and state_hash != self.expected_start_state:
+            raise RuntimeError(f"scene mismatch: start state {state_hash[:12]} is not the expected "
+                               f"{self.expected_start_state[:12]}")
+
+    def _check_frames(self):
+        """A failed renderer returns static; an episode on it is invalid, so end it as an infrastructure error."""
+        for key in CAMERAS:
+            noise = frame_noise(self.obs[key])
+            if noise > CORRUPT_FRAME_SCORE:
+                raise RuntimeError(f"corrupt camera frame: {key} noise {noise:.1f} at step {self.frame}")
 
     def sensors(self):
         from PIL import Image
@@ -65,6 +91,7 @@ class RoboCasaEnvironment:
         obs, _, terminated, truncated, _ = self.env.step(converted)
         self.obs = obs
         self.frame += 1
+        self._check_frames()
         if terminated or truncated:
             raise RuntimeError("unexpected upstream termination; benchmark owns episode termination")
         if not self.np.isfinite(self.env.unwrapped.env.sim.data.qpos).all():

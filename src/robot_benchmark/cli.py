@@ -16,7 +16,8 @@ from urllib.parse import urlparse
 from . import __version__
 from .adapters.agents import HTTPAgent, MAX_MODEL_TOKENS, SYSTEM_PROMPT
 from .adapters.policy import RemotePolicy
-from .baselines import AlwaysDeferAgent, ReissueAgent
+from .baselines import (AlwaysDeferAgent, Reissue50Agent, Reissue200Agent, Reissue400Agent, ReissueAgent,
+                        ReplayAgent)
 from .contracts import Limits, Skill
 from .diagnostics import PrivilegedRetrySupervisor, PrivilegedSequencer
 from .evaluation import summarize
@@ -86,6 +87,10 @@ SCREEN_MODES = {
 BASELINES = {
     "always_defer": ("baseline_always_defer", lambda env, task: AlwaysDeferAgent()),
     "reissue": ("baseline_reissue", lambda env, task: ReissueAgent()),
+    # Interruption-interval sweep: the same baseline at other periods. Parameters stay module defaults.
+    "reissue_50": ("baseline_reissue", lambda env, task: Reissue50Agent()),
+    "reissue_200": ("baseline_reissue", lambda env, task: Reissue200Agent()),
+    "reissue_400": ("baseline_reissue", lambda env, task: Reissue400Agent()),
 }
 
 
@@ -104,6 +109,12 @@ def write_json(path: Path, value: dict):
 def write_contract(output: Path, payload: dict, contract_hash: str):
     """One file per hash, so a rerun under a changed contract never overwrites the earlier payload."""
     write_json(output / f"contract-{contract_hash}.json", payload)
+
+
+def state_hash(value: str) -> str:
+    if len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+        raise argparse.ArgumentTypeError("expected a 64-character lowercase hex step-0 state hash")
+    return value
 
 
 def positive_int(value: str) -> int:
@@ -284,8 +295,9 @@ def resolve_audit_paths(values, project_root=PROJECT_ROOT):
 
 
 def run_episode(*, seed, policy_seed=None, output, task_config, reference_prompts, limits, policy, agent_factory, kind,
-                contract_hash):
-    """`seed` is the scene seed; `policy_seed` defaults to it."""
+                contract_hash, expected_start_state=None):
+    """`seed` is the scene seed; `policy_seed` defaults to it. `expected_start_state` (a step-0 state hash) makes the
+    episode end as an infrastructure error if the scene it builds differs."""
     policy_seed = seed if policy_seed is None else policy_seed
     started_at_unix_ns = time_ns()
     started = perf_counter()
@@ -303,7 +315,8 @@ def run_episode(*, seed, policy_seed=None, output, task_config, reference_prompt
     env = None
     try:
         from .adapters.robocasa import RoboCasaEnvironment
-        env = RoboCasaEnvironment(task_config["task"], task_config["split"], task_config["camera_size"])
+        env = RoboCasaEnvironment(task_config["task"], task_config["split"], task_config["camera_size"],
+                                  **({"expected_start_state": expected_start_state} if expected_start_state else {}))
         if env.horizon != limits.max_steps:
             raise RuntimeError(f"upstream horizon changed: {env.horizon} != {limits.max_steps}")
         agent = agent_factory(env)
@@ -504,9 +517,39 @@ def command_run(args):
     jobs = [((config["task"], seed, seed if policy_seed is None else policy_seed, kind, model_config.get("model")),
              dict(seed=seed, policy_seed=policy_seed, output=args.output, task_config=config,
                   reference_prompts=reference_prompts, limits=limits, policy=policy,
-                  agent_factory=lambda env, value=agent: value, kind=kind, contract_hash=contract_hash))
+                  agent_factory=lambda env, value=agent: value, kind=kind, contract_hash=contract_hash,
+                  expected_start_state=args.expect_state))
             for seed, policy_seed in seed_pairs(args)]
     return run_jobs(jobs, args.output, args.skip_existing, contract_hash)
+
+
+def accepted_decisions(source: Path):
+    """The accepted decisions of an episode folder, in order."""
+    entries = [json.loads(line) for line in (source / "decisions.jsonl").read_text().splitlines() if line.strip()]
+    return [entry["decision"] for entry in entries if entry["accepted"]]
+
+
+def command_replay(args):
+    """Replay another episode's decisions (a diagnostic, never a score) on the same scene and policy seeds."""
+    config, reference_prompts, limits = task_parts(args.task_config)
+    source = read_json(args.source / "manifest.json")
+    if source["task"] != config["task"]:
+        raise ValueError(f"source episode is {source['task']}, not {config['task']}")
+    if config["task"] not in task_pool():
+        raise ValueError("replay covers the benchmark task pool")
+    decisions = accepted_decisions(args.source)
+    policy = RemotePolicy(args.policy_url)
+    payload, contract_hash = benchmark_contract([config], policy.identity, validate_splits(read_json(args.splits)))
+    args.output.mkdir(parents=True, exist_ok=True)
+    write_contract(args.output, payload, contract_hash)
+    if args.video_record_interval:
+        config = {**config, "video_record_interval": args.video_record_interval}
+    start = json.loads((args.source / "evaluator" / "states.jsonl").read_text().splitlines()[0])["state_sha256"]
+    result = run_episode(seed=source["scene_seed"], policy_seed=source["policy_seed"], output=args.output,
+                         task_config=config, reference_prompts=reference_prompts, limits=limits, policy=policy,
+                         agent_factory=lambda env: ReplayAgent(decisions, args.ablation, args.source.name),
+                         kind="diagnostic_replay", contract_hash=contract_hash, expected_start_state=start)
+    return 1 if result["status"] == "infrastructure_error" else 0
 
 
 def load_task_configs(paths):
@@ -546,7 +589,7 @@ def run_grid(args, kind, factory, allowed_scenes=None, release=None):
                              dict(seed=seed, policy_seed=policy_seed, output=args.output / config["task"],
                                   task_config=config, reference_prompts=prompts, limits=limits, policy=policy,
                                   agent_factory=lambda env, task=config["task"]: factory(env, task), kind=kind,
-                                  contract_hash=contract_hash)))
+                                  contract_hash=contract_hash, expected_start_state=args.expect_state)))
     return run_jobs(jobs, args.output, args.skip_existing, contract_hash)
 
 
@@ -739,12 +782,22 @@ def parser():
     run.add_argument("--policy-seeds", type=parse_seeds)
     run.add_argument("--policy-url", default="http://127.0.0.1:8765")
     run.add_argument("--video-record-interval", type=positive_int)
+    run.add_argument("--expect-state", type=state_hash, help="step-0 state hash the scene must reproduce")
     run.add_argument("--skip-existing", action="store_true")
     run.add_argument("--output", type=Path, required=True)
     modes = run.add_mutually_exclusive_group(required=True)
     modes.add_argument("--development", action="store_true")
     modes.add_argument("--release", type=Path)
     run.set_defaults(function=command_run)
+    replay = commands.add_parser("replay")
+    replay.add_argument("--task-config", type=Path, required=True)
+    replay.add_argument("--source", type=Path, required=True, help="episode folder with manifest.json and decisions.jsonl")
+    replay.add_argument("--ablation", choices=ReplayAgent.ABLATIONS, required=True)
+    replay.add_argument("--splits", type=Path, default=DEFAULT_SPLITS)
+    replay.add_argument("--policy-url", default="http://127.0.0.1:8765")
+    replay.add_argument("--video-record-interval", type=positive_int)
+    replay.add_argument("--output", type=Path, required=True)
+    replay.set_defaults(function=command_replay)
     for name, choices, function in (("screen", SCREEN_MODES, command_screen),
                                     ("baseline", BASELINES, command_baseline)):
         grid = commands.add_parser(name)
@@ -755,6 +808,7 @@ def parser():
         grid.add_argument("--splits", type=Path, default=DEFAULT_SPLITS)
         grid.add_argument("--policy-url", default="http://127.0.0.1:8765")
         grid.add_argument("--video-record-interval", type=positive_int)
+        grid.add_argument("--expect-state", type=state_hash, help="step-0 state hash the scene must reproduce")
         grid.add_argument("--skip-existing", action="store_true")
         if name == "screen":
             grid.add_argument("--scenes-from", type=Path, help="groups.json from label-seeds (retry/sequencer only)")

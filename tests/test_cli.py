@@ -390,6 +390,24 @@ class BenchmarkCommandTests(unittest.TestCase):
                                         ("OpenDrawer", 1000, 7, "llm_development")])
         self.assertTrue((self.root / "run" / "c" / "result.json").exists())  # old-hash episode kept on disk
 
+    def test_expect_state_reaches_every_episode_of_run_and_baseline(self):
+        expected = "ab" * 32
+        self.assertEqual(self.run_command("--development", "--seeds", "1000", "--policy-seeds", "5",
+                                          "--expect-state", expected), 0)
+        self.assertEqual(self.run_episode.call_args.kwargs["expected_start_state"], expected)
+        self.run_episode.reset_mock()
+        self.assertEqual(self.main("baseline", "--task-configs", TASKS / "OpenDrawer.json", "--scene-seeds", "1000",
+                                   "--policy-seeds", "5", "--agent", "always_defer", "--expect-state", expected,
+                                   "--output", self.root / "b"), 0)
+        self.assertEqual(self.run_episode.call_args.kwargs["expected_start_state"], expected)
+        self.run_episode.reset_mock()
+        self.run_command("--development", "--seeds", "1000", "--policy-seeds", "5")
+        self.assertIsNone(self.run_episode.call_args.kwargs["expected_start_state"])
+
+    def test_expect_state_must_be_a_full_hash(self):
+        with mock.patch("sys.stderr"), self.assertRaises(SystemExit):
+            self.run_command("--development", "--seeds", "1000", "--expect-state", "abc")
+
     def test_screen_rejects_configs_outside_the_pool(self):
         changed = json.loads((TASKS / "OpenDrawer.json").read_text())
         changed["max_steps"] += 1

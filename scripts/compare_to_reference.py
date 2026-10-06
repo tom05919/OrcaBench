@@ -42,14 +42,16 @@ def describe(episode, reference):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--reference-root", type=Path, required=True, help="directory with diagnostic_reference episodes")
+    parser.add_argument("--reference-root", type=Path, nargs="+", required=True,
+                        help="directories with diagnostic_reference episodes; the latest per task, scene and policy seed wins")
     parser.add_argument("--model-root", type=Path, required=True, help="directory with the model or baseline episodes")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     references = {}
-    for episode in load_scored_episodes(args.reference_root):
-        if episode["manifest"].get("kind") == "diagnostic_reference" and episode["result"]["status"] != "infrastructure_error":
-            references[key(episode)] = episode
+    for root in args.reference_root:
+        for episode in load_scored_episodes(root):
+            if episode["manifest"].get("kind") == "diagnostic_reference" and episode["result"]["status"] != "infrastructure_error":
+                references[key(episode)] = episode
     rows = []
     for episode in load_scored_episodes(args.model_root):
         episode["folder"] = Path(episode["folder"])
