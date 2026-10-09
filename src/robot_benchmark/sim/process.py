@@ -4,6 +4,7 @@ All time is in control steps (20 steps = 1 s). One episode is (profile, seed). T
 facing the same world: the latent draws and the future onsets (a seeded Random), the restart outcomes (hash of seed and
 the restart's index) and the perception noise (hash of seed and the absolute step)."""
 import math
+import os
 import random
 from dataclasses import dataclass
 from statistics import NormalDist
@@ -12,9 +13,10 @@ _M = (1 << 64) - 1
 _NORMAL = NormalDist()
 CHECKER, LAG_MEDIAN, LAG_SIGMA = "DONE", 20, 0.5
 LOSS_HAZARD = 5e-5         # per DONE-step: the policy keeps acting after the task is done
-UNDO_PROB, UNDO_STEPS = 0.3, 40   # a restart after completion undoes the last 40 steps of work with this probability
+# Sensitivity knobs: environment variables override the poorly measured dials for CPU sweeps (docs/env_design.md, section 3).
+UNDO_PROB, UNDO_STEPS = float(os.environ.get("SIM_UNDO_PROB", 0.3)), 40   # a restart after completion undoes the last 40 steps of work with this probability
 DELAY_MEDIAN, DELAY_SIGMA = 40, 0.4  # restart delay
-WORDING_BREAK = 0.0        # z_w: extra break probability for non-native text (unmeasured; 0 in the main experiment)
+WORDING_BREAK = float(os.environ.get("SIM_WORDING_BREAK", 0.0))   # z_w: extra break probability for non-native text (unmeasured; 0 in the main experiment)
 
 
 def _mix(x):
@@ -47,7 +49,7 @@ class Profile:
 
 
 STEADY = Profile("steady", 240, 0.20, 0.15, 30, 0.5, 0.0, 0.02, 0.0)
-HESITANT = Profile("hesitant", 300, 0.30, 1.0, 80, 0.6, 0.0, 0.15, 0.0)
+HESITANT = Profile("hesitant", 300, 0.30, 1.0, 80, 0.6, 0.0, float(os.environ.get("SIM_Z_HESITANT", 0.15)), 0.0)
 BRITTLE = Profile("brittle", 260, 0.25, 0.15, 30, 0.5, 0.5, 0.01, 0.85)
 PROFILES = {p.name: p for p in (STEADY, HESITANT, BRITTLE)}
 
