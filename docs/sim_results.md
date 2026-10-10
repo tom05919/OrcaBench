@@ -30,7 +30,9 @@ steps without visible progress for the brittle one. **Adapting to the VLA is wor
 (a success is worth 1.0). A sweep over the dials the data does not pin down (the hesitant VLA's restart break
 probability 0.01 to 0.30, the chance a restart undoes a completion 0.1 to 0.5, the wording surcharge 0 to 0.15) never
 changed the best rule for any VLA and kept the value of adaptation positive (0.06 to 0.17), so the conclusions do not
-depend on those assumptions and no real-robot measurement was run. Calibration against the design's prototype is
+depend on those restart dials. The sweep did not cover the brittle VLA's stall rate and rescue probability, which the
+headline result (the only profile where supervision adds much value) rests on; no real-robot measurement of whether a
+restart rescues GR00T was run (`handoff.md`, "Next steps", item 1). Calibration against the design's prototype is
 within about 0.04 on success and up to 0.04 on the best rule's utility (0.08 on the pooled rule's, whose chosen rule
 differs), not the planned 0.02; the orderings hold. The first two rows come from 500 seeds, the rest from 2,000.
 

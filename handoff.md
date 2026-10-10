@@ -1,6 +1,71 @@
 # OrcaBench handoff
 
-Updated October 2, 2026, after the first GPU test of the new benchmark. Read this before doing anything. The repository is the source of truth for code and contracts; this file records context, status, evidence, and what is still open. Statements are marked **verified** (observed on real hardware), **unit-tested only**, or **proposal**.
+Read section A first. Sections 0-15 are the older October 2 handoff: still right about the interface, scoring, seeds, compute commands and tooling gotchas, but their status, branch and "next steps" statements are superseded (A.2).
+
+## A. Current state (October 10, 2026)
+
+### A.1 In ten lines
+
+1. **Code:** everything is on `main`. The feature branch was merged and deleted. `main` is ahead of `origin/main` and **has not been pushed**; the user has asked only for commits, so push only when asked.
+2. **Tests:** 282 pass on the Mac (`PYTHONPATH=src python3 -m unittest discover -s tests`). Run them after any runner change.
+3. **Direction changed after Oct 2.** The Oct 2 plan (screen ~800 episodes, label seeds, freeze a release, scorecard) was **not run**; that code is intact and unit-tested only. On Oct 4 the user redirected to a diagnosis: which task qualities make an LLM's interruptions do worse than the plain VLA, rebuilt as a simplified environment. On Oct 9 the user added: test whether an agent knows (1) when to interrupt and (2) how much to observe, from a VLA's observed performance, with one agent and one context window supervising VLAs of different ability, with as little noise as possible.
+4. **Real robot, Opus 5.5 vs plain GR00T N1.5** (stage 3, 37 same-machine confirmed pairs, 13 tasks, `docs/stage3_results.md`): Opus failed 14 of 34 usable episodes (41%); a second no-intervention run failed 1 of 36 (3%). Left alone: 5 of 19 failed, all by declaring 12-48 steps before the checker turned true. Rewrote the instruction: 9 of 14 failed. Wording vs restart is **not separated** (those arms were lost).
+5. **Completion is hard to read:** visible-state tasks are recognized; rinse, scrub and microwave never are; the checker lags visual completion by about 20 steps (`docs/stage3_results.md`, offline probes).
+6. **Abstract environment** (`src/robot_benchmark/sim/`, spec `docs/env_design.md`, one page `docs/env_building_blocks.md`, results `docs/sim_results.md`): the best supervision rule differs by VLA profile (steady, hesitant, brittle); adapting is worth 0.05-0.13 per episode. Opus learns **when** to restart a stalled brittle VLA from records (restart rate 0.00 / 1.00 / 0.75 with 0 / 3 / 8 past episodes), Sonnet does not; **neither** learns to look more often at the unreliable VLA, and in closed loop both are far from the best fixed rule on the brittle VLA (regret 0.34-0.55 vs 0.13). Rough reading: Opus there is about as good as no intervention, Sonnet worse.
+7. **Biggest gap:** the brittle profile's stall rate and rescue probability are **assumptions**. No real data shows a restart ever rescuing GR00T; the real rewrite data points the other way. The sensitivity sweep covered only the restart dials. Do not state the brittle result as a property of GR00T.
+8. **Money and compute:** no pod, no launchd watchdog. Prime team wallet $227.96 (it was $241.95 after the Oct 2 session). GPU overspent its cap (about $7.5 vs $5, 13.75 pod-hours) after the Mac slept; API about $11 of the $15 cap, of which the simulation study was $2.22 (`runs/sim/spend.jsonl`).
+9. **Data (Git-ignored, only on this Mac):** `runs/stage2_remote` 2.0 GB, `runs/stage3_remote` 1.3 GB, `runs/probes`, `runs/sim` (calibration, probes, sessions, sensitivity, spend ledger). Disk is **99% full (7.8 GiB free)**: copy back selectively; the `frames/` folders of the stage 2 plain, defer and reissue arms (about 1.3 GB) are redundant if space is needed. Lost with the terminated pod: the stage 3 Sonnet, reissue, Opus-repeat, decision-replay, interruption-sweep and rescue arms.
+10. **Next:** measure on the real robot whether a restart rescues or harms (A.5, item 1), then re-run the simulation with the call price varied. No GPU or API run is in flight.
+
+### A.2 Superseded statements in the older text
+
+- Sections 0 (items 4, 8-10) and 1 ("Branch"): the work is on `main`, not on `intervention-judgement-benchmark`.
+- Sections 10-11 (open decisions, next steps): the full screening was not started; A.5 replaces it. Section 10 item 5 (branch handling) is settled.
+- **Contract hash:** `adapters/robocasa.py` and `baselines.py` are hashed and changed on Oct 5 (frame-noise guard, start-state guard, `reissue_50/200/400`). Stage 1 episodes, and anything from before, are under a different hash: any future release needs fresh references.
+- Section 9 lists only the Oct 2 pods. Stage 2 used a Lambda A10 and stage 3 a RunPod RTX A6000 (about $0.54/hr); see `docs/compute.md`, including the Oct 5-6 incident section.
+- Section 12 doc drift is still true, and the README benchmark section ("Not yet GPU-verified") is stale.
+
+### A.3 What was added since Oct 2
+
+| Dates | What | Where |
+|---|---|---|
+| Oct 4-5 | Stage 2 harm run (Opus, always-defer, reissue); a validity audit found invalid pairs (different scenes, corrupted frames, end-of-budget declarations) and **withdrew the first conclusion** | `docs/stage2_results.md` (corrected) |
+| Oct 5-6 | Guards: static-noise frame check, `--expect-state` start-state hash check; `replay` command, `ReplayAgent`, `reissue_*` baselines; stage 3 selection rules fixed before results | `docs/stage3_plan.md`, `docs/decisions.md` (Oct 5 rows), `scripts/select_stage3.py` |
+| Oct 5-9 | Stage 3 on RunPod; probes of whether the model can tell the task is done | `docs/stage3_results.md`, `runs/probes/` |
+| Oct 5-6 | Watchdog incident (Mac slept, pod ran 13.75 h, arms lost) | `docs/compute.md` |
+| Oct 9 | Environment design by an Opus agent, then the abstract simulator, probes, sessions, sensitivity sweep | `docs/env_design_brief.md`, `docs/env_design.md`, `docs/sim_results.md`, `docs/decisions.md` (Oct 9 row) |
+
+### A.4 What the evidence says to reproduce
+
+| Quality | Evidence | Role |
+|---|---|---|
+| Hard-to-read completion plus a checker that lags about 20 steps | Real, strong | Early declarations are the largest measured failure with no intervention |
+| VLA heterogeneity (plain success 0.17-1.00 by task, wide timing spread) | Real, strong | No single supervision rule fits every VLA |
+| Any prompt restarts the policy | Real mechanism, harm size unseparated | Rewrites failed 9 of 14 |
+| Stalls that a restart rescues | **Assumed** | The only profile where supervision adds much value (+0.38 over always-defer vs +0.09 steady and +0.005 hesitant) |
+
+Recommended form: keep the abstract environment as the cheap testbed for agent design; for real tasks, cross completion legibility (visible vs hidden) with plain success (high vs low) rather than choosing by task family; score by regret against the best fixed rule for each VLA, not raw success. Conclusions are for these two models, one prompt and one cost ratio; two Opus sessions and one Sonnet session are too few to rank models.
+
+### A.5 Next steps (none started; costs are estimates)
+
+1. **Real rescue/harm measurement, about $2-4 of A6000 time.** Replay plain failures to a stall point on the same machine, then compare continuing, restarting with the same prompt, and restarting with new wording. The code exists and is tested (`replay` with ablations exact / native_text / no_interruption; `reissue_50/200/400`); only the data was lost. Plain reruns must be on the same pod, because start states are host-specific. Run short phases, copy results back after each, `caffeinate -dimsu`, arm the watchdog, verify termination yourself. If restarts never rescue GR00T, the brittle profile should go and the interrupt question reduces to when to declare and how to read completion.
+2. **Simulation re-run, about $3 of API:** vary the call price (the cost constants are `CALL_COST` and `SECOND_COST` in `sim/harness.py`, and the `$0.02` text is hard-coded in `SYSTEM_PROMPT` in `sim/agent.py`, so change both) and whether the prompt says readings are noisy; 3-5 sessions per model. This tests whether "does not observe more often" is a pricing artifact.
+3. Only after 1 and 2: choose the real task suite and run model comparisons. Before then, do not claim which model supervises better.
+
+### A.6 Rules and lessons since Oct 2
+
+- Never pair episodes without comparing the step-0 state hash. The scene seed does not always fix the scene (cause unknown), and start states differ between machines.
+- Sim records are kind `sim_development`: never mix them with benchmark scores. Nothing from them is exposed to a real model adapter.
+- Check model names and prices before spending. The design agent invented a "Haiku 5.5"; the study used Sonnet 5.5 (Opus 5.5 is $4/$20 per million tokens, Sonnet 5.5 $2/$10). The study API key is in the Git-ignored `.env` (mode 600); never print it.
+- The user's Oct 9 instructions to work without asking questions and to use an Opus agent only for major design decisions applied to that run. Outside it, ask before new spending, per section 3.
+- A paid pod must never depend on the Mac staying awake: the Oct 5-6 incident cost about $2.5 over cap and the data from six arms.
+- Start with `docs/sim_results.md`, `docs/env_building_blocks.md`, `docs/stage3_results.md`, then `docs/decisions.md` from 2026-10-04 on.
+
+---
+
+## Oct 2 handoff (older; see A.2 for what is superseded)
+
+Updated October 2, 2026, after the first GPU test of the new benchmark. The repository is the source of truth for code and contracts; this file records context, status, evidence, and what is still open. Statements are marked **verified** (observed on real hardware), **unit-tested only**, or **proposal**.
 
 ## 0. State in ten lines
 
