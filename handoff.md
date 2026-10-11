@@ -2,6 +2,61 @@
 
 Read section A first. Sections 0-15 are the older October 2 handoff: still right about the interface, scoring, seeds, compute commands and tooling gotchas, but their status, branch and "next steps" statements are superseded (A.2).
 
+## A0. Update October 11, 2026 (stage 4, run from Ranveer's Mac)
+
+Read this first, then A below; A.1 items 7, 8 and 10 and A.5 item 1 are updated here.
+
+**Done.**
+
+- **Stage 4 ran: A.5 item 1, the real rescue/harm measurement.** Plan in `docs/stage4_plan.md`, results in
+  `docs/stage4_results.md`.
+  - Scope: 22 pairs (task, scene) where GR00T failed twice, across 16 tasks, giving 21 reproducible failures.
+    Arms per pair: continue, restart every 50/100/200 steps with the native wording, Opus 5.5, and three replays of
+    each Opus episode.
+  - Restarts: 4 of 21 failures rescued by some restart schedule (TurnOffStove 1000 and 1001, TurnOnMicrowave 1001,
+    CloseFridge 1003).
+  - Opus: rescued 1 of 19 (OpenDrawer 1001), attributed to wording by replay.
+  - Every rescue is a single episode with no repeat.
+  - Reply format: 0 rejected replies in 148 Opus calls.
+  - Spend: $1.85 GPU and about $3.03 API.
+- **Item 7 of A.1 is partly answered.** Restarts do sometimes rescue GR00T, but at about 1 in 20 failed episodes per
+  schedule. The simulator's brittle profile assumes a rescue probability of 0.85 per restart (`sim/process.py`), so
+  it is far too optimistic.
+- **The pod no longer depends on the Mac.**
+  - `scripts/pod_guard.sh`, on the pod: uploads results to a private Hugging Face bucket (`scripts/pod_sync.sh`)
+    after every phase and every 30 minutes. It terminates the pod after the final upload, or at a deadline, and a
+    second backstop process terminates it 45 minutes later.
+  - Both processes check the pod's ID and name before terminating. This worked: the pod terminated itself at
+    07:21 UTC.
+  - The Mac watchdog accepts `--team-id personal`.
+  - Driver: `scripts/run_stage4.sh`. Analysis: `scripts/analyze_stage4.py`.
+- **Contract change:** `ReplayAgent` replays logs that ended at a budget (`docs/decisions.md`, 2026-10-11). Contract
+  hashes changed.
+
+**Accounts and data (this run).**
+
+- Compute was billed to Ranveer's personal Prime account, not team COS597.
+- Raw episodes are Git-ignored:
+  - on Ranveer's Mac in `runs/stage4_remote/` (3.8 GB, 310 episodes);
+  - in a private Hugging Face bucket of Ranveer's (ask Ranveer for access; the path is not published here).
+- `runs/stage4_remote/analysis.json` is the per-pair table.
+
+**What is left** (replaces A.5; ask the user before any new spending):
+
+1. **Repeat the five rescues** (four restart, one Opus): three more episodes each on the same pod type. Phases are
+   `defer reissue opus`, run with `TASK_LIST` and a hand-made `failures.tsv`, or a small selection change. About
+   30 minutes of GPU. This settles whether the rescues are reliable.
+2. **Recalibrate and re-run the simulator** (A.5 item 2, about $3 of API):
+   - set the brittle profile's rescue probability from stage 4, not the assumed 0.85;
+   - vary the call price (`CALL_COST` and `SECOND_COST` in `sim/harness.py`, and the `$0.02` in `SYSTEM_PROMPT` in
+     `sim/agent.py`);
+   - vary whether the prompt says readings are noisy.
+3. **Fix `scripts/compare_to_reference.py`.** It crashes on scene-mismatch episodes, which have no `decisions.jsonl`.
+4. Then choose the real task suite and run model comparisons (A.5 item 3), with Sonnet 5.5 as the second system.
+   Before then, do not claim which model supervises better.
+5. Deadline October 16: write the course deliverable around stages 3-4 plus the simulator. Every result so far is
+   `llm_development` or diagnostic, never a score.
+
 ## A. Current state (October 10, 2026)
 
 ### A.1 In ten lines
