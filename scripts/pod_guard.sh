@@ -32,7 +32,7 @@ terminate() {
     else
       log "status check failed or identity mismatch, attempt $attempt"
     fi
-    sleep 60
+    sleep "${TERMINATE_RETRY_SECONDS:-60}"
   done
   log "gave up terminating after 30 attempts"
   exit 1
