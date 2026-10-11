@@ -62,8 +62,10 @@ class ReplayAgent:
     def __init__(self, decisions, ablation="exact", source=None):
         if ablation not in self.ABLATIONS:
             raise ValueError(f"ablation must be one of {self.ABLATIONS}")
-        if not decisions or decisions[-1].get("op") != "complete":
-            raise ValueError("a replayable episode ends with a complete decision")
+        # A log may end in complete or at a budget: the runner stops at an exhausted budget before asking again, so a
+        # replay that diverges and needs more decisions than were logged raises in decide() instead.
+        if not decisions:
+            raise ValueError("a replayable episode has at least one accepted decision")
         self.decisions, self.ablation, self.calls = [dict(d) for d in decisions], ablation, 0
         self.identity = {"kind": "diagnostic", "model": f"replay_{ablation}_v1", "source_episode": source}
 

@@ -45,6 +45,19 @@ class PrimePodWatchdogTests(unittest.TestCase):
             check(self.config, now=100, run=self.fake_run)
         self.assertEqual([call[0][2] for call in self.calls], ["list", "status"])
 
+    def test_personal_account_pod_uses_no_team(self):
+        self.config["team_id"] = None
+
+        def personal_run(command, **kwargs):
+            if command[1:3] == ["pods", "status"]:
+                self.calls.append((command, kwargs))
+                return CompletedProcess(command, 0, json.dumps({"id": "target", "name": "cereal-test-unique"}), "")
+            return self.fake_run(command, **kwargs)
+
+        self.assertEqual(check(self.config, now=100, run=personal_run), "terminate_requested:target")
+        self.assertTrue(all("PRIME_TEAM_ID" not in call[1]["env"] or call[1]["env"]["PRIME_TEAM_ID"] != "team-test"
+                            for call in self.calls))
+
     def test_finds_target_on_second_page(self):
         def paged_run(command, **kwargs):
             self.calls.append((command, kwargs))

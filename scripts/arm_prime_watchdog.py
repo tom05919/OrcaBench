@@ -15,6 +15,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 def arm(pod_name, team_id, minutes=120):
     if not pod_name.startswith("robot-cereal-") or not team_id or minutes < 1:
         raise ValueError("invalid watchdog target or duration")
+    team_id = None if team_id == "personal" else team_id
     prime = shutil.which("prime")
     if not prime:
         raise RuntimeError("Prime CLI is not installed")
@@ -50,7 +51,7 @@ def arm(pod_name, team_id, minutes=120):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pod-name", required=True)
-    parser.add_argument("--team-id", required=True)
+    parser.add_argument("--team-id", required=True, help="the team's ID, or 'personal' for a personal-account pod")
     parser.add_argument("--minutes", type=int, default=120)
     args = parser.parse_args()
     arm(args.pod_name, args.team_id, args.minutes)

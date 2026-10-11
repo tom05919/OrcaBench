@@ -45,11 +45,24 @@ class ReplayAgentTests(unittest.TestCase):
         self.assertEqual(agent.identity, {"kind": "diagnostic", "model": "replay_native_text_v1",
                                           "source_episode": "seed-1000-p0-x"})
 
-    def test_rejects_an_unknown_ablation_and_an_unfinished_log(self):
+    def test_rejects_an_unknown_ablation_and_an_empty_log(self):
         with self.assertRaises(ValueError):
             ReplayAgent(LOGGED, "other")
         with self.assertRaises(ValueError):
-            ReplayAgent(LOGGED[:-1], "exact")
+            ReplayAgent([], "exact")
+
+    def test_a_log_that_ended_at_the_step_budget_replays_to_the_same_end(self):
+        from robot_benchmark.contracts import Limits
+        from robot_benchmark.runner import Runner
+        from tests.fakes import FakeEnvironment, FakePolicy, reference_prompts
+        logged = [{"op": "run_policy", "prompt": "Open the drawer.", "steps": 5},
+                  {"op": "run_policy", "prompt": "Pull the drawer handle.", "steps": 5}]
+        for ablation in ReplayAgent.ABLATIONS:
+            runner = Runner(FakeEnvironment(), FakePolicy(), ReplayAgent(logged, ablation), reference_prompts(),
+                            "Open the drawer.", Limits(max_steps=10, max_decisions=10, max_interval=5), None)
+            result = runner.run(seed=1)
+            self.assertEqual((result["status"], result["steps"], result["model_calls"]),
+                             ("step_budget_exhausted", 10, 2), ablation)
 
     def test_running_past_the_log_raises(self):
         agent = ReplayAgent(LOGGED, "exact")

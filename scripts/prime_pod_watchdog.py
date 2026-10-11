@@ -15,7 +15,8 @@ def check(config, now=None, run=subprocess.run):
     now = time.time() if now is None else now
     if now < config["deadline_unix"]:
         return "before_deadline"
-    env = dict(os.environ, PRIME_TEAM_ID=config["team_id"])
+    # A personal-account pod has no team: team_id is None, and the CLI's own account context is used.
+    env = dict(os.environ, **({"PRIME_TEAM_ID": config["team_id"]} if config["team_id"] else {}))
     prime = config["prime_path"]
     matches = []
     offset = 0
