@@ -1,6 +1,7 @@
 # Project rules
 
-Start with `handoff.md`: its first section, "Current state (October 10, 2026)", is newer than the rest of that file.
+Start with `handoff.md` section S, then `docs/direction.md` (what the benchmark measures) and `docs/work_split.md`
+(who owns which files; do not edit a file another workstream owns).
 
 This benchmark compares different LLM orchestrators using the same fixed learned
 policies and harness. Preserve that distinction in code, experiments, and claims.

@@ -1,39 +1,27 @@
-# Roadmap to the October 16, 2026 pilot
+# Roadmap to October 16, 2026
 
-The target is a clean, reproducible pilot with at least two LLM orchestrator
-results by October 16, contingent on a learned-policy backend passing the
-published feasibility gates. A September 27 development pass produced live
-GR00T and Opus traces, but it did not qualify the task or compare models.
+Rewritten October 12. The September plan (qualify CerealAndBowl with one fixed policy, then compare two orchestrators)
+and the October 1 intervention-judgement plan are superseded by `docs/direction.md`. Owners and the day-by-day plan are
+in `docs/work_split.md`.
 
 | Dates (2026) | Work | Exit criteria |
 |---|---|---|
-| September 25–28 | Foundation: pin and verify sources; finalize the protocol, research comparison, feasibility gates, records, runner contract, and runtime split | Documentation and source locks agree; mock/unit checks pass; preliminary live-rollout evidence is labeled unqualified |
-| September 29–October 3 | Feasibility: provision Prime Intellect GPU worker; build isolated RoboCasa coordinator and policy worker; run GR00T qualification, then π0.5 only under the fallback rule | One fixed backend passes every reference-prompt-entry 8/10 gate, the 16/20 full-task gate, and the matched-continuation relevance gate, or feasibility is reported as incomplete/failed with preserved evidence |
-| October 4–9 | Runner integration and model adapters: finish HTTP worker boundary, manifests, replayable records, adapter parity, and dry runs | End-to-end traces are complete; model payload audit shows RGB/proprio only; adapters emit the same free-form prompt operation schema and share budgets/system prompts |
-| October 10–13 | Multiple-model evaluation | At least two orchestrators complete the same prespecified seed set with the same locked policy, environment, reference-prompt evidence, budgets, API, and scoring; infrastructure errors are resolved or separately reported |
-| October 14–16 | Clean reproduction and release candidate | Rebuild from locks, rerun the reported configuration, reconcile every aggregate with episode records, publish limitations and feasibility evidence, and freeze the pilot artifacts |
+| Sep 25 - Oct 2 (done) | Harness, GR00T worker, task pool, first GPU runs | `docs/stage1_remote_results.md` |
+| Oct 4 - 11 (done) | Where supervision hurts (stages 2-3), abstract simulator, whether restarts rescue (stage 4) | `docs/stage2_results.md`, `docs/stage3_results.md`, `docs/sim_results.md`, `docs/stage4_results.md` |
+| Oct 12 (done) | Direction fixed; plain policies measured on the unseen composite tasks (stage 5) | `docs/direction.md`, `docs/stage5_results.md` |
+| Oct 13 | Time-charged scoring layer (offline); policy ladder (10% and 30% GR00T); ceiling test | Each workstream's doc and tests |
+| Oct 14 | Task, policy and time parameters fixed; prompt probed; release commit tagged | A decision row in `docs/decisions.md` that freezes them |
+| Oct 15 | Final runs: baselines, Opus 5.5, Sonnet 5.5; one GPU type and one commit | Every attempted episode kept; infrastructure errors reported separately |
+| Oct 16 | Scoring, write-up, limitations, reproduction notes | Every aggregate traceable to episode records |
 
-## Decision points
+## Rules that still hold
 
-- Do not start scored model runs before policy qualification passes.
-- Do not mix GR00T and π0.5 results. If fallback is necessary, rerun all model
-  evaluations against the single selected backend.
-- Do not substitute scripted actions when the learned policy fails.
-- Do not add artificial disturbances to create recovery examples. Exercise only
-  naturally occurring execution failures and handoffs.
-- Treat missing and infrastructure-incomplete trials as pending, not as pass or
-  fail. Preserve them in the artifact set.
-- If qualification or GPU provisioning slips, reduce the deliverable to the
-  verified foundation and feasibility report rather than presenting mock or
-  partial execution as benchmark results.
+- Do not substitute scripted actions when a learned policy fails, and do not add artificial disturbances. A deadline
+  in the score is not a disturbance; a physical change to the world would be.
+- Results from diagnostic supervisors (reference, sequencer, replay) are never mixed with model scores.
+- Treat missing and infrastructure-error trials as pending, not as pass or fail, and keep them.
+- A paired comparison runs on one machine, with the start-state check (`--expect-state`).
+- The final scored runs share one GPU type and one commit (the contract hash covers both).
 
-## October 16 release checklist
-
-- exact source, checkpoint, environment, model, prompt, and seed identities;
-- qualified-policy evidence for eight reference-prompt-entry conditions, twenty diagnostic full tasks, and matched continuations;
-- at least two comparable model result sets, if feasibility passed in time;
-- episode-level decisions, observations, action attempts, evaluator traces,
-  timings, usage, errors, and videos;
-- primary success and required diagnostic metrics computed from preserved runs;
-- explicit separation of diagnostic-oracle and model results;
-- a reproduction run from the frozen locks and a documented list of limitations.
+**Replaced rule:** "do not mix GR00T and π0.5 results". The benchmark now uses several policies on purpose, each
+identified in every record.

@@ -2,6 +2,16 @@
 
 **Work in progress — an experimental benchmark for LLM orchestration of robot policies.**
 
+> **Current direction (October 12, 2026): start with [docs/direction.md](docs/direction.md) and [handoff.md](handoff.md).**
+> - **What it measures:** whether an LLM supervisor chooses *when* to interrupt and re-prompt learned robot policies,
+>   and *how often* to check on them, so the pair finishes tasks quickly and reliably. One supervisor supervises
+>   several policies of different ability.
+> - **Environment:** real RoboCasa tasks, mixing unseen composite tasks with trained ones. Time is charged on the task
+>   clock for every LLM call.
+> - **Evidence so far:** stages 2-5 in `docs/stage*_results.md`, and the abstract simulator in `docs/sim_results.md`.
+> - **Out of date:** the sections below describe the September 27 CerealAndBowl pilot and the October 1
+>   intervention-judgement design. They are kept for their commands and history.
+
 The harness is implemented, but the first task is not yet qualified and no
 controlled model comparison has been completed. This repository is a development
 snapshot, not a validated benchmark release.
@@ -184,10 +194,9 @@ matched continuation relevance check before any LLM result is reported.
 
 ## Intervention-judgement benchmark
 
-**Not yet GPU-verified.** The commands below are implemented and unit-tested
-with mocks only. No task has been screened, and no predicate or native
-instruction has been checked in the real simulator. No release has been frozen.
-This is work in progress, and none of these commands has produced a result yet.
+**Superseded design (October 1); see [docs/direction.md](docs/direction.md).** The screening, labelling and
+release commands below were never run end to end. `screen --mode reference`, `baseline`, `run --development` and
+`replay` have since run on GPU in stages 1-5. No release has been frozen.
 
 The benchmark measures whether an LLM supervising the frozen GR00T policy steps
 in when the policy did not need help (harm, on `leave_alone` scene seeds) or

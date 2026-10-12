@@ -1,5 +1,10 @@
 # The building blocks of the supervision environment (October 9, 2026)
 
+> **Status, October 12.** These blocks describe the abstract simulator, which is now a development tool, not the
+> benchmark (`docs/direction.md`). Blocks 2, 5, 6 and 7 carry over to the real-robot environment: checker lag,
+> completion legibility, the decision interface, and a cost on every call, now as time on the task clock. Block 4's
+> assumed rescue (0.85 per restart) is about ten times too optimistic against stage 4's real measurement.
+
 What a simplified environment needs in order to test whether an LLM knows **when to interrupt** a learned robot policy
 and **how often to observe** it, and where each block comes from. Specification and parameters: `docs/env_design.md`;
 results: `docs/sim_results.md`; real-task evidence: `docs/stage3_results.md`. Blocks marked (assumed) are not measured.

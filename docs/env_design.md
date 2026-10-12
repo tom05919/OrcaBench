@@ -1,5 +1,9 @@
 # Simplified supervision environment: decisions and specification (October 9, 2026)
 
+> **Status, October 12.** This design was built and run (`docs/sim_results.md`). Its central decision, to use an
+> abstract environment *as the benchmark*, is superseded: the benchmark uses real RoboCasa tasks and several real
+> policies, with this simulator kept as a development tool (`docs/direction.md`).
+
 This answers `docs/env_design_brief.md`. It is a design, not results. Nothing here has been built or run against a
 model. The numbers in the calibration tables come from a throwaway CPU prototype of this specification (written in a
 scratch directory and not committed). They are the targets that the real implementation must reproduce, so they

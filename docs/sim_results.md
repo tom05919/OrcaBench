@@ -1,5 +1,12 @@
 # Abstract-environment results: can an LLM learn when to interrupt and how often to observe? (October 9, 2026)
 
+> **Status, October 12.**
+> - Stage 4 measured restart rescue on the real robot at about 1 in 20 failed episodes, far below the brittle
+>   profile's assumed 0.85 per restart. The brittle-VLA results below therefore do not describe GR00T.
+> - The model findings still stand for the environment as specified: Opus learns *when* to restart, and neither model
+>   learns *how often* to look.
+> - The benchmark now uses real RoboCasa tasks, with this simulator as a development tool (`docs/direction.md`).
+
 The study specified in `docs/env_design.md` (decided by an Opus design agent from `docs/env_design_brief.md`), built in
 `src/robot_benchmark/sim/` and run on the CPU plus the Claude API. Records are `sim_development` and are never
 benchmark scores. API spend for the study: **$2.22** (hard stop was $4.50); GPU: none. The environment is abstract:

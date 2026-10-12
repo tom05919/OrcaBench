@@ -1,5 +1,12 @@
 # Evaluation protocol
 
+> **Status, October 12.** The interface and decision semantics below (sections "Model-visible information" and
+> "Decision semantics") still describe the harness exactly. The study question has changed: the benchmark now asks
+> whether a supervisor trades speed against reliability well across *several* policies, and time will be charged per
+> LLM call (`docs/direction.md`). The CerealAndBowl qualification gates and the "Intervention-judgement benchmark"
+> section describe superseded designs. A new scoring section will be written when the time-charge layer is
+> implemented.
+
 ## Study question and controlled variables
 
 The benchmark compares multiple LLM orchestrators as supervisors of the same

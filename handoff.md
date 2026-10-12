@@ -1,6 +1,97 @@
 # OrcaBench handoff
 
-Read section A first. Sections 0-15 are the older October 2 handoff: still right about the interface, scoring, seeds, compute commands and tooling gotchas, but their status, branch and "next steps" statements are superseded (A.2).
+Read section **S** first. A0 (October 11) and A (October 10) are kept as history: their findings stand, but their
+"what is left" and "next steps" lists are replaced by S.4. Sections 0-15 are the October 2 handoff: still right about
+the interface, scoring, seeds, compute commands and tooling gotchas, but their status, branch and plans are superseded
+(A.2).
+
+## S. Start here (October 12, 2026)
+
+### S.1 In brief
+
+1. **The direction is set.** The benchmark measures whether an LLM supervisor chooses *when* to interrupt and
+   re-prompt learned robot policies, and *how often* to check on them, so that tasks finish quickly and reliably. One
+   supervisor supervises several policies of different ability.
+   - **Environment:** real RoboCasa tasks, mixing unseen composite tasks (help may be needed) with trained tasks
+     (leaving the policy alone is right).
+   - **Time:** charged on the task clock for every LLM call, with deadlines and five time-sensitive task stories.
+   - **Simulator:** the abstract simulator is now a development tool.
+   - **Where it is written:** `docs/direction.md`, logged in `docs/decisions.md` (2026-10-12).
+2. **Stage 5 ran** (`docs/stage5_results.md`): plain policies on the 16 unseen composite tasks.
+   - Multitask GR00T: 5 of 62 (8%), against 36% on seen tasks. Pretraining-only GR00T: 0 of 62.
+   - Failures are mostly all or nothing.
+   - PortionHotDogs and GarnishPancake show partial progress; they are the first ceiling-test targets.
+3. **The work is split three ways** (`docs/work_split.md`): W1 scoring, time charge, prompt and write-up (Tom); W2
+   policy ladder (suggested: Ranveer); W3 ceiling test and LLM pilots (third partner). Each workstream owns files and
+   run directories; no two edit the same file.
+4. **Code added for stage 5:**
+   - 16 `composite_unseen` task configs (the pool is now 32 tasks);
+   - progress predicates for five tasks;
+   - a second pinned checkpoint, backend `groot_pretrain`;
+   - `scripts/run_stage4.sh` now takes `BACKEND` and `CHECKPOINT`, and needs the Anthropic key only for `opus`;
+   - `scripts/analyze_stage5.py`.
+
+   All 285 tests pass (`PYTHONPATH=src python3 -m unittest discover -s tests`).
+5. **Compute and money:**
+   - No pod is running. The team Prime wallet holds $225.24; stage 5 cost $2.72.
+   - Stage 4 ran on Ranveer's personal account: $1.85 GPU and about $3 API.
+   - API spend from Tom's key across the project is about $11 of the $15 cap.
+6. **Data (Git-ignored):**
+   - On Tom's Mac: `runs/stage5/` (4.1 GB, including per-interval frames), `runs/stage2_remote/`, `runs/stage3_remote/`,
+     `runs/probes/` and `runs/sim/`.
+   - On Ranveer's Mac and his private Hugging Face bucket: `runs/stage4_remote/`.
+   - Tom's Mac disk has about 8 GB free; prune `frames/` folders before large copies.
+
+### S.2 What was decided, and why (October 11-12)
+
+- **Order:** first decide what the environment must contain, then choose policies that fit it.
+- **Trained tasks alone are useless for this question.** The orchestrator mostly hurts there (stage 3: 41% against a
+  3% noise floor) and rarely rescues (stage 4: about 1 in 20). Only new tasks would reward "always interrupt". A mix
+  makes *when* to interrupt a real skill.
+- **Time pressure through scoring, not physics.**
+  - **Why:** the harness pauses physics while the LLM thinks, so slowness is free today.
+  - **How:** a fixed time charge per call, from measured latency (Opus 4.6 s), not live wall-clock time; deadlines; and
+    hidden story timers (ice melts, food cools), some starting mid-task. The audit is in `docs/task_catalog.md`.
+  - **Not a disturbance:** a timer is a scoring rule, not an artificial disturbance.
+- **Several policies from the official RoboCasa365 checkpoints, with no training.**
+  - GR00T ladder: pretraining-only, 10%, 30% and multitask.
+  - π0.5 (backend written, never run); π0 and the diffusion policy need adapters.
+  - The multitask checkpoint has probably been trained on the "unseen" tasks (RoboCasa's multitask set includes all 50
+    target tasks), although its 8% shows little benefit in our kitchens.
+- **Rejected:**
+  - custom scenes built from scratch (policies would sit at zero, we cannot train, and it would take days);
+  - visible physical melting;
+  - one real policy plus invented profiles.
+
+### S.3 Lessons from the stage 5 run
+
+- **Run duration:** throughput is CPU-bound, about 19 steps/s on a 7.65-core quota with four streams. Pick pods by
+  cores, not GPU.
+- **RunPod image:** it lacks `sudo`, `rsync` and `jq` (install them with `apt-get` as root). `uv` installs into
+  `~/.local/bin`, which is not on the PATH.
+- **Prime pod list:** `prime pods list` truncates names. A loop that checked it by name created a duplicate pod (it
+  lived about 10 seconds). Check by the returned pod ID instead.
+- **Stopping processes over SSH:** `pgrep -f`/`pkill -f` over SSH match the SSH command line itself. Use an anchored
+  pattern (`^bash scripts/pod_guard.sh`).
+- **Pod-side guard without Hugging Face:** `scripts/pod_guard.sh backstop` alone, with `PRIME_API_KEY` and
+  `PRIME_TEAM_ID` in a mode-600 file, terminates a team pod at the deadline with no Hugging Face bucket.
+- **Unseen tasks need more scenes:** 4 of the multitask checkpoint's 5 successes came from scene 1001.
+
+### S.4 What is left (replaces A0's list and A.5)
+
+The day-by-day plan to October 16 is `docs/work_split.md`. In order of dependency:
+
+1. **W3 ceiling test:** can correct step-by-step instructions rescue unseen-task failures, starting with
+   PortionHotDogs and GarnishPancake?
+2. **W2 ability ladder:** the 10% and 30% GR00T checkpoints on the unseen tasks (four or more scenes), plus trained
+   leave-alone tasks for every policy.
+3. **W1 time-charged scoring:** applied offline to stages 3-5 first, then the orchestrator prompt that states the time
+   charge and deadline.
+4. **Fix tasks, policies and time parameters; tag one commit.** Then run baselines, Opus 5.5 and Sonnet 5.5 on one GPU
+   type, and write it up.
+5. **Smaller items:**
+   - `scripts/compare_to_reference.py` crashes on episodes without `decisions.jsonl` (from stage 4).
+   - The README's older sections describe superseded designs.
 
 ## A0. Update October 11, 2026 (stage 4, run from Ranveer's Mac)
 
