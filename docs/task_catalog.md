@@ -1,7 +1,9 @@
 # Candidate task catalog
 
-Candidate pool of 16 RoboCasa365 tasks (10 `atomic_seen`, 6 `composite_seen`); the
-frozen release keeps 10 after screening. Configs live in `configs/tasks/<Task>.json`
+Candidate pool of 32 RoboCasa365 tasks: 10 `atomic_seen` and 6 `composite_seen` (October 1), plus the 16
+`composite_unseen` tasks added on October 12 for stage 5 and the new direction (`docs/direction.md`; section
+"Unseen composite tasks" at the end). The October 1 plan's "the frozen release keeps 10 after screening" belongs to
+the superseded intervention-judgement design. Configs live in `configs/tasks/<Task>.json`
 (`status: candidate_unscreened`, `goal: null`, `goal_source: native_instruction`).
 Each config's `reference_prompts` contains only the `native_instruction` card. Its
 prompt is the literal template `"{goal}"`; the runner shows the episode's native goal
@@ -196,3 +198,46 @@ Checker: all of these:
 
 Predicates: `mug_under_dispenser` and `machine_on`. The two gripper-far conjuncts are not steps.
 Note: the checker enforces less than the instruction's order. `_turned_on` latches on any gripper contact with the start button, including a press before the mug is in place. Pressing first and then placing the mug therefore still succeeds.
+
+## Unseen composite tasks (`composite_unseen`, added October 12)
+
+The 16 tasks of `TARGET_TASKS["composite_unseen"]` in the pinned dataset registry. None of them has pretraining
+demonstrations; RoboCasa's multitask setting trains on all 50 target tasks, so the multitask GR00T checkpoint has
+probably seen them, while `foundation_model_learning/pretraining/checkpoint-80000` has not (`docs/stage5_plan.md`).
+Configs use the default native instruction (`use_novel_instructions` off), the registry horizon and the `pretrain`
+split. Build check (stage 5, scenes 1000-1001): all 16 build; **RecycleBottlesByType at scene 1000 starts with the
+checker already true**, so it measures nothing there.
+
+**Time-sensitivity audit.** Can the task carry a natural deadline story? The timer would be a scoring rule (a hidden
+clock in the success check), stated in the orchestrator's instruction, invisible to the cameras.
+
+| Task | Horizon | What it asks | Time-sensitive version | Fit |
+|---|---|---|---|---|
+| MakeIceLemonade | 3000 | Lemon wedge from fridge and an ice cube from a bowl into a glass | Ice melts; the clock can start when the cube leaves the bowl | Strong |
+| SeparateFreezerRack | 2400 | Meat and vegetable containers from the counter onto the freezer racks | Frozen food thaws on the counter; the clock runs from the start | Strong |
+| PanTransfer | 1800 | Dump the vegetables from the pan onto a plate, pan back on the stove; fails if the gripper touches the food | Food cools; from the start or when the pan leaves the stove | Strong |
+| PortionHotDogs | 2250 | Two buns and two sausages from a bowl, exactly one of each onto two plates | Hot dogs cool; from the start | Strong |
+| GarnishPancake | 2700 | Strawberry from the fridge onto a pancake on the dining counter | Pancake cools; from the start | Strong |
+| HeatKebabSandwich | 2700 | Kebab and baguette into the toaster oven, close, set the timer | Start heating before the guest arrives | Plausible |
+| WaffleReheat | 4050 | Bowl with waffle into the microwave, close, turn on | Same idea | Plausible |
+| ArrangeTea | 2250 | Kettle and mug onto a tray, close the cabinet | Kettle water cools | Plausible |
+| ArrangeBreadBasket | 4350 | Bread from the cabinet into a basket, basket to the dining counter | None natural | Weak |
+| BreadSelection | 1950 | Croissant and jam onto a cutting board | None natural | Weak |
+| CategorizeCondiments | 1650 | Shaker and bottle into the cabinet next to their matches | None natural | Weak |
+| CuttingToolSelection | 1200 | The right tool (peeler or knife) onto the cutting board | None natural | Weak |
+| GatherTableware | 2250 | Mugs and a bowl into one cabinet, sorted to opposite sides | None natural | Weak |
+| RecycleBottlesByType | 2850 | Sort plastic and glass bottles into two groups | None natural | Weak |
+| WashFruitColander | 3150 | Fruit in a colander under running water | None natural | Weak |
+| WeighIngredients | 3000 | Packaged food upright on the scale, close the cabinet | None natural | Weak |
+
+**Diagnostic predicates (stage 5).** For the five strong candidates, `tasks/predicates.py` logs subgoal progress every
+step. Each predicate mirrors a conjunct of the upstream `_check_success`, except `strawberry_reached`, a
+gripper-distance signal (within 10 cm). They are never shown to a model.
+
+| Task | Predicates |
+|---|---|
+| MakeIceLemonade | `lemon_in_cup`, `ice_in_cup` (either cube; threshold 0.5, as upstream) |
+| SeparateFreezerRack | `meat_on_freezer_rack` (second-highest rack), `veg_on_freezer_rack` (highest) |
+| PanTransfer | `vegetables_on_plate`, `pan_on_stove` (true at the start), `food_untouched` (upstream fails the task once the gripper touches the food) |
+| PortionHotDogs | `plate1_portioned`, `plate2_portioned` (exactly one bun and one sausage), `any_item_on_plate` |
+| GarnishPancake | `strawberry_reached`, `strawberry_on_pancake` |

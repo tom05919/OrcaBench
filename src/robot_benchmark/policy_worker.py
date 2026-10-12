@@ -17,11 +17,19 @@ EXPECTED_CHECKPOINTS = {
         "identity": ("robocasa/robocasa365_checkpoints", "c484448aba1a9b60a04c9b0ca117241518ea69f3", "gr00t_n1-5/multitask_learning/checkpoint-120000"),
         "manifest_sha256": "091892f3b79f8e938dd7083c3566ec1288d4c89306033a3fbf731b82cc2951b3",
     },
+    # The same GR00T model after RoboCasa pretraining only: it has never seen the composite_unseen tasks (stage 5).
+    "groot_pretrain": {
+        "identity": ("robocasa/robocasa365_checkpoints", "c484448aba1a9b60a04c9b0ca117241518ea69f3", "gr00t_n1-5/foundation_model_learning/pretraining/checkpoint-80000"),
+        "manifest_sha256": "c0e2191ae63ec072b6a9891fc1d53f40992643c8efb2ff840fbe906d921a0d54",
+    },
     "pi05": {
         "identity": ("robocasa/robocasa365_checkpoints", "c484448aba1a9b60a04c9b0ca117241518ea69f3", "pi05_pretrain_human300/multitask_learning/75000"),
         "manifest_sha256": "6cb40c35b39fea8b6f8b40a8644dfe00b7b7e54bdb8681f0b33e40a38b02c98c",
     },
 }
+
+
+GROOT_BACKENDS = ("groot", "groot_pretrain")  # one GR00T N1.5 code path, different pinned weights
 
 
 def verify_checkpoint(path, backend=None):
@@ -79,10 +87,10 @@ class LearnedPolicy:
             "checkpoint_manifest_sha256": digest({k: manifest[k] for k in ("repo_id", "revision", "subdir", "files")}),
             "checkpoint_subdir": manifest["subdir"],
             "python": platform.python_version(),
-            "native_action_steps": 16 if backend == "groot" else 5,
+            "native_action_steps": 16 if backend in GROOT_BACKENDS else 5,
             "adapter_version": 1,
         }
-        if backend == "groot":
+        if backend in GROOT_BACKENDS:
             import torch
             from gr00t.experiment.data_config import DATA_CONFIG_MAP
             from gr00t.model.policy import Gr00tPolicy
@@ -115,7 +123,7 @@ class LearnedPolicy:
                 raise ValueError("seed must be an integer in [0, 2**32)")
             self.np.random.seed(seed)
             random.seed(seed)
-            if self.backend == "groot":
+            if self.backend in GROOT_BACKENDS:
                 import torch
                 torch.manual_seed(seed)
                 torch.cuda.manual_seed_all(seed)
@@ -131,7 +139,7 @@ class LearnedPolicy:
         obs = decode_observation(payload)
         if not isinstance(instruction, str) or not instruction:
             raise ValueError("instruction must be nonempty")
-        if self.backend == "groot":
+        if self.backend in GROOT_BACKENDS:
             values = {key: value[None, ...] for key, value in obs.items()}
             values["annotation.human.task_description"] = [instruction]
             output = self.policy.get_action(values)
@@ -212,7 +220,7 @@ def serve(policy, port):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--backend", choices=("groot", "pi05"), required=True)
+    parser.add_argument("--backend", choices=tuple(EXPECTED_CHECKPOINTS), required=True)
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()

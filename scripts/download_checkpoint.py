@@ -22,6 +22,7 @@ PROJECT_ROOT: Final = Path(__file__).resolve().parents[1]
 LOCK_PATH: Final = PROJECT_ROOT / "configs" / "sources.lock.json"
 DEFAULT_OUTPUTS: Final = {
     "groot": PROJECT_ROOT / "checkpoints" / "groot" / "checkpoint-120000",
+    "groot_pretrain": PROJECT_ROOT / "checkpoints" / "groot_pretrain" / "checkpoint-80000",
     "pi05": PROJECT_ROOT / "checkpoints" / "pi05" / "75000",
 }
 MIN_HEADROOM_BYTES: Final = 2 * 1024**3
@@ -78,7 +79,27 @@ PI05_FILES: Final = {
     "params/ocdbt.process_0/manifest.ocdbt": {"size": 486, "sha256": "619bbfc24075a6e9055ec5e160a0d1e5d1900e2b7edcc2286ca432997f0d58e4"},
 }
 
-EXPECTED_BY_BACKEND: Final = {"groot": GROOT_FILES, "pi05": PI05_FILES}
+# The same GR00T N1.5 model after RoboCasa pretraining only (300 tasks, none of the composite_unseen ones); same
+# config and shard index as GROOT_FILES. LFS hashes are the object IDs at the pinned revision; the two small files
+# were hashed from their resolved content.
+GROOT_PRETRAIN_FILES: Final = {
+    "config.json": GROOT_FILES["config.json"],
+    "experiment_cfg/metadata.json": {
+        "size": 14_132,
+        "sha256": "a58ca703c2eb1e3bfa211169126c661d3d3f1bbd37a421d8c4d309f9ff494ef1",
+    },
+    "model-00001-of-00002.safetensors": {
+        "size": 4_999_367_032,
+        "sha256": "1d86472c1cacc97e0c88814e296ac535ffd5ca023b87316e067955a9253f55ac",
+    },
+    "model-00002-of-00002.safetensors": {
+        "size": 2_586_705_312,
+        "sha256": "84b2d5fadeb179a184786192086a06bffc28a60a7c7b3864aa94fd4c86bbf8ae",
+    },
+    "model.safetensors.index.json": GROOT_FILES["model.safetensors.index.json"],
+}
+
+EXPECTED_BY_BACKEND: Final = {"groot": GROOT_FILES, "groot_pretrain": GROOT_PRETRAIN_FILES, "pi05": PI05_FILES}
 
 
 def sha256_file(path: Path) -> str:

@@ -62,10 +62,11 @@ class CatalogConfigTests(unittest.TestCase):
         self.configs = {path.stem: json.loads(path.read_text()) for path in sorted(CONFIGS.glob("*.json"))}
 
     def test_config_files_match_candidates(self):
-        self.assertEqual(len(CANDIDATE_TASKS), 16)
+        self.assertEqual(len(CANDIDATE_TASKS), 32)
         self.assertEqual(set(self.configs), set(CANDIDATE_TASKS))
         self.assertEqual(set(SEQUENCES), {task for task, kind in CANDIDATE_TASKS.items() if kind == "composite_seen"})
         self.assertEqual(sum(kind == "atomic_seen" for kind in CANDIDATE_TASKS.values()), 10)
+        self.assertEqual(sum(kind == "composite_unseen" for kind in CANDIDATE_TASKS.values()), 16)
 
     def test_configs_use_native_goal_and_registry_horizon(self):
         horizons = registry_horizons()
@@ -175,6 +176,37 @@ class PredicateTests(unittest.TestCase):
             raw = raw_env()
             self.assertEqual(task_predicates("PrepareCoffee", raw), {"mug_under_dispenser": True, "machine_on": False})
             raw.coffee_machine.check_receptacle_placement_for_pouring.assert_called_with(raw, "obj")
+
+    def test_unseen_composite_progress_predicates(self):
+        placed = set()  # (object, receptacle) pairs the fake check_obj_in_receptacle reports as placed
+        inside = lambda env, obj, receptacle, th=None: (obj, receptacle) in placed
+        far = mock.Mock(return_value=True)
+        with fake_robocasa(check_obj_in_receptacle=inside, gripper_obj_far=far):
+            raw = raw_env()
+            self.assertEqual(task_predicates("MakeIceLemonade", raw), {"lemon_in_cup": False, "ice_in_cup": False})
+            placed |= {("lemon_wedge", "glass_cup"), ("ice_cube2", "glass_cup")}
+            self.assertEqual(task_predicates("MakeIceLemonade", raw), {"lemon_in_cup": True, "ice_in_cup": True})
+
+            raw.fridge.check_rack_contact.side_effect = lambda env, name, compartment, rack_index: (
+                compartment == "freezer" and (name, rack_index) == ("meat_tupperware", -2))
+            self.assertEqual(task_predicates("SeparateFreezerRack", raw),
+                             {"meat_on_freezer_rack": True, "veg_on_freezer_rack": False})
+
+            raw._check_obj_location_on_stove.return_value = "front_left"
+            raw._robot_touched_food = True
+            self.assertEqual(task_predicates("PanTransfer", raw),
+                             {"vegetables_on_plate": False, "pan_on_stove": True, "food_untouched": False})
+            raw._check_obj_location_on_stove.assert_called_with("vegetable_container")
+
+            placed |= {("hotdog_bun1", "plate1"), ("sausage1", "plate1"), ("hotdog_bun2", "plate2")}
+            self.assertEqual(task_predicates("PortionHotDogs", raw),
+                             {"plate1_portioned": True, "plate2_portioned": False, "any_item_on_plate": True})
+            placed.add(("sausage2", "plate1"))  # two sausages on plate 1 is not a portion
+            self.assertFalse(task_predicates("PortionHotDogs", raw)["plate1_portioned"])
+
+            self.assertEqual(task_predicates("GarnishPancake", raw),
+                             {"strawberry_reached": False, "strawberry_on_pancake": False})
+            far.assert_called_with(raw, "strawberry", th=0.1)
 
 
 if __name__ == "__main__":

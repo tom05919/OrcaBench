@@ -12,6 +12,12 @@ CANDIDATE_TASKS = {
                      "CoffeeSetupMug", "TurnOffStove", "OpenCabinet"), "atomic_seen"),
     **dict.fromkeys(("ScrubCuttingBoard", "RinseSinkBasin", "KettleBoiling", "WashLettuce",
                      "LoadDishwasher", "PrepareCoffee"), "composite_seen"),
+    # Stage 5 (docs/stage5_plan.md): every composite_unseen target task, for plain-policy measurement.
+    **dict.fromkeys(("ArrangeBreadBasket", "ArrangeTea", "BreadSelection", "CategorizeCondiments",
+                     "CuttingToolSelection", "GarnishPancake", "GatherTableware", "HeatKebabSandwich",
+                     "MakeIceLemonade", "PanTransfer", "PortionHotDogs", "RecycleBottlesByType",
+                     "SeparateFreezerRack", "WaffleReheat", "WashFruitColander", "WeighIngredients"),
+                    "composite_unseen"),
 }
 
 # Privileged subtask decomposition: never expose these prompts to model adapters or task configs.
@@ -88,9 +94,49 @@ def _prepare_coffee(raw):
             "machine_on": machine._turned_on}
 
 
+# Subgoal progress for the five time-sensitive candidates among the unseen composites (stage 5). Each mirrors a
+# conjunct of the upstream `_check_success`, except `strawberry_reached`, a gripper-distance progress signal.
+def _make_ice_lemonade(raw):
+    from robocasa.utils import object_utils as OU
+    return {"lemon_in_cup": OU.check_obj_in_receptacle(raw, "lemon_wedge", "glass_cup", th=0.5),
+            "ice_in_cup": any(OU.check_obj_in_receptacle(raw, cube, "glass_cup", th=0.5)
+                              for cube in ("ice_cube1", "ice_cube2"))}
+
+
+def _separate_freezer_rack(raw):
+    rack = raw.fridge.check_rack_contact
+    return {"meat_on_freezer_rack": rack(raw, "meat_tupperware", compartment="freezer", rack_index=-2),
+            "veg_on_freezer_rack": rack(raw, "veg_tupperware", compartment="freezer", rack_index=-1)}
+
+
+def _pan_transfer(raw):
+    from robocasa.utils import object_utils as OU
+    return {"vegetables_on_plate": OU.check_obj_in_receptacle(raw, "vegetable", "plate"),
+            "pan_on_stove": raw._check_obj_location_on_stove("vegetable_container") is not None,
+            "food_untouched": not raw._robot_touched_food}
+
+
+def _portion_hot_dogs(raw):
+    from robocasa.utils import object_utils as OU
+    def count(names, plate):
+        return sum(bool(OU.check_obj_in_receptacle(raw, name, plate)) for name in names)
+    buns, sausages = ("hotdog_bun1", "hotdog_bun2"), ("sausage1", "sausage2")
+    return {"plate1_portioned": count(buns, "plate1") == 1 and count(sausages, "plate1") == 1,
+            "plate2_portioned": count(buns, "plate2") == 1 and count(sausages, "plate2") == 1,
+            "any_item_on_plate": any(count(buns + sausages, plate) for plate in ("plate1", "plate2"))}
+
+
+def _garnish_pancake(raw):
+    from robocasa.utils import object_utils as OU
+    return {"strawberry_reached": not OU.gripper_obj_far(raw, "strawberry", th=0.1),
+            "strawberry_on_pancake": OU.check_obj_in_receptacle(raw, "strawberry", "pancake")}
+
+
 _PREDICATES = {"ScrubCuttingBoard": _scrub_cutting_board, "RinseSinkBasin": _rinse_sink_basin,
                "KettleBoiling": _kettle_boiling, "WashLettuce": _wash_lettuce,
-               "LoadDishwasher": _load_dishwasher, "PrepareCoffee": _prepare_coffee}
+               "LoadDishwasher": _load_dishwasher, "PrepareCoffee": _prepare_coffee,
+               "MakeIceLemonade": _make_ice_lemonade, "SeparateFreezerRack": _separate_freezer_rack,
+               "PanTransfer": _pan_transfer, "PortionHotDogs": _portion_hot_dogs, "GarnishPancake": _garnish_pancake}
 
 
 def task_predicates(task, raw):

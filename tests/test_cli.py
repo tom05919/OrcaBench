@@ -269,7 +269,7 @@ class BenchmarkCommandTests(unittest.TestCase):
 
     def test_shipped_task_pool_passes_task_parts(self):
         paths = sorted(TASKS.glob("*.json"))
-        self.assertEqual(len(paths), 16)
+        self.assertEqual(len(paths), 32)  # 16 seen candidates plus the 16 composite_unseen tasks of stage 5
         for path in paths:
             with self.subTest(path=path.name):
                 config, prompts, _ = task_parts(path)

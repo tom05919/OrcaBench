@@ -119,6 +119,7 @@
     "repo_id": "robocasa/robocasa365_checkpoints",
     "revision": "c484448aba1a9b60a04c9b0ca117241518ea69f3",
     "groot_subdir": "gr00t_n1-5/multitask_learning/checkpoint-120000",
+    "groot_pretrain_subdir": "gr00t_n1-5/foundation_model_learning/pretraining/checkpoint-80000",
     "pi05_subdir": "pi05_pretrain_human300/multitask_learning/75000"
   }
 }

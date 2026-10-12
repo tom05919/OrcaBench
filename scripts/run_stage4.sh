@@ -35,6 +35,8 @@ TASKS=(CloseFridge CloseToasterOvenDoor CoffeeSetupMug KettleBoiling LoadDishwas
        PickPlaceCounterToCabinet PickPlaceCounterToStove PrepareCoffee RinseSinkBasin ScrubCuttingBoard TurnOffStove
        TurnOnMicrowave TurnOnSinkFaucet WashLettuce)
 [[ -z ${TASK_LIST:-} ]] || read -r -a TASKS <<< "$TASK_LIST"
+BACKEND=${BACKEND:-groot}  # stage 5 also runs groot_pretrain (checkpoints/groot_pretrain/checkpoint-80000)
+CHECKPOINT=${CHECKPOINT:-checkpoints/groot/checkpoint-120000}
 BIN=${BIN:-.venv-sim/bin/robot-benchmark}
 PY=${PY:-.venv-sim/bin/python}
 START=$(date +%s)
@@ -76,8 +78,8 @@ start_workers() {
   for ((i = 0; i < STREAMS; i++)); do
     port=$((BASE_PORT + i))
     curl -s -m 3 "localhost:$port/health" > /dev/null && continue
-    setsid -f .venv-groot/bin/python -m robot_benchmark.policy_worker --backend groot \
-      --checkpoint checkpoints/groot/checkpoint-120000 --port "$port" > "$OUT/worker-$port.log" 2>&1 < /dev/null
+    setsid -f .venv-groot/bin/python -m robot_benchmark.policy_worker --backend "$BACKEND" \
+      --checkpoint "$CHECKPOINT" --port "$port" > "$OUT/worker-$port.log" 2>&1 < /dev/null
   done
   for ((i = 0; i < STREAMS; i++)); do
     until curl -s -m 3 "localhost:$((BASE_PORT + i))/health" > /dev/null; do sleep 5; done
@@ -151,13 +153,14 @@ phase_compare() {
   done
 }
 
-[[ -n ${ANTHROPIC_API_KEY:-} ]] || { echo "ANTHROPIC_API_KEY is not set; source .env first" >&2; exit 2; }
-[[ -f configs/model-$OPUS.dev.json ]] || { echo "missing configs/model-$OPUS.dev.json" >&2; exit 2; }
-monitor &
-trap 'status=$?; kill $(jobs -p) 2>/dev/null; echo "$status $(date -u +%FT%TZ)" > "$OUT/PIPELINE_DONE"' EXIT
-
 phases=("$@")
 (( ${#phases[@]} )) || phases=(workers plain select defer reissue opus replays compare)
+if [[ " ${phases[*]} " == *" opus "* ]]; then  # only the opus phase calls a model
+  [[ -n ${ANTHROPIC_API_KEY:-} ]] || { echo "ANTHROPIC_API_KEY is not set; source .env first" >&2; exit 2; }
+  [[ -f configs/model-$OPUS.dev.json ]] || { echo "missing configs/model-$OPUS.dev.json" >&2; exit 2; }
+fi
+monitor &
+trap 'status=$?; kill $(jobs -p) 2>/dev/null; echo "$status $(date -u +%FT%TZ)" > "$OUT/PIPELINE_DONE"' EXIT
 for phase in "${phases[@]}"; do
   stamp "phase $phase"
   if [[ $phase == workers ]]; then start_workers; else "phase_$phase"; fi
