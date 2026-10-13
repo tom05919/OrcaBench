@@ -125,3 +125,20 @@ between video samples (every 10 steps), so it was not inspected.
 
 Drivers ran 05:27-09:18 UTC; the pod guard made a final sync and terminated the pod at 09:18. Billed $7.60 (cap
 $10). The backstop and the Mac watchdog did not fire.
+
+## Third policy: `groot_pretrain` on the leave-alone tasks (plan, fixed before the run)
+
+The recommendation above leaves `groot_pretrain`'s leave-alone cells null. This run measures them, so W1 can choose a
+third policy from counts rather than a gap.
+
+- **Grid (`scripts/run_stage6_pretrain.sh`):** the plain `groot_pretrain` checkpoint
+  (`checkpoints/groot_pretrain/checkpoint-80000`, pinned October 12) on the five leave-alone tasks, scenes 1000-1003 x
+  policy seeds 0, 1: 40 episodes, the same settings as the ladder run (`run_stage4.sh workers plain`, video every 10
+  steps), after a build check of the five tasks at the four scenes. Its story-task cells are stage 5's (0 of 62).
+- **Reading:** the leave-alone rule above (fewer than half of a task's episodes solved means forgotten), per task.
+  The other policies' counts come from a different pod; scenes are rebuilt from the same seeds, but start states are
+  not matched across pods, so counts are compared per task, not as pairs.
+- **Compute:** one Prime pod on Ranveer's account, four policy workers (`WORKER_THREADS=2`, see
+  `docs/stage6_ceiling.md`). Caps: **$4 GPU, pod deadline 2.5 hours after creation**, `BUDGET_MINUTES=120`.
+  `scripts/pod_guard.sh` syncs `runs/stage6_pretrain` to the private bucket and terminates the pod; backstop and Mac
+  watchdog as before.
