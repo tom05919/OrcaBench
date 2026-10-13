@@ -3,6 +3,7 @@
 subgoal progress from the evaluator's per-step predicates. Reads episode folders only; nothing here calls a model.
 
   python3 scripts/analyze_stage5.py --root runs/stage5 [--output runs/stage5/analysis.json]
+  python3 scripts/analyze_stage5.py --root runs/stage6_ladder --backends groot groot_10p groot_30p
 """
 import argparse
 import json
@@ -59,9 +60,9 @@ def reading(successes, usable, progress, has_predicates):
     return "mixed"
 
 
-def analyze(root):
+def analyze(root, backends=BACKENDS):
     report = {}
-    for backend in BACKENDS:
+    for backend in backends:
         base = root / backend / "reference"
         tasks = {}
         for task_dir in sorted(p for p in base.glob("*") if p.is_dir()):
@@ -96,8 +97,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("runs/stage5"))
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--backends", nargs="+", default=list(BACKENDS), help="subfolders of --root, one per checkpoint")
     args = parser.parse_args()
-    report = analyze(args.root)
+    report = analyze(args.root, args.backends)
     for backend, data in report.items():
         print(f"\n{backend}: {data['successes']}/{data['usable']} solved, 95% {data['wilson_95']}, "
               f"{data['infrastructure_errors']} infrastructure errors, {data['solved_at_start']} solved at start")

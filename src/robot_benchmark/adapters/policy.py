@@ -22,7 +22,7 @@ class RemotePolicy:
             raise ValueError("policy worker must be local or reached through a loopback SSH tunnel")
         self.endpoint, self.timeout = endpoint.rstrip("/"), timeout
         self.identity = request_json(self.endpoint + "/health", timeout=timeout)
-        if self.identity.get("backend") not in ("groot", "groot_pretrain", "pi05") or not self.identity.get("checkpoint_manifest_sha256"):
+        if self.identity.get("backend") not in ("groot", "groot_pretrain", "groot_10p", "groot_30p", "pi05") or not self.identity.get("checkpoint_manifest_sha256"):
             raise RuntimeError("worker must identify a verified learned checkpoint")
 
     def reset_episode(self, seed):
