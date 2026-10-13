@@ -27,9 +27,8 @@ of 62 in stage 5.
 - **Leave-alone tasks:** the five seen tasks the multitask checkpoint solved most often in stage 4 (OpenCabinet 8/8,
   PickPlaceCounterToCabinet 6/8, PickPlaceCounterToStove 6/8, CloseFridge 4/8, OpenDrawer 4/8). Sink and scrub tasks
   are left out because their scenes do not rebuild reliably.
-- **Episodes:** scenes 1000-1003 x policy seeds 0, 1 for `groot_10p` and `groot_30p` on both sets (104 each). The
-  multitask `groot` reruns the leave-alone set (40) and adds scenes 1002-1003 on the story set (32); its scenes
-  1000-1001 story episodes are stage 5's, from another pod.
+- **Episodes:** scenes 1000-1003 x policy seeds 0, 1 on both sets, for each of the three checkpoints (104 each, 312
+  in all), on one pod so start states are comparable.
 - A build check of all 13 tasks at the four scenes runs first. A scene whose checker is true at step 0 is reported
   and never counted (rule from stage 5).
 
@@ -46,8 +45,9 @@ re-prompting candidate, unlikely to be helped, mixed).
 
 ## Compute and guards
 
-One Prime pod on Ranveer's personal account: RunPod L40 48 GB, 36 vCPUs, about $0.84/hr. Five policy workers (four
-took about 35 GB in stage 4). Caps: **$6 GPU, pod deadline 6.5 hours after creation**, `BUDGET_MINUTES=270` per
-driver. `scripts/pod_guard.sh` syncs `runs/stage6_ladder` to the private Hugging Face bucket every 30 minutes and
-after the run, then terminates the pod; the backstop and the Mac watchdog remain. The pod gets only the Hugging Face
-and Prime keys, not the Anthropic key.
+One Prime pod on Ranveer's personal account: RunPod A100 80 GB, 32 vCPUs, $1.81/hr (the 36-vCPU L40 and L40S
+offers were out of stock). Six policy workers, two per checkpoint (four took about 35 GB in stage 4). Caps: **$10 GPU,
+pod deadline 5.5 hours after creation** (about $11 if the backstop has to fire), `BUDGET_MINUTES=240` per driver.
+`scripts/pod_guard.sh` syncs `runs/stage6_ladder` to the private Hugging Face bucket every 30 minutes and after the
+run, then terminates the pod; the backstop and the Mac watchdog remain. The pod gets only the Hugging Face and Prime
+keys, not the Anthropic key.

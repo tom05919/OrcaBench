@@ -6,10 +6,8 @@
 #
 #   scripts/run_stage6_ladder.sh            build check, then the three drivers in parallel
 #
-# Streams: 2 each for groot_10p and groot_30p, 1 for the multitask groot (five policy workers fit in 48 GB; four
-# took about 35 GB in stage 4). The multitask checkpoint already has scenes 1000-1001 of the story tasks (stage 5)
-# and every leave-alone task (stage 4) from other pods; here it reruns the leave-alone tasks and adds scenes
-# 1002-1003, so its single stream finishes near the others.
+# Streams: two policy workers per checkpoint, six in all (four took about 35 GB in stage 4, so this needs an 80 GB
+# GPU). Every checkpoint runs the same grid on the same pod, so their start states are comparable.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 source scripts/project_env.sh
@@ -17,7 +15,7 @@ source scripts/project_env.sh
 ROOT=runs/stage6_ladder
 STORY="MakeIceLemonade SeparateFreezerRack PanTransfer PortionHotDogs GarnishPancake HeatKebabSandwich WaffleReheat ArrangeTea"
 LEAVE="OpenCabinet PickPlaceCounterToCabinet PickPlaceCounterToStove CloseFridge OpenDrawer"
-BUDGET=${BUDGET_MINUTES:-270}
+BUDGET=${BUDGET_MINUTES:-240}
 mkdir -p "$ROOT"
 rm -f "$ROOT/PIPELINE_DONE"
 trap 'echo "$? $(date -u +%FT%TZ)" > "$ROOT/PIPELINE_DONE"' EXIT
@@ -42,10 +40,7 @@ driver groot_10p groot_10p checkpoints/groot_10p/composite_unseen_10p 8765 2 "10
 pids+=($!)
 driver groot_30p groot_30p checkpoints/groot_30p/composite_unseen_30p 8775 2 "1000 1001 1002 1003" "$LEAVE $STORY" &
 pids+=($!)
-{
-  driver groot groot checkpoints/groot/checkpoint-120000 8785 1 "1000 1001 1002 1003" "$LEAVE"
-  driver groot groot checkpoints/groot/checkpoint-120000 8785 1 "1002 1003" "$STORY"
-} &
+driver groot groot checkpoints/groot/checkpoint-120000 8785 2 "1000 1001 1002 1003" "$LEAVE $STORY" &
 pids+=($!)
 stamp "drivers started"
 wait "${pids[@]}"
