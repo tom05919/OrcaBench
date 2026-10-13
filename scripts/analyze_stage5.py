@@ -105,8 +105,8 @@ def analyze(root, backends=BACKENDS):
 def ceiling(root, backends=BACKENDS):
     """Stage 6 ceiling test (docs/stage6_ceiling.md): per task and backend, the pairs (task, scene, policy seed) where
     both the plain reference and the sequencer are usable, with each arm's successes, rescues and harms, and how many
-    sequence steps each failed sequencer episode ever reached. Rule fixed before the results: re-prompting can help
-    when the sequencer succeeds in at least 2 more paired episodes than plain."""
+    sequence steps were done in the final state of each failed sequencer episode. Rule fixed before the results:
+    re-prompting can help when the sequencer succeeds in at least 2 more paired episodes than plain."""
     def usable(base):
         rows = {}
         for folder in sorted(base.glob("*/seed-*")):

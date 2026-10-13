@@ -29,6 +29,7 @@ OUT=${OUT:-runs/stage4}
 STREAMS=${STREAMS:-4}
 BASE_PORT=${BASE_PORT:-8765}
 VIDEO=${VIDEO:-5}
+WORKER_THREADS=${WORKER_THREADS:-2}
 BUDGET_MINUTES=${BUDGET_MINUTES:-330}
 SCENES=${SCENES:-1000 1001 1002 1003}
 POLICY_SEEDS=${POLICY_SEEDS:-0,1}
@@ -82,7 +83,9 @@ start_workers() {
   for ((i = 0; i < STREAMS; i++)); do
     port=$((BASE_PORT + i))
     curl -s -m 3 "localhost:$port/health" > /dev/null && continue
-    setsid -f .venv-groot/bin/python -m robot_benchmark.policy_worker --backend "$BACKEND" \
+    # Torch and OpenMP size their thread pools to the host's cores, not the container's CPU quota: on a 252-core host
+    # with a 26-CPU quota, eight workers spun through the quota and the simulators ran 20 times slower than usual.
+    OMP_NUM_THREADS=$WORKER_THREADS MKL_NUM_THREADS=$WORKER_THREADS setsid -f .venv-groot/bin/python -m robot_benchmark.policy_worker --backend "$BACKEND" \
       --checkpoint "$CHECKPOINT" --port "$port" > "$OUT/worker-$port.log" 2>&1 < /dev/null
   done
   for ((i = 0; i < STREAMS; i++)); do

@@ -6,6 +6,8 @@
 # Writes runs/stage6_ceiling/PIPELINE_DONE when every driver has finished, for scripts/pod_guard.sh.
 #
 #   scripts/run_stage6_ceiling.sh            build and trigger check, then both drivers in parallel
+#   SKIP_BUILD=1 PHASES="workers plain sequencer" scripts/run_stage6_ceiling.sh
+#                                            resume after a stop: finished episodes are skipped (--skip-existing)
 #
 # Streams: four policy workers per checkpoint, eight in all (six took about 49 GB in the ladder run, so this needs
 # an 80 GB GPU). Both arms of a pair run on this pod, so their start states match.
@@ -17,6 +19,7 @@ ROOT=runs/stage6_ceiling
 TASKS="PortionHotDogs GarnishPancake MakeIceLemonade SeparateFreezerRack PanTransfer"
 TRIGGER_TASKS="MakeIceLemonade PanTransfer"  # ice_out_of_bowl and pan_off_stove must be false at step 0
 BUDGET=${BUDGET_MINUTES:-240}
+PHASES=${PHASES:-workers smoke plain sequencer}
 mkdir -p "$ROOT"
 rm -f "$ROOT/PIPELINE_DONE"
 trap 'echo "$? $(date -u +%FT%TZ)" > "$ROOT/PIPELINE_DONE"' EXIT
@@ -24,21 +27,23 @@ stamp() { echo "[$(date -u +%H:%M:%S)] $*" >> "$ROOT/driver.log"; }
 
 # Every task must build at the four scenes; the trigger tasks are also checked over the whole evaluation range
 # (configs/splits.json), four builds at a time.
-stamp "build start"
-for seed in $(seq 1000 1019); do
-  tasks=$TRIGGER_TASKS
-  (( seed <= 1003 )) && tasks=$TASKS
-  .venv-sim/bin/python scripts/check_task_pool.py --seed "$seed" --tasks $tasks \
-    --output "$ROOT/build-$seed.json" > "$ROOT/build-$seed.log" 2>&1 &
-  (( (seed - 999) % 4 )) || wait
-done
-wait
-stamp "build done"
+if [[ -z ${SKIP_BUILD:-} ]]; then
+  stamp "build start"
+  for seed in $(seq 1000 1019); do
+    tasks=$TRIGGER_TASKS
+    (( seed <= 1003 )) && tasks=$TASKS
+    .venv-sim/bin/python scripts/check_task_pool.py --seed "$seed" --tasks $tasks \
+      --output "$ROOT/build-$seed.json" > "$ROOT/build-$seed.log" 2>&1 &
+    (( (seed - 999) % 4 )) || wait
+  done
+  wait
+  stamp "build done"
+fi
 
 # driver NAME BACKEND CHECKPOINT BASE_PORT
 driver() {
   OUT=$ROOT/$1 BACKEND=$2 CHECKPOINT=$3 BASE_PORT=$4 STREAMS=4 SCENES="1000 1001 1002 1003" TASK_LIST="$TASKS" \
-    POLICY_SEEDS=0,1 VIDEO=10 BUDGET_MINUTES=$BUDGET scripts/run_stage4.sh workers smoke plain sequencer \
+    POLICY_SEEDS=0,1 VIDEO=10 BUDGET_MINUTES=$BUDGET scripts/run_stage4.sh $PHASES \
     >> "$ROOT/$1.log" 2>&1 < /dev/null
 }
 pids=()

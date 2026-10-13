@@ -57,3 +57,87 @@ Caps: **$10 GPU, pod deadline 5 hours after creation**, `BUDGET_MINUTES=240` per
 that). `scripts/pod_guard.sh` syncs `runs/stage6_ceiling` to the private Hugging Face bucket every 30 minutes and
 after the run, then terminates the pod; the backstop and the Mac watchdog remain. The pod gets only the Hugging Face
 and Prime keys.
+
+## Results (October 13, 2026)
+
+168 finished episodes, eight stopped by the restart below and the two smoke episodes, all kept (`runs/stage6_ceiling/`, private bucket
+`stage6_ceiling`). Analysis: `scripts/analyze_stage5.py --root runs/stage6_ceiling --ceiling --output
+runs/stage6_ceiling/ceiling.json`. Every task built at scenes 1000-1003, and `ice_out_of_bowl` and `pan_off_stove`
+were false at step 0 on all twenty evaluation scenes. Both smoke episodes ran to the step budget without an
+infrastructure error, with the sequencer switching prompts as planned.
+
+Paired episodes only (both arms usable at the same scene and policy seed); "steps done" is how many leading steps of
+the sequence were true in the final state of each failed sequencer episode.
+
+| Backend | Task | Pairs | Plain | Sequencer | Rescues | Harms | Steps done on sequencer failures | Reading |
+|---|---|---|---|---|---|---|---|---|
+| `groot` | GarnishPancake | 8 | 1/8 | 1/8 | 1 | 1 | 0, 0, 1, 1, 1, 1, 1 of 2 | not shown |
+| `groot` | MakeIceLemonade | 8 | 0/8 | 1/8 | 1 | 0 | all 0 of 2 | not shown |
+| `groot` | PanTransfer | 7 | 0/7 | 0/7 | 0 | 0 | 0 (x6), 2 of 2 | not shown |
+| `groot` | PortionHotDogs | 6 | 0/6 | 1/6 | 1 | 0 | 0, 1, 2, 3, 3 of 4 | not shown |
+| `groot` | SeparateFreezerRack | 8 | 0/8 | 0/8 | 0 | 0 | all 0 of 2 | not shown |
+| `groot_u30` | GarnishPancake | 8 | 1/8 | 0/8 | 0 | 1 | 0, 0, 0, 1, 1, 1, 1, 1 of 2 | not shown |
+| `groot_u30` | MakeIceLemonade | 8 | 0/8 | 0/8 | 0 | 0 | all 0 of 2 | not shown |
+| `groot_u30` | PanTransfer | 8 | 2/8 | 0/8 | 0 | 2 | 0 (x5), 1, 1, 1 of 2 | not shown |
+| `groot_u30` | PortionHotDogs | 7 | 0/7 | 0/7 | 0 | 0 | 0, 0, 1, 1, 1, 2, 3 of 4 | not shown |
+| `groot_u30` | SeparateFreezerRack | 8 | 0/8 | 0/8 | 0 | 0 | all 0 of 2 | not shown |
+| **All** | | **76** | **4/76** | **3/76** | **3** | **4** | | |
+
+For comparison, the plain arm's failures on the same pairs ended with: PortionHotDogs 0, 0, 0, 1, 1, 1 of 4
+(`groot`) and 0, 1, 1, 1, 2, 2, 2 (`groot_u30`); GarnishPancake four of seven at 1 of 2 for both backends;
+SeparateFreezerRack and MakeIceLemonade (`groot`) at 0 throughout.
+
+### Reading
+
+- **Re-prompting cannot be shown to help on any task.** The rule fixed above needs the sequencer to succeed in at
+  least 2 more paired episodes than plain; the largest gain is 1 (`groot` on MakeIceLemonade and PortionHotDogs).
+  Over all 76 pairs the sequencer solves 3 and plain 4, with 3 rescues against 4 harms.
+- **Step prompts move `groot` further on PortionHotDogs only.** Its failed sequencer episodes reached 2 or 3 of the
+  4 steps in three of five, where plain never got past 1. That is the one task where step-by-step instructions
+  visibly change what the multitask policy does, but they did not turn into extra successes at 6 pairs.
+- **`groot_u30` does worse with step prompts.** It was post-trained on the native task instructions; with the step
+  wording it loses its plain successes on PanTransfer (2) and GarnishPancake (1) and gains nothing.
+- **SeparateFreezerRack shows no progress under either arm, MakeIceLemonade almost none** (one `groot` sequencer
+  success, two `groot_u30` plain failures with the lemon in the glass): the policies rarely do the first step, so
+  there is little for a re-prompt to continue.
+- **One sequencer failure finished every step:** `groot` PanTransfer scene 1002, seed 1 had the vegetables on the
+  plate and the pan back on the stove at the end, but the robot had touched the food, which the task checker forbids.
+
+### Recommendation (for W1)
+
+With these two policies, correct step-by-step instructions are not a lever on the unseen tasks: no task meets the
+reading rule, so none can be recommended as one where re-prompting fixes failures. If the benchmark keeps a
+re-prompting story, PortionHotDogs with `groot` is the only candidate with visible extra progress, and it needs more
+pairs before it can be claimed. The time-story clock triggers do work as built (`ice_out_of_bowl`, `pan_off_stove`
+false at step 0 on all twenty scenes), so the stories that rely on timing rather than on rescuing a failure are not
+affected by this result.
+
+### Infrastructure errors
+
+Thirteen episodes ended as `infrastructure_error`, kept and never counted:
+
+- **Static-noise frame guard** (`docs/decisions.md`, 2026-10-05), ten episodes, all PortionHotDogs: plain scene
+  1002 seed 1 at step 146 (both backends, both reran cleanly), plain scene 1003 seed 0 at step 370 (`groot` three
+  times, so that cell is unpaired; `groot_u30` once, reran cleanly), sequencer scene 1003 at step 386 (`groot` seed 1
+  twice, `groot_u30` seed 0 twice, both unpaired). As in the ladder run, repeats at the same step point to a
+  scene-specific render failure rather than random static.
+- **Scene mismatch**, three episodes, all PanTransfer scene 1003: the scene builds into one of two start states
+  (`ded7d6bbf7e6` or `7926c30679e3`), so a sequencer episode can fail `--expect-state` against its plain partner
+  (`groot` seed 0 twice, unpaired; `groot_u30` seed 1 once, reran cleanly). The task's build is not deterministic at
+  that scene.
+
+### Stopped episodes and the restart
+
+The first launch ran at about 0.3 simulator steps per second instead of the ladder's 6.8. The host showed 252 cores
+to a container with a 26-CPU quota; torch and OpenMP sized each policy worker's thread pools to the host, and the
+eight workers used nearly the whole quota while the simulators waited. At 19:01 the drivers, simulators and workers
+were stopped (the pod guard was not), `scripts/run_stage4.sh` gained `WORKER_THREADS` (default 2, passed as
+`OMP_NUM_THREADS` and `MKL_NUM_THREADS`), and the run resumed with `SKIP_BUILD=1 PHASES="workers plain sequencer"
+BUDGET_MINUTES=170`; finished episodes were skipped. Each simulator then used a full core and ran at about 4.5 steps
+per second. The eight PortionHotDogs plain episodes running at the stop (608-1968 steps in) have no `result.json`;
+their folders are kept, and each was rerun from the start. The thread cap changes no policy input or output.
+
+### Cost
+
+Setup 17:13-17:27 UTC, build check 17:27-17:34, drivers 17:34-20:40 (with the restart at 19:01); the pod guard made a
+final sync and terminated the pod at 20:43. Billed $8.21 (cap $10). The backstop and the Mac watchdog did not fire.
