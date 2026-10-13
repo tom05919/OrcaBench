@@ -107,9 +107,8 @@ PanTransfer moves vegetables in 2-4. HeatKebabSandwich, ArrangeTea and WaffleReh
 
 Supervise **`groot`** and **`groot_u30`**, as two policies of genuinely different ability profiles rather than three
 rungs. Prefer `_30p` over `_10p`: they tie here, `_30p` is the published-stronger checkpoint, and it fails no
-leave-alone task outright (`_10p` is 0/8 on three). If the design needs a third policy, `groot_pretrain` is the
-only clearly weaker option (0 of 62 on the unseen tasks in stage 5); its leave-alone performance is untested here,
-so it is null until measured.
+leave-alone task outright (`_10p` is 0/8 on three). The third-policy run below measured `groot_pretrain` on the
+leave-alone tasks: it matches `groot` there (25/40 vs 24/40), so it adds no third ability level; see its reading.
 
 ### Infrastructure errors
 
@@ -142,3 +141,42 @@ third policy from counts rather than a gap.
   `docs/stage6_ceiling.md`). Caps: **$4 GPU, pod deadline 2.5 hours after creation**, `BUDGET_MINUTES=120`.
   `scripts/pod_guard.sh` syncs `runs/stage6_pretrain` to the private bucket and terminates the pod; backstop and Mac
   watchdog as before.
+
+## Third policy: results (October 13, 2026)
+
+40 episodes, all kept (`runs/stage6_pretrain/`, private bucket `stage6_pretrain`); no infrastructure errors, no scene
+solved at step 0, every task built at the four scenes. Analysis: `scripts/analyze_stage5.py --root
+runs/stage6_pretrain`; `runs/stage6_ladder/analysis.json` also includes it (the folder is linked in as
+`runs/stage6_ladder/groot_pretrain`), with only the five leave-alone tasks for that backend. The driver ran 23:14-23:24 UTC on a RunPod L40S 48 GB pod (31-CPU quota, four workers);
+the pod guard synced and terminated the pod at 23:25. Wallet change $1.55 (cap $4); backstop and Mac watchdog did
+not fire.
+
+| Task | `groot_pretrain` | `groot` (ladder) | `groot_u30` (ladder) | `groot_u10` (ladder) |
+|---|---|---|---|---|
+| OpenCabinet | 3/8 | 6/8 | 4/8 | 4/8 |
+| PickPlaceCounterToCabinet | 6/8 | 6/8 | 2/8 | 0/8 |
+| PickPlaceCounterToStove | 7/8 | 6/8 | 4/8 | 8/8 |
+| CloseFridge | 6/8 | 3/8 | 2/8 | 0/8 |
+| OpenDrawer | 3/8 | 3/8 | 1/8 | 0/8 |
+| **Leave-alone tasks** | **25/40** | **24/40** | **13/40** | **12/40** |
+
+The ladder columns come from a different pod, so start states are not matched; counts are compared per task.
+
+### Reading
+
+- **Leave-alone per the rule:** `groot_pretrain` keeps PickPlaceCounterToCabinet, PickPlaceCounterToStove and
+  CloseFridge, and falls below half on OpenCabinet and OpenDrawer (3/8 each).
+- **Not a third ability level.** On the leave-alone tasks it equals `groot` (25/40 vs 24/40, Fisher p = 1.0) and
+  beats both post-trained checkpoints (p = 0.013 against `groot_u30`, 0.007 against `groot_u10`). On the unseen
+  tasks it solved 0 of 62 in stage 5 against `groot`'s 5 of 62 (p = 0.057), and `groot` solved none of the eight
+  story tasks in the ladder (0/63). So `groot` and `groot_pretrain` share one profile: the seen tasks, not the
+  unseen ones.
+
+### Recommendation, revised (for W1)
+
+Still **`groot`** and **`groot_u30`**: two measured profiles (seen-task strong vs. a few unseen successes with the
+seen tasks partly forgotten). There is no third policy of clearly different ability among the pinned checkpoints;
+`groot_pretrain` is measured now and is a near-copy of `groot` on both task sets. If the design needs three policies
+anyway, `groot_pretrain` is the one to add as a weaker-on-unseen variant of `groot`, with the borderline unseen gap
+(p = 0.057) stated. The only leave-alone task for all four policies is PickPlaceCounterToStove (`groot_u30` on the
+line at 4/8); OpenCabinet drops out with `groot_pretrain` at 3/8.
