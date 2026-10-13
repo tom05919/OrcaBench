@@ -52,8 +52,13 @@ def main():
         for episode in load_scored_episodes(root):
             if episode["manifest"].get("kind") == "diagnostic_reference" and episode["result"]["status"] != "infrastructure_error":
                 references[key(episode)] = episode
-    rows = []
+    rows, infrastructure_errors = [], 0
     for episode in load_scored_episodes(args.model_root):
+        # An infrastructure error (for example a start-state mismatch) ends before the first decision and writes no
+        # decisions.jsonl; there is nothing to compare, so it is counted, not described.
+        if episode["result"]["status"] == "infrastructure_error":
+            infrastructure_errors += 1
+            continue
         episode["folder"] = Path(episode["folder"])
         rows.append(describe(episode, references.get(key(episode))))
     rows.sort(key=lambda row: (row["task"], row["scene"]))
@@ -65,7 +70,8 @@ def main():
               f"{str(r['first_reprompt_step']):>13s} {r['simulated_seconds']:>6.1f} {r['wall_seconds']:>6.1f} {r['model_seconds']:>7.1f}")
     calls = sum(r["calls"] for r in rows)
     print(f"\nepisodes {len(rows)}, rejected replies {sum(r['rejected_replies'] for r in rows)} of {calls} calls, "
-          f"input tokens {sum(r['input_tokens'] for r in rows)}, output tokens {sum(r['output_tokens'] for r in rows)}")
+          f"input tokens {sum(r['input_tokens'] for r in rows)}, output tokens {sum(r['output_tokens'] for r in rows)}, "
+          f"infrastructure errors not compared {infrastructure_errors}")
     if args.output:
         args.output.write_text(json.dumps(rows, indent=2) + "\n")
     return 0
