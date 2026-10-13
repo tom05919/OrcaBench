@@ -21,9 +21,13 @@ the interface, scoring, seeds, compute commands and tooling gotchas, but their s
    - Multitask GR00T: 5 of 62 (8%), against 36% on seen tasks. Pretraining-only GR00T: 0 of 62.
    - Failures are mostly all or nothing.
    - PortionHotDogs and GarnishPancake show partial progress; they are the first ceiling-test targets.
-3. **The work is split three ways** (`docs/work_split.md`): W1 scoring, time charge, prompt and write-up (Tom); W2
-   policy ladder (suggested: Ranveer); W3 ceiling test and LLM pilots (third partner). Each workstream owns files and
-   run directories; no two edit the same file.
+3. **The work is split three ways**, each with a self-contained brief for that person's agent (overview,
+   file-ownership table, fixed interfaces and timeline in `docs/work_split.md`):
+   - W1 scoring, analysis and write-up (Tom): `docs/briefs/w1_scoring.md`.
+   - W2 policy ladder, ceiling test and predicates (suggested: Ranveer): `docs/briefs/w2_policies.md`.
+   - W3 session mode, time-aware prompt and LLM runs (suggested: the third partner): `docs/briefs/w3_harness.md`.
+
+   No two workstreams edit the same file.
 4. **Code added for stage 5:**
    - 16 `composite_unseen` task configs (the pool is now 32 tasks);
    - progress predicates for five tasks;
@@ -81,14 +85,15 @@ the interface, scoring, seeds, compute commands and tooling gotchas, but their s
 
 The day-by-day plan to October 16 is `docs/work_split.md`. In order of dependency:
 
-1. **W3 ceiling test:** can correct step-by-step instructions rescue unseen-task failures, starting with
-   PortionHotDogs and GarnishPancake?
-2. **W2 ability ladder:** the 10% and 30% GR00T checkpoints on the unseen tasks (four or more scenes), plus trained
-   leave-alone tasks for every policy.
-3. **W1 time-charged scoring:** applied offline to stages 3-5 first, then the orchestrator prompt that states the time
-   charge and deadline.
-4. **Fix tasks, policies and time parameters; tag one commit.** Then run baselines, Opus 5.5 and Sonnet 5.5 on one GPU
-   type, and write it up.
+1. **W2 ability ladder and ceiling test.** Run the 10% and 30% GR00T checkpoints on the unseen tasks (four or more
+   scenes) plus trained leave-alone tasks. Can correct step-by-step instructions rescue unseen-task failures, starting
+   with PortionHotDogs and GarnishPancake?
+2. **W3 session mode.** The real harness runs every episode independently; the benchmark needs one supervisor that sees
+   earlier episodes' outcomes across several policies. Add the time-aware prompt (version 6).
+3. **W1 time-charged scoring and the best fixed rule.** Apply them offline to stages 3-5 first. Fix the time parameters
+   and `docs/final_experiment.md` on October 14.
+4. **Tag one commit.** Then run baselines, Opus 5.5 and Sonnet 5.5 sessions on one GPU type (pods A and B), and write
+   it up.
 5. **Smaller items:**
    - `scripts/compare_to_reference.py` crashes on episodes without `decisions.jsonl` (from stage 4).
    - The README's older sections describe superseded designs.

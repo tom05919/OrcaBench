@@ -1,7 +1,8 @@
 # Project rules
 
-Start with `handoff.md` section S, then `docs/direction.md` (what the benchmark measures) and `docs/work_split.md`
-(who owns which files; do not edit a file another workstream owns).
+Start with `handoff.md` section S, then `docs/direction.md` (what the benchmark measures), `docs/work_split.md` (who
+owns which files and the fixed interfaces; do not edit a file another workstream owns), and your workstream's brief
+in `docs/briefs/`.
 
 This benchmark compares different LLM orchestrators using the same fixed learned
 policies and harness. Preserve that distinction in code, experiments, and claims.

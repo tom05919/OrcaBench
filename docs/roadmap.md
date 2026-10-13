@@ -9,7 +9,7 @@ in `docs/work_split.md`.
 | Sep 25 - Oct 2 (done) | Harness, GR00T worker, task pool, first GPU runs | `docs/stage1_remote_results.md` |
 | Oct 4 - 11 (done) | Where supervision hurts (stages 2-3), abstract simulator, whether restarts rescue (stage 4) | `docs/stage2_results.md`, `docs/stage3_results.md`, `docs/sim_results.md`, `docs/stage4_results.md` |
 | Oct 12 (done) | Direction fixed; plain policies measured on the unseen composite tasks (stage 5) | `docs/direction.md`, `docs/stage5_results.md` |
-| Oct 13 | Time-charged scoring layer (offline); policy ladder (10% and 30% GR00T); ceiling test | Each workstream's doc and tests |
+| Oct 13 | Time-charged scoring layer (offline, W1); policy ladder and ceiling test (W2); session mode with experience records (W3) | Each workstream's doc and tests (`docs/briefs/`) |
 | Oct 14 | Task, policy and time parameters fixed; prompt probed; release commit tagged | A decision row in `docs/decisions.md` that freezes them |
 | Oct 15 | Final runs: baselines, Opus 5.5, Sonnet 5.5; one GPU type and one commit | Every attempted episode kept; infrastructure errors reported separately |
 | Oct 16 | Scoring, write-up, limitations, reproduction notes | Every aggregate traceable to episode records |
