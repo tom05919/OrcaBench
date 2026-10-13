@@ -23,11 +23,11 @@ EXPECTED_CHECKPOINTS = {
         "manifest_sha256": "c0e2191ae63ec072b6a9891fc1d53f40992643c8efb2ff840fbe906d921a0d54",
     },
     # groot_pretrain post-trained on the composite_unseen tasks with 10% or 30% of their demos (policy ladder, W2).
-    "groot_10p": {
+    "groot_u10": {
         "identity": ("robocasa/robocasa365_checkpoints", "c484448aba1a9b60a04c9b0ca117241518ea69f3", "gr00t_n1-5/target_fraction/composite_unseen_10p"),
         "manifest_sha256": "0b58b7f6d5b12823ce035dea3b882d05998bb1b34b03126a4dbc7018068adf23",
     },
-    "groot_30p": {
+    "groot_u30": {
         "identity": ("robocasa/robocasa365_checkpoints", "c484448aba1a9b60a04c9b0ca117241518ea69f3", "gr00t_n1-5/target_fraction/composite_unseen_30p"),
         "manifest_sha256": "a531118d533c1658e76de535488fcba2c0b0af88957bb2c2a405f05f8019ceeb",
     },
@@ -38,7 +38,7 @@ EXPECTED_CHECKPOINTS = {
 }
 
 
-GROOT_BACKENDS = ("groot", "groot_pretrain", "groot_10p", "groot_30p")  # one GR00T N1.5 code path, different pinned weights
+GROOT_BACKENDS = ("groot", "groot_pretrain", "groot_u10", "groot_u30")  # one GR00T N1.5 code path, different pinned weights
 
 
 def verify_checkpoint(path, backend=None):

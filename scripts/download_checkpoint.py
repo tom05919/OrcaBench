@@ -23,8 +23,8 @@ LOCK_PATH: Final = PROJECT_ROOT / "configs" / "sources.lock.json"
 DEFAULT_OUTPUTS: Final = {
     "groot": PROJECT_ROOT / "checkpoints" / "groot" / "checkpoint-120000",
     "groot_pretrain": PROJECT_ROOT / "checkpoints" / "groot_pretrain" / "checkpoint-80000",
-    "groot_10p": PROJECT_ROOT / "checkpoints" / "groot_10p" / "composite_unseen_10p",
-    "groot_30p": PROJECT_ROOT / "checkpoints" / "groot_30p" / "composite_unseen_30p",
+    "groot_u10": PROJECT_ROOT / "checkpoints" / "groot_u10" / "composite_unseen_10p",
+    "groot_u30": PROJECT_ROOT / "checkpoints" / "groot_u30" / "composite_unseen_30p",
     "pi05": PROJECT_ROOT / "checkpoints" / "pi05" / "75000",
 }
 MIN_HEADROOM_BYTES: Final = 2 * 1024**3
@@ -104,7 +104,7 @@ GROOT_PRETRAIN_FILES: Final = {
 # The pretraining checkpoint above, post-trained on the composite_unseen tasks with 10% (50) or 30% (150) of their
 # human demos (RoboCasa365 "target fraction" setting); same config and shard index as GROOT_FILES. LFS hashes are the
 # object IDs at the pinned revision; the metadata files were hashed from their resolved content.
-GROOT_10P_FILES: Final = {
+GROOT_U10_FILES: Final = {
     "config.json": GROOT_FILES["config.json"],
     "experiment_cfg/metadata.json": {
         "size": 14_127,
@@ -120,7 +120,7 @@ GROOT_10P_FILES: Final = {
     },
     "model.safetensors.index.json": GROOT_FILES["model.safetensors.index.json"],
 }
-GROOT_30P_FILES: Final = {
+GROOT_U30_FILES: Final = {
     "config.json": GROOT_FILES["config.json"],
     "experiment_cfg/metadata.json": {
         "size": 14_125,
@@ -140,8 +140,8 @@ GROOT_30P_FILES: Final = {
 EXPECTED_BY_BACKEND: Final = {
     "groot": GROOT_FILES,
     "groot_pretrain": GROOT_PRETRAIN_FILES,
-    "groot_10p": GROOT_10P_FILES,
-    "groot_30p": GROOT_30P_FILES,
+    "groot_u10": GROOT_U10_FILES,
+    "groot_u30": GROOT_U30_FILES,
     "pi05": PI05_FILES,
 }
 

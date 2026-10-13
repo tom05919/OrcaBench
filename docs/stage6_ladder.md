@@ -12,8 +12,8 @@ All GR00T N1.5, pinned at revision `c484448a` of `robocasa/robocasa365_checkpoin
 
 | Backend | Checkpoint | Training | Published average on these 16 tasks (`test` split, 30 rollouts each) |
 |---|---|---|---|
-| `groot_10p` | `target_fraction/composite_unseen_10p` | pretraining (80k steps), then 60k steps on the 16 `composite_unseen` tasks with 50 of 500 demos each | 22.7% |
-| `groot_30p` | `target_fraction/composite_unseen_30p` | the same with 150 demos each | 30.8% |
+| `groot_u10` | `target_fraction/composite_unseen_10p` | pretraining (80k steps), then 60k steps on the 16 `composite_unseen` tasks with 50 of 500 demos each | 22.7% |
+| `groot_u30` | `target_fraction/composite_unseen_30p` | the same with 150 demos each | 30.8% |
 | `groot` | `multitask_learning/checkpoint-120000` | multitask (existing pin) | not published; 5 of 62 in stage 5 on our `pretrain` split |
 
 The published numbers come from each checkpoint's `eval_results.json` and use RoboCasa's held-out `test` kitchens.
@@ -34,7 +34,7 @@ of 62 in stage 5.
 
 ## Reading (fixed before the results)
 
-`scripts/analyze_stage5.py --root runs/stage6_ladder --backends groot groot_10p groot_30p`: successes per task and
+`scripts/analyze_stage5.py --root runs/stage6_ladder --backends groot groot_u10 groot_u30`: successes per task and
 backend, subgoal progress from the evaluator predicates, and stage 5's per-task reading (leave-alone candidate,
 re-prompting candidate, unlikely to be helped, mixed).
 
@@ -55,10 +55,13 @@ keys, not the Anthropic key.
 ## Results (October 13, 2026)
 
 319 episodes, all kept (`runs/stage6_ladder/`, private bucket `stage6_ladder`). Analysis:
-`runs/stage6_ladder/analysis.json`. No scene was solved at step 0. Counts are valid episodes; infrastructure errors
+`runs/stage6_ladder/analysis.json`. No scene was solved at step 0. The run used the backend names `groot_10p` and
+`groot_30p`, renamed afterwards to the agreed `groot_u10` and `groot_u30` (`docs/work_split.md`): the episode
+manifests keep the old names, with the same `checkpoint_manifest_sha256` as the renamed pins, and the local run
+folders were renamed to match. Counts are valid episodes; infrastructure errors
 are listed separately below.
 
-| Task | `groot` | `groot_30p` | `groot_10p` |
+| Task | `groot` | `groot_u30` | `groot_u10` |
 |---|---|---|---|
 | ArrangeTea | 0/8 | 2/8 | 1/8 |
 | GarnishPancake | 0/7 | 0/8 | 1/7 |
@@ -84,7 +87,7 @@ PanTransfer moves vegetables in 2-4. HeatKebabSandwich, ArrangeTea and WaffleReh
 ### Reading
 
 - **No three-step ladder on the story tasks.** The rule fixed above asks for three clearly separated counts. They
-  are 0, 5 and 5: `groot_10p` and `groot_30p` cannot be told apart (Fisher exact p = 1.0, and 17 vs 18 successes
+  are 0, 5 and 5: `groot_u10` and `groot_u30` cannot be told apart (Fisher exact p = 1.0, and 17 vs 18 successes
   overall), and `groot` against either is borderline (p = 0.058). The published 22.7% vs 30.8% gap on the `test`
   split does not show at 8 episodes per task on our `pretrain` split.
 - **The two kinds of policy cross over.** The multitask checkpoint solves the leave-alone tasks about twice as often
@@ -93,8 +96,8 @@ PanTransfer moves vegetables in 2-4. HeatKebabSandwich, ArrangeTea and WaffleReh
 - **Leave-alone per policy** (fewer than half solved means forgotten):
   - `groot`: OpenCabinet, PickPlaceCounterToCabinet, PickPlaceCounterToStove. CloseFridge and OpenDrawer (3/8 each,
     4/8 in stage 4) fall just below the line.
-  - `groot_30p`: OpenCabinet and PickPlaceCounterToStove (4/8 each, on the line).
-  - `groot_10p`: PickPlaceCounterToStove (8/8) and OpenCabinet (4/8).
+  - `groot_u30`: OpenCabinet and PickPlaceCounterToStove (4/8 each, on the line).
+  - `groot_u10`: PickPlaceCounterToStove (8/8) and OpenCabinet (4/8).
   - Only OpenCabinet and PickPlaceCounterToStove remain leave-alone tasks for all three.
 - **No stronger rung to add.** At the pinned revision the repository has `eval_results.json` for
   `composite_unseen_10p` and `_30p` only (plus `atomic_seen_30p` and `composite_seen_10p`/`_30p`); there is no
@@ -102,7 +105,7 @@ PanTransfer moves vegetables in 2-4. HeatKebabSandwich, ArrangeTea and WaffleReh
 
 ### Recommendation (for W1)
 
-Supervise **`groot`** and **`groot_30p`**, as two policies of genuinely different ability profiles rather than three
+Supervise **`groot`** and **`groot_u30`**, as two policies of genuinely different ability profiles rather than three
 rungs. Prefer `_30p` over `_10p`: they tie here, `_30p` is the published-stronger checkpoint, and it fails no
 leave-alone task outright (`_10p` is 0/8 on three). If the design needs a third policy, `groot_pretrain` is the
 only clearly weaker option (0 of 62 on the unseen tasks in stage 5); its leave-alone performance is untested here,
@@ -112,9 +115,9 @@ so it is null until measured.
 
 Nine episodes (seven in the first pass, two on rerun) ended on the static-noise frame guard (`docs/decisions.md`,
 2026-10-05) and are kept as `infrastructure_error`; the driver's second pass reran them. Every PortionHotDogs error
-(scene 1002 p1 for all three policies, 1003 p0 for `groot` and `groot_10p`) reran cleanly.
-GarnishPancake scene 1001, policy seed 0 failed twice at step 1328-1331 for both `groot` and `groot_10p` (it ran
-cleanly for `groot_30p`), so those two cells hold 7 valid episodes. The repeat at the same step
+(scene 1002 p1 for all three policies, 1003 p0 for `groot` and `groot_u10`) reran cleanly.
+GarnishPancake scene 1001, policy seed 0 failed twice at step 1328-1331 for both `groot` and `groot_u10` (it ran
+cleanly for `groot_u30`), so those two cells hold 7 valid episodes. The repeat at the same step
 across checkpoints suggests a scene-specific render failure rather than random static; the failing frame falls
 between video samples (every 10 steps), so it was not inspected.
 

@@ -3,14 +3,14 @@
 subgoal progress from the evaluator's per-step predicates. Reads episode folders only; nothing here calls a model.
 
   python3 scripts/analyze_stage5.py --root runs/stage5 [--output runs/stage5/analysis.json]
-  python3 scripts/analyze_stage5.py --root runs/stage6_ladder --backends groot groot_10p groot_30p
+  python3 scripts/analyze_stage5.py --root runs/stage6_ladder [--backends groot groot_u10 groot_u30]
 """
 import argparse
 import json
 import math
 from pathlib import Path
 
-BACKENDS = ("groot", "groot_pretrain")
+BACKENDS = ("groot", "groot_pretrain", "groot_u10", "groot_u30")  # those without a folder under --root are skipped
 
 
 def wilson(k, n, z=1.96):
@@ -64,6 +64,8 @@ def analyze(root, backends=BACKENDS):
     report = {}
     for backend in backends:
         base = root / backend / "reference"
+        if not base.is_dir():
+            continue
         tasks = {}
         for task_dir in sorted(p for p in base.glob("*") if p.is_dir()):
             rows = [episode(f) for f in sorted(task_dir.glob("seed-*")) if (f / "result.json").exists()]

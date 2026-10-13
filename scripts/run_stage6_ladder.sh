@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Stage 6 policy ladder on the GPU worker (docs/stage6_ladder.md): plain GR00T checkpoints of different ability on the
 # time-story unseen tasks and on leave-alone trained tasks, all on one pod, via scripts/run_stage4.sh (plain phase).
-# Run after the setup in docs/compute.md and `scripts/download_checkpoint.py --backend groot_10p` / `groot_30p`.
+# Run after the setup in docs/compute.md and `scripts/download_checkpoint.py --backend groot_u10` / `groot_u30`.
 # No model calls. Writes runs/stage6_ladder/PIPELINE_DONE when every driver has finished, for scripts/pod_guard.sh.
 #
 #   scripts/run_stage6_ladder.sh            build check, then the three drivers in parallel
@@ -36,9 +36,9 @@ driver() {
     BUDGET_MINUTES=$BUDGET scripts/run_stage4.sh workers plain >> "$ROOT/$1.log" 2>&1 < /dev/null
 }
 pids=()
-driver groot_10p groot_10p checkpoints/groot_10p/composite_unseen_10p 8765 2 "1000 1001 1002 1003" "$LEAVE $STORY" &
+driver groot_u10 groot_u10 checkpoints/groot_u10/composite_unseen_10p 8765 2 "1000 1001 1002 1003" "$LEAVE $STORY" &
 pids+=($!)
-driver groot_30p groot_30p checkpoints/groot_30p/composite_unseen_30p 8775 2 "1000 1001 1002 1003" "$LEAVE $STORY" &
+driver groot_u30 groot_u30 checkpoints/groot_u30/composite_unseen_30p 8775 2 "1000 1001 1002 1003" "$LEAVE $STORY" &
 pids+=($!)
 driver groot groot checkpoints/groot/checkpoint-120000 8785 2 "1000 1001 1002 1003" "$LEAVE $STORY" &
 pids+=($!)
