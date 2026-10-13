@@ -10,6 +10,7 @@ import json
 import math
 from pathlib import Path
 
+TRIGGERS = ("ice_out_of_bowl", "pan_off_stove")  # clock triggers in tasks/predicates.py, not task progress
 BACKENDS = ("groot", "groot_pretrain", "groot_u10", "groot_u30")  # those without a folder under --root are skipped
 
 
@@ -34,7 +35,7 @@ def episode(folder):
             if not line.strip():
                 continue
             state = json.loads(line)
-            names = [k for k, v in state.items() if k not in ("step", "success") and isinstance(v, bool)]
+            names = [k for k, v in state.items() if k not in ("step", "success", *TRIGGERS) and isinstance(v, bool)]
             if initial is None:
                 initial = {name: state[name] for name in names}
                 row["subgoals"] = {name: None for name in names if not initial[name]}
@@ -99,7 +100,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("runs/stage5"))
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--backends", nargs="+", default=list(BACKENDS), help="subfolders of --root, one per checkpoint")
+    parser.add_argument("--backends", nargs="+", default=list(BACKENDS),
+                        help="subfolders of --root, one per checkpoint")
     args = parser.parse_args()
     report = analyze(args.root, args.backends)
     for backend, data in report.items():

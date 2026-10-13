@@ -13,6 +13,10 @@
 # opus      Opus 5.5 on each failure pair: it chooses when to restart and what to say
 # replays   every Opus episode replayed with no model: exact, native_text, no_interruption
 # compare   per-arm tables against the plain reference
+# smoke     one sequencer episode (first task, first scene, policy seed 0) in $OUT/smoke; stops the run if it ends in
+#           an infrastructure error (the sequencer had never run on a GPU before stage 6)
+# sequencer stage 6 ceiling test (docs/stage6_ceiling.md): the privileged sequencer on every usable plain episode,
+#           same scene and policy seed, with the plain run's step-0 state hash (not part of the default phases)
 #
 # Every phase syncs $OUT to the Hugging Face bucket when HF_DEST is set (scripts/pod_sync.sh), and the script writes
 # $OUT/PIPELINE_DONE on exit so scripts/pod_guard.sh can upload and terminate the pod. Every attempted episode is
@@ -142,6 +146,34 @@ phase_replays() {
     done < "$OUT/replays.tsv"
   done
   run_parallel "$OUT/jobs.replays" 1
+}
+
+phase_smoke() {
+  local task=${TASKS[0]} scene=${SCENES%% *} status
+  $BIN screen --mode sequencer --task-configs "configs/tasks/$task.json" --scene-seeds "$scene" --policy-seeds 0 \
+    --video-record-interval "$VIDEO" --policy-url "http://127.0.0.1:$BASE_PORT" --output "$OUT/smoke" < /dev/null
+  status=$($PY -c 'import glob, json, sys; print(*(json.load(open(f))["status"] for f in glob.glob(sys.argv[1] + "/*/*/result.json")))' "$OUT/smoke")
+  stamp "smoke $task $scene: ${status:-no result}"
+  [[ -n $status && $status != *infrastructure_error* ]] || { stamp "smoke failed; stopping"; exit 1; }
+}
+
+phase_sequencer() {
+  # Every usable plain episode (latest per task, scene and policy seed), as task scene policy state.
+  $PY - "$OUT/reference" > "$OUT/pairs.tsv" <<'PY'
+import sys
+sys.path.insert(0, "scripts")
+from select_stage3 import collect
+for (task, scene, policy), episode in sorted(collect([sys.argv[1]]).items()):
+    if episode["state"]:
+        print(task, scene, policy, episode["state"])
+PY
+  stamp "sequencer pairs: $(tsv_lines "$OUT/pairs.tsv")"
+  : > "$OUT/jobs.sequencer"
+  local task scene policy state
+  while read -r task scene policy state; do
+    echo "$BIN screen --mode sequencer --task-configs configs/tasks/$task.json --scene-seeds $scene --policy-seeds $policy --expect-state $state --video-record-interval $VIDEO --skip-existing --policy-url @URL@ --output $OUT/sequencer" >> "$OUT/jobs.sequencer"
+  done < "$OUT/pairs.tsv"
+  run_parallel "$OUT/jobs.sequencer"
 }
 
 phase_compare() {

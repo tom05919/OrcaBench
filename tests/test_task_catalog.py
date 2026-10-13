@@ -6,12 +6,14 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from robot_benchmark.tasks.predicates import CANDIDATE_TASKS, SEQUENCES, task_predicates
+from robot_benchmark.tasks.predicates import CANDIDATE_TASKS, SEQUENCES, TRIGGERS, task_predicates
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIGS = ROOT / "configs" / "tasks"
 REGISTRY = ROOT / "vendor/reference/robocasa/robocasa/utils/dataset_registry.py"
 UNTESTED = {"status": "untested", "trials": 0, "success_rate": None, "conditions": []}
+# Stage 6 ceiling test (docs/stage6_ceiling.md): the unseen composites with a privileged sequence.
+CEILING_TASKS = {"PortionHotDogs", "GarnishPancake", "MakeIceLemonade", "SeparateFreezerRack", "PanTransfer"}
 
 
 def registry_horizons():
@@ -64,7 +66,9 @@ class CatalogConfigTests(unittest.TestCase):
     def test_config_files_match_candidates(self):
         self.assertEqual(len(CANDIDATE_TASKS), 32)
         self.assertEqual(set(self.configs), set(CANDIDATE_TASKS))
-        self.assertEqual(set(SEQUENCES), {task for task, kind in CANDIDATE_TASKS.items() if kind == "composite_seen"})
+        composite_seen = {task for task, kind in CANDIDATE_TASKS.items() if kind == "composite_seen"}
+        self.assertEqual(set(SEQUENCES), composite_seen | CEILING_TASKS)
+        self.assertTrue(all(CANDIDATE_TASKS[task] == "composite_unseen" for task in CEILING_TASKS))
         self.assertEqual(sum(kind == "atomic_seen" for kind in CANDIDATE_TASKS.values()), 10)
         self.assertEqual(sum(kind == "composite_unseen" for kind in CANDIDATE_TASKS.values()), 16)
 
@@ -126,13 +130,26 @@ class PredicateTests(unittest.TestCase):
 
     def test_composite_predicates_are_booleans_keyed_by_sequence(self):
         helpers = {"check_obj_fixture_contact": mock.Mock(return_value=True),
-                   "gripper_obj_far": mock.Mock(return_value=False)}
+                   "gripper_obj_far": mock.Mock(return_value=False),
+                   "check_obj_in_receptacle": mock.Mock(return_value=False),
+                   "obj_inside_of": mock.Mock(return_value=True)}
         with fake_robocasa(**helpers):
             for task, steps in SEQUENCES.items():
                 with self.subTest(task=task):
                     truth = task_predicates(task, raw_env())
-                    self.assertEqual(list(truth), [name for name, _ in steps])
+                    names = [name for name, _ in steps]
+                    if task in CEILING_TASKS:  # these also log stage 5 progress signals and clock triggers
+                        self.assertLessEqual(set(names), set(truth))
+                    else:
+                        self.assertEqual(list(truth), names)
                     self.assertTrue(all(type(value) is bool for value in truth.values()))
+
+    def test_ceiling_sequences_never_name_scene_specific_objects(self):
+        # A sequence is fixed per task, so it cannot name a sampled object or say which side a plate is on.
+        for task in CEILING_TASKS:
+            for _, prompt in SEQUENCES[task]:
+                with self.subTest(task=task, prompt=prompt):
+                    self.assertIsNone(re.search(r"\b(left|right|first|second plate|\{)", prompt))
 
     def test_predicates_mirror_upstream_conjuncts(self):
         far = mock.Mock(return_value=True)
@@ -181,11 +198,17 @@ class PredicateTests(unittest.TestCase):
         placed = set()  # (object, receptacle) pairs the fake check_obj_in_receptacle reports as placed
         inside = lambda env, obj, receptacle, th=None: (obj, receptacle) in placed
         far = mock.Mock(return_value=True)
-        with fake_robocasa(check_obj_in_receptacle=inside, gripper_obj_far=far):
+        inside_fridge = mock.Mock(return_value=True)
+        with fake_robocasa(check_obj_in_receptacle=inside, gripper_obj_far=far, obj_inside_of=inside_fridge):
             raw = raw_env()
-            self.assertEqual(task_predicates("MakeIceLemonade", raw), {"lemon_in_cup": False, "ice_in_cup": False})
+            placed |= {("ice_cube1", "ice_bowl"), ("ice_cube2", "ice_bowl")}  # the start state
+            self.assertEqual(task_predicates("MakeIceLemonade", raw),
+                             {"lemon_in_cup": False, "ice_in_cup": False, "ice_out_of_bowl": False})
+            placed.discard(("ice_cube2", "ice_bowl"))  # one cube lifted: the clock starts
+            self.assertTrue(task_predicates("MakeIceLemonade", raw)["ice_out_of_bowl"])
             placed |= {("lemon_wedge", "glass_cup"), ("ice_cube2", "glass_cup")}
-            self.assertEqual(task_predicates("MakeIceLemonade", raw), {"lemon_in_cup": True, "ice_in_cup": True})
+            self.assertEqual(task_predicates("MakeIceLemonade", raw),
+                             {"lemon_in_cup": True, "ice_in_cup": True, "ice_out_of_bowl": True})
 
             raw.fridge.check_rack_contact.side_effect = lambda env, name, compartment, rack_index: (
                 compartment == "freezer" and (name, rack_index) == ("meat_tupperware", -2))
@@ -194,19 +217,52 @@ class PredicateTests(unittest.TestCase):
 
             raw._check_obj_location_on_stove.return_value = "front_left"
             raw._robot_touched_food = True
-            self.assertEqual(task_predicates("PanTransfer", raw),
-                             {"vegetables_on_plate": False, "pan_on_stove": True, "food_untouched": False})
+            self.assertEqual(task_predicates("PanTransfer", raw), {"vegetables_on_plate": False, "pan_on_stove": True,
+                                                                   "pan_off_stove": False, "food_untouched": False})
             raw._check_obj_location_on_stove.assert_called_with("vegetable_container")
+            raw._check_obj_location_on_stove.return_value = None  # lifted: the clock starts
+            self.assertEqual({k: v for k, v in task_predicates("PanTransfer", raw).items() if "stove" in k},
+                             {"pan_on_stove": False, "pan_off_stove": True})
+
+            portion = lambda: {k: v for k, v in task_predicates("PortionHotDogs", raw).items()
+                               if k in ("bun_on_plate", "portion_on_plate", "bun_on_each_plate",
+                                        "both_plates_portioned")}
+            self.assertEqual(portion(), {"bun_on_plate": False, "portion_on_plate": False,
+                                         "bun_on_each_plate": False, "both_plates_portioned": False})
+            placed.add(("hotdog_bun2", "plate2"))
+            self.assertEqual(portion(), {"bun_on_plate": True, "portion_on_plate": False,
+                                         "bun_on_each_plate": False, "both_plates_portioned": False})
+            placed.add(("sausage2", "plate2"))  # plate 2 first: the steps do not care which plate
+            self.assertEqual(portion(), {"bun_on_plate": True, "portion_on_plate": True,
+                                         "bun_on_each_plate": False, "both_plates_portioned": False})
+            placed -= {("hotdog_bun2", "plate2"), ("sausage2", "plate2")}
 
             placed |= {("hotdog_bun1", "plate1"), ("sausage1", "plate1"), ("hotdog_bun2", "plate2")}
             self.assertEqual(task_predicates("PortionHotDogs", raw),
-                             {"plate1_portioned": True, "plate2_portioned": False, "any_item_on_plate": True})
+                             {"plate1_portioned": True, "plate2_portioned": False, "any_item_on_plate": True,
+                              "bun_on_plate": True, "portion_on_plate": True, "bun_on_each_plate": True,
+                              "both_plates_portioned": False})
+            placed.add(("sausage2", "plate2"))
+            self.assertTrue(task_predicates("PortionHotDogs", raw)["both_plates_portioned"])
+            placed.discard(("sausage2", "plate2"))
             placed.add(("sausage2", "plate1"))  # two sausages on plate 1 is not a portion
-            self.assertFalse(task_predicates("PortionHotDogs", raw)["plate1_portioned"])
+            truth = task_predicates("PortionHotDogs", raw)
+            self.assertFalse(truth["plate1_portioned"] or truth["portion_on_plate"])
 
             self.assertEqual(task_predicates("GarnishPancake", raw),
-                             {"strawberry_reached": False, "strawberry_on_pancake": False})
+                             {"strawberry_reached": False, "strawberry_out_of_fridge": False,
+                              "strawberry_on_pancake": False})
             far.assert_called_with(raw, "strawberry", th=0.1)
+            inside_fridge.assert_called_with(raw, "strawberry", raw.fridge, partial_check=True)
+            inside_fridge.return_value = False
+            self.assertTrue(task_predicates("GarnishPancake", raw)["strawberry_out_of_fridge"])
+
+    def test_triggers_are_logged_by_their_tasks(self):
+        helpers = {"check_obj_in_receptacle": mock.Mock(return_value=True), "gripper_obj_far": mock.Mock()}
+        with fake_robocasa(**helpers):
+            logged = set(task_predicates("MakeIceLemonade", raw_env())) | set(task_predicates("PanTransfer", raw_env()))
+        self.assertLessEqual(set(TRIGGERS), logged)
+        self.assertFalse(set(TRIGGERS) & {name for steps in SEQUENCES.values() for name, _ in steps})
 
 
 if __name__ == "__main__":
