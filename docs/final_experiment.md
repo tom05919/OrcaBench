@@ -15,20 +15,20 @@ here. The rest is computed by scripts from their outputs, under rules written be
 | Cells | 3 policies × 7 tasks × 4 scenes = 84 | |
 | Supervisors | Opus 5.5 and Sonnet 5.5, effort `medium`, prompt version 6 (W3) | `configs/model-*.json` |
 | Sessions | One per scene per model: every (policy, task) cell once, in task blocks (the task with each policy, shuffled), with anonymous labels shuffled per session. The same plans for both models. | `scripts/make_session_plans.py --seed 20261014` |
-| Baselines | always-defer on both pods (paired with every LLM episode); `reissue_50`, `reissue` (100) and `reissue_200` on pod A only (unpaired) | Decided October 13 |
+| Baselines | always-defer on both pods (paired with every LLM episode); `reissue_50` and `reissue` (100) on pod A, `reissue_200` on pod B (all unpaired) | Decided October 13; `reissue_200` moved to pod B on October 14 |
 | Score | value = success × max(0, 1 − charged / deadline). Deadline = step budget; per-model call charge, frozen; first response charged; story limits from `scripts/set_story_limits.py` | `configs/time_pressure.json` |
 
 **Pods.** Both pods use **the same GPU type** (the contract hash includes the GPU name) and the tagged commit.
 
 | Pod | Credits | Runs | Episodes |
 |---|---|---|---|
-| A | W2 | always-defer, Opus sessions, `reissue_50`, `reissue`, `reissue_200` | about 420 |
-| B | W3 | always-defer, Sonnet sessions | about 168 |
+| A | W2 | always-defer, Opus sessions, `reissue_50`, `reissue` | about 336 |
+| B | W3 | always-defer, Sonnet sessions, `reissue_200` | about 252 |
 
-- **Pod time:** stage 5 ran about 37 long episodes per hour on 7.65 cores. Pod A therefore needs about 11 hours on a
-  similar pod, or about 5-6 on one with 16 or more cores and 6-8 streams. **Use a 16-core or larger pod for A.** Moving
-  `reissue_200` to pod B would balance the pods with no effect on the analysis, because restart comparisons are
-  unpaired either way; it needs a `docs/decisions.md` row first.
+- **Pod time:** stage 5 ran about 37 long episodes per hour on 7.65 cores. Pod A therefore needs about 9 hours on a
+  similar pod and pod B about 7, or about 4.5 and 3.5 on pods with 16 or more cores and 6-8 streams. **Use 16 or more
+  cores on both pods.** `reissue_200` runs on pod B (Tom, October 14) to balance the pods; restart comparisons are
+  unpaired either way, so the analysis is unchanged.
 - **API, estimated:** Opus about $0.10 per episode, about $9 for 84; Sonnet about $4. Earlier episodes are cache reads.
   Each person's own key; stop at the cap they set.
 
@@ -71,7 +71,8 @@ here. The rest is computed by scripts from their outputs, under rules written be
 3. **Sessions** for this pod's model, with W3's `session` command, all four plans, and the label-to-worker mapping.
    A `scene mismatch` ends an episode before any model call; that pair is reported invalid and is not retried with a
    different scene.
-4. **Pod A only:** `baseline --agent reissue_50`, `reissue` and `reissue_200` on every cell.
+4. **Restart schedules:** pod A runs `baseline --agent reissue_50` and `reissue`, pod B runs `reissue_200`, each on
+   every cell.
 5. **Copy back** JSON, JSONL and MP4 after every phase, no PNG frames. Terminate the pod when done and verify it is
    gone.
 

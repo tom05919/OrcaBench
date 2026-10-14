@@ -93,8 +93,8 @@ everything from the session that built W1 that is not obvious from the code. Rea
    pilot) and **frozen October 14**. An uncalibrated model cannot be scored.
 2. **Deadline = the task's step budget.**
 3. **The first response is charged.**
-4. **Baselines:** always-defer on both final pods (paired with every LLM episode); `reissue_50`, `reissue` (100) and
-   `reissue_200` on pod A only (unpaired). Restarts are the control for *when to interrupt*.
+4. **Baselines:** always-defer on both final pods (paired with every LLM episode); `reissue_50`, `reissue` (100) on pod A
+   and `reissue_200` on pod B (moved October 14; unpaired). Restarts are the control for *when to interrupt*.
 5. **Fallback (monitoring) mode applies:** by the pre-declared rule, because no unseen task was rescuable. The report
    must say the benchmark measures monitoring, declaring and restraint, not rescue.
 6. **Final policies:** `groot`, `groot_u30` and **`pi05`**. Tom insists on running both GR00T and π0.5. π0.5 has never
@@ -123,8 +123,8 @@ everything from the session that built W1 that is not obvious from the code. Rea
    - merge `w1-scoring`, `w2-policies` and W3's branch into `main`;
    - `docs/decisions.md` is append-only, so conflicts are row order only;
    - run the full suite and tag `release-2026-10-14`.
-6. **October 15:** W2 runs pod A (always-defer, the Opus sessions and the three restart schedules); W3 runs pod B
-   (always-defer and the Sonnet sessions). Both use the same GPU type. Score with
+6. **October 15:** W2 runs pod A (always-defer, the Opus sessions, `reissue_50` and `reissue`); W3 runs pod B
+   (always-defer, the Sonnet sessions and `reissue_200`). Both use the same GPU type. Score with
    `scripts/score_time.py <pod roots> --output runs/final/score.json`.
 7. **October 16:**
    - fill section 5 of `docs/report.md` from `runs/final/score.json` only;

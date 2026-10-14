@@ -41,7 +41,7 @@ settings: `configs/time_pressure.json`; tests: `tests/test_time_score.py`. Tom d
 - **Restart schedules in the final runs** (decided October 13):
   - **always-defer (no restart) on both pods,** so every LLM episode has a paired no-intervention twin on the same
     machine.
-  - **`reissue_50`, `reissue` (100) and `reissue_200` on one pod** (unpaired). A restart baseline re-sends the
+  - **`reissue_50`, `reissue` (100) and `reissue_200`, split across the two pods** (unpaired). A restart baseline re-sends the
     original instruction every N steps without looking at anything. It is the control for the "when to interrupt"
     half of the skill: the LLM gets credit only for interruptions that are better timed than mechanical ones.
 - **Evaluated offline:** in a run without supervisor-dependent stopping, declaring at T succeeds exactly when the

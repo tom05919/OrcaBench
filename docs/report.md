@@ -134,7 +134,7 @@ learning (second-half minus first-half regret).
 restarts and rewrites. Story outcomes per story task.
 
 **5.4 Fixed rules.** Best declaration time and value per (policy, task), no restart against the restart schedules
-(unpaired, pod A).
+(unpaired; `reissue_50` and `reissue` on pod A, `reissue_200` on pod B).
 
 ## 6. Limitations
 
