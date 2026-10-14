@@ -8,11 +8,11 @@ here. The rest is computed by scripts from their outputs, under rules written be
 
 | Element | Value | Source |
 |---|---|---|
-| Policies | 3 backends | `scripts/select_final.py` on W2's ladder: the widest spread of plain success on the chosen unseen tasks; `groot_pretrain` excluded |
-| Unseen tasks | up to 4 | Helpable in W2's ceiling test (sequencer beats plain by ≥ 2 paired successes for some policy), story tasks first. **Fallback** if fewer than 2 are helpable: the unseen tasks with the most plain success; the benchmark then measures monitoring and declaring rather than rescue, and the report says so. |
-| Leave-alone tasks | 3 | From OpenCabinet, PickPlaceCounterToCabinet, PickPlaceCounterToStove, OpenDrawer, CloseFridge: highest minimum plain success across the chosen policies |
+| Policies | **`groot` (multitask), `groot_u30`, `pi05`** (Tom, October 13) | W2's ladder had no three distinct GR00T levels: `groot_u10` and `groot_u30` cannot be told apart, and `groot_pretrain` matches `groot` on trained tasks. Tom chose the two crossing GR00T profiles (`groot` strong on trained tasks and 0/63 on story tasks; `groot_u30` 5/64 on story tasks and 13/40 on trained) and **π0.5 as a second architecture**. `select_final.py --policies` replaces rule 2. π0.5 is untested (null) until W2 measures it. |
+| Unseen tasks | **Fallback (monitoring) mode applies:** no task met the ceiling rule (largest margin 1; 3 sequencer vs 4 plain successes over 76 pairs, `docs/stage6_ceiling.md`). The unseen tasks are therefore those with the most plain successes **pooled over all candidate policies** (original rule, Tom, October 13). Provisional: ArrangeTea, MakeIceLemonade, PanTransfer, WaffleReheat, from `groot`, `groot_u10` and `groot_u30`. **Rerun `select_final.py` once π0.5's ladder cells exist**, since its successes count too. | The benchmark measures monitoring, declaring and restraint, not rescue; the report says so |
+| Leave-alone tasks | 3, the highest minimum plain success across the chosen policies. Provisional, from `groot` and `groot_u30`: OpenCabinet, PickPlaceCounterToStove, CloseFridge (tie with PickPlaceCounterToCabinet broken by name). Recomputed with π0.5. | `configs/final/selection.json` |
 | Scenes, seed | 1000-1003, policy seed 0 | Stage 5 found most unseen-task successes in one scene, so four scenes |
-| Cells | 3 policies × about 7 tasks × 4 scenes ≈ 84 | |
+| Cells | 3 policies × 7 tasks × 4 scenes = 84 | |
 | Supervisors | Opus 5.5 and Sonnet 5.5, effort `medium`, prompt version 6 (W3) | `configs/model-*.json` |
 | Sessions | One per scene per model: every (policy, task) cell once, in task blocks (the task with each policy, shuffled), with anonymous labels shuffled per session. The same plans for both models. | `scripts/make_session_plans.py --seed 20261014` |
 | Baselines | always-defer on both pods (paired with every LLM episode); `reissue_50`, `reissue` (100) and `reissue_200` on pod A only (unpaired) | Decided October 13 |
@@ -34,12 +34,24 @@ here. The rest is computed by scripts from their outputs, under rules written be
 
 ## Freeze checklist (October 14, in order)
 
+0. **π0.5 (W2, before anything else).**
+   - **Install:** `bootstrap_gpu.py --include-pi05 --download-pi05-checkpoint`. The backend code exists but has never
+     run in this project.
+   - **GPU memory:** set `XLA_PYTHON_CLIENT_PREALLOCATE=false` (or `XLA_PYTHON_CLIENT_MEM_FRACTION`) whenever a π0.5
+     worker shares a GPU with GR00T workers; JAX otherwise takes 75% of GPU memory.
+   - **Smoke test:** one plain episode.
+   - **Ladder:** the 8 story tasks and 5 leave-alone tasks × scenes 1000-1003 × policy seeds 0, 1, added to
+     `runs/stage6_ladder/analysis.json`.
+   - **If π0.5 cannot run cleanly by the freeze,** Tom decides between moving the freeze and proceeding with the two
+     GR00T policies. π0.5 is then reported as untested, never as zero.
 1. **W2** pushes the ladder table (`runs/stage6_ladder/analysis.json` via `scripts/analyze_stage5.py`), the ceiling
    summary (`runs/stage6_ceiling/summary.json`) and the trigger predicates. **W3** pushes session mode, prompt version 6
    and the latency calibration (median seconds per call per model).
-2. **Select:** `python3 scripts/select_final.py --output configs/final/selection.json`. Log the selection, including
+2. **Select:** `python3 scripts/select_final.py --policies groot groot_u30 pi05 --output configs/final/selection.json`. Log the selection, including
    whether the fallback applies, in `docs/decisions.md`.
-3. **Story limits:** `python3 scripts/set_story_limits.py runs/stage6_ladder --policies <the three> --write`. Write
+3. **Story limits:** `python3 scripts/set_story_limits.py <runs with trigger logs> --policies groot groot_u30 pi05`.
+   The trigger predicates are logged only in runs after W2's commit `938b7fd`: the ceiling plain arm and π0.5's ladder.
+   Those episodes are on W2's machine, so W2 runs the script and W1 writes the printed limits into the config. Write
    W3's calibrated `call_seconds` into `configs/time_pressure.json` and set `status` to frozen.
 4. **Plans:** `python3 scripts/make_session_plans.py --policies <the three> --tasks <chosen> --scenes 1000 1001 1002
    1003 --output configs/final/plans`.
@@ -48,7 +60,7 @@ here. The rest is computed by scripts from their outputs, under rules written be
 
 ## Run procedure (October 15, each pod)
 
-1. **Setup** as in `docs/compute.md` and `handoff.md` S.3. Download the chosen checkpoints, and start one policy worker
+1. **Setup** as in `docs/compute.md` and `handoff.md` S.3. Download the chosen checkpoints (including π0.5, with the JAX memory setting above), and start one policy worker
    per backend on separate ports. Arm `scripts/pod_guard.sh backstop` and the Mac watchdog before anything runs.
 2. **always-defer** on every cell: `baseline --agent always_defer`, one backend at a time with its worker URL, scenes
    1000-1003, policy seed 0. W3's tooling reads each episode's step-0 state hash into the plan entries as

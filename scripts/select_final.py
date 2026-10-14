@@ -5,8 +5,9 @@
 Inputs:
 - the ladder table, `runs/stage6_ladder/analysis.json`, from `scripts/analyze_stage5.py`: per backend, per task,
   `successes` and `usable`;
-- the ceiling summary, `runs/stage6_ceiling/summary.json`: `{backend: {task: {"plain": [successes, n],
-  "sequencer": [successes, n]}}}` over the same paired episodes.
+- the ceiling table, `runs/stage6_ceiling/ceiling.json` from `scripts/analyze_stage5.py --ceiling` (W2):
+  `{backend: {task: {"pairs", "plain_successes", "sequencer_successes", ...}}}` over the same paired episodes. The
+  form `{"plain": [successes, n], "sequencer": [successes, n]}` is also accepted.
 
 Rules:
 1. **Helpable unseen tasks:** an unseen candidate task is helpable if, for at least one candidate policy, the
@@ -15,7 +16,9 @@ Rules:
    the most pooled plain successes (at least one), and record it. The benchmark then measures monitoring and
    declaring rather than rescue.
 2. **Policies:** among the candidate backends (`groot_pretrain` excluded), choose three whose pooled plain success on
-   the chosen unseen tasks spreads most: maximize the smallest pairwise gap, then the total success.
+   the chosen unseen tasks spreads most: maximize the smallest pairwise gap, then the total success. `--policies`
+   replaces this rule with an explicit, logged decision. Tom chose `groot`, `groot_u30` and `pi05` on October 13,
+   because the measured ladder had no three distinct levels. Rules 1 and 3 still apply.
 3. **Leave-alone tasks:** three seen candidates with the highest minimum plain success across the chosen policies.
 
   python3 scripts/select_final.py [--ladder ...] [--ceiling ...] [--output runs/final/selection.json]
@@ -39,7 +42,14 @@ def rate(table, backend, task):
     return None if not cell or not cell["usable"] else cell["successes"] / cell["usable"]
 
 
-def select(ladder, ceiling):
+def counts(cell):
+    """(plain successes, sequencer successes) of a ceiling cell, in either accepted form."""
+    if "plain_successes" in cell:
+        return cell["plain_successes"], cell["sequencer_successes"]
+    return cell["plain"][0], cell["sequencer"][0]
+
+
+def select(ladder, ceiling, policies=None):
     candidates = sorted(b for b in ladder if b not in EXCLUDED_POLICIES)
     margins = {}
     for backend, tasks in ceiling.items():
@@ -47,7 +57,8 @@ def select(ladder, ceiling):
             continue
         for task, cell in tasks.items():
             if task in UNSEEN:
-                margins[task] = max(margins.get(task, -99), cell["sequencer"][0] - cell["plain"][0])
+                plain, sequencer = counts(cell)
+                margins[task] = max(margins.get(task, -99), sequencer - plain)
     helpable = sorted((t for t, m in margins.items() if m >= HELP_MARGIN), key=lambda t: (t not in STORY, -margins[t], t))
     unseen, fallback = helpable[:4], len(helpable) < 2
     if fallback:
@@ -64,6 +75,13 @@ def select(ladder, ceiling):
         return sum(c["successes"] for c in cells if c) / n if n else 0.0
 
     rates = {b: pooled_rate(b) for b in candidates}
+    if policies:  # an explicit decision; a policy without ladder cells is reported as untested (null), never as zero
+        rates = {b: (pooled_rate(b) if b in ladder else None) for b in policies}
+        seen = sorted(SEEN, key=lambda t: (-min((rate(ladder, b, t) or 0.0) for b in policies if b in ladder), t))[:3]
+        return {"policies": list(policies), "policy_unseen_success": rates, "unseen_tasks": unseen,
+                "helpable_margins": margins, "fallback_monitoring": fallback, "seen_tasks": seen,
+                "story_tasks": [t for t in unseen if t in STORY],
+                "untested_policies": [b for b in policies if b not in ladder]}
     policies = list(candidates)
     if len(candidates) > 3:
         def spread(trio):
@@ -79,10 +97,11 @@ def select(ladder, ceiling):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--ladder", type=Path, default=ROOT / "runs" / "stage6_ladder" / "analysis.json")
-    parser.add_argument("--ceiling", type=Path, default=ROOT / "runs" / "stage6_ceiling" / "summary.json")
+    parser.add_argument("--ceiling", type=Path, default=ROOT / "runs" / "stage6_ceiling" / "ceiling.json")
+    parser.add_argument("--policies", nargs="+", help="an explicit, logged policy decision (replaces rule 2)")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    choice = select(json.loads(args.ladder.read_text()), json.loads(args.ceiling.read_text()))
+    choice = select(json.loads(args.ladder.read_text()), json.loads(args.ceiling.read_text()), args.policies)
     print(json.dumps(choice, indent=2))
     tasks = " ".join(choice["unseen_tasks"] + choice["seen_tasks"])
     print(f"\nnext: python3 scripts/make_session_plans.py --policies {' '.join(choice['policies'])} --tasks {tasks} "

@@ -97,6 +97,14 @@ class SelectionTests(unittest.TestCase):
         self.assertNotIn("groot_pretrain", choice["policies"])
         self.assertEqual(choice["seen_tasks"], ["OpenCabinet", "PickPlaceCounterToCabinet", "OpenDrawer"])
 
+    def test_explicit_policies_replace_rule_two_and_untested_ones_stay_null(self):
+        ceiling = {"groot": {"PortionHotDogs": {"pairs": 8, "plain_successes": 1, "sequencer_successes": 2}}}
+        choice = self.select(self.data, ceiling, ["groot", "groot_u30", "newpolicy"])
+        self.assertEqual(choice["policies"], ["groot", "groot_u30", "newpolicy"])
+        self.assertIsNone(choice["policy_unseen_success"]["newpolicy"])
+        self.assertEqual(choice["untested_policies"], ["newpolicy"])
+        self.assertTrue(choice["fallback_monitoring"])  # W2's real ceiling format, margin 1 < 2
+
     def test_fallback_to_monitoring_when_fewer_than_two_tasks_are_helpable(self):
         ceiling = {"groot": {"PortionHotDogs": {"plain": [1, 8], "sequencer": [3, 8]}}}
         choice = self.select(self.data, ceiling)

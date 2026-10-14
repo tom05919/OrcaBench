@@ -98,8 +98,14 @@ The day-by-day plan to October 16 is `docs/work_split.md`. In order of dependenc
      freeze checklist, analysis plan) and the `docs/report.md` draft.
    - **Decided by Tom:** a per-model call charge, deadline = step budget, the first response charged, and restart
      baselines on one pod.
+   - **W2's results** (branch `w2-policies`, not yet merged): no unseen task is rescuable, so **fallback (monitoring)
+     mode** applies; there is no three-level ladder.
+   - **Tom's decisions, October 13:**
+     - final policies `groot`, `groot_u30` and `pi05`;
+     - unseen tasks by the original rule, provisionally ArrangeTea, MakeIceLemonade, PanTransfer, WaffleReheat;
+     - provisional selection in `configs/final/selection.json`.
    - **Still waiting for:**
-     - W2's ladder table and ceiling summary, for the selection and story limits;
+     - π0.5's setup, smoke test and ladder (W2), then rerunning the selection and the story-limit script;
      - W3's latency calibration and session mode;
      - the final runs, for report section 5;
      - stage 4's restart runs from Ranveer (copy their JSON into `runs/stage4_remote/`) for the offline restart rules.

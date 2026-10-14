@@ -5,6 +5,19 @@ interfaces), `docs/protocol.md` ("Model-visible information" and "Decision seman
 `docs/decisions.md`. The simulator already does what you are building: see `src/robot_benchmark/sim/agent.py`
 (`build_content`) and `docs/env_design.md` (blocks B7 and B8).
 
+## Update from W1, October 13 (read first)
+
+- **Final policies (Tom):** `groot`, `groot_u30` and `pi05` (π0.5, a different architecture with a 5-step action
+  chunk). Every final session has three policy workers: two GR00T and one π0.5.
+  - **GPU memory:** the π0.5 worker needs `XLA_PYTHON_CLIENT_PREALLOCATE=false` (or a memory fraction) next to the
+    GR00T workers.
+  - **Plans:** session plans come from `scripts/make_session_plans.py --policies groot groot_u30 pi05`.
+- **Monitoring mode:** W2's ceiling test found no unseen task that correct step-by-step instructions can rescue, so
+  the benchmark measures monitoring, declaring and restraint. The prompt must not suggest that re-prompting fixes
+  failures; describe the decisions neutrally.
+- **Call charge:** each model's calibrated `call_seconds[model]` (format in `docs/work_split.md`). Your probe and pilot
+  provide the medians that W1 freezes.
+
 ## Goal
 
 The benchmark needs **one supervisor, in one context, supervising several policies, and learning from how earlier
