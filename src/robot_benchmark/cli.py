@@ -46,6 +46,9 @@ DEFAULT_SPLITS = PROJECT_ROOT / "configs" / "splits.json"
 TASKS_DIR = PROJECT_ROOT / "configs" / "tasks"
 SOURCE_LOCK = PROJECT_ROOT / "configs" / "sources.lock.json"
 DEFAULT_TIME_PRESSURE = PROJECT_ROOT / "configs" / "time_pressure.json"
+FINAL_PLAN_GLOB = "configs/final/plans/scene*.json"
+FINAL_MODEL_GLOB = "configs/model-*.json"
+FINAL_VIDEO_RECORD_INTERVAL = 10
 CONTRACT_FILES = (
     "src/robot_benchmark/cli.py",
     "src/robot_benchmark/session.py",
@@ -396,6 +399,53 @@ def check_session_release_tag(tag):
     return tagged
 
 
+def check_session_frozen_inputs(args, plan, model_config, time_config, task_names):
+    """Verify final inputs and re-read the baseline cohort before worker contact.
+
+    The clean matching release tag is checked by the caller. Pod-local paired
+    plans may add only expect_state to a shipped, ordered frozen plan.
+    """
+    if time_config.get("status") != "frozen":
+        raise ValueError("final sessions require frozen time pressure")
+    if not DEFAULT_TIME_PRESSURE.exists() or time_config != read_json(DEFAULT_TIME_PRESSURE):
+        raise ValueError("final time pressure differs from the tagged configuration")
+    if not any(model_config == read_json(path) for path in PROJECT_ROOT.glob(FINAL_MODEL_GLOB)):
+        raise ValueError("final model config differs from the tagged configurations")
+    if args.experience_limit != DEFAULT_EXPERIENCE_LIMIT:
+        raise ValueError("final sessions require the fixed experience limit")
+    if args.video_record_interval != FINAL_VIDEO_RECORD_INTERVAL:
+        raise ValueError("final sessions require the fixed video recording interval")
+    for task in {entry["task"] for entry in plan}:
+        story = time_config["tasks"][task].get("story")
+        if story is not None and story.get("limit_seconds") is None:
+            raise ValueError(f"final story limit is not frozen for {task}")
+    source = [{key: value for key, value in entry.items() if key != "expect_state"} for entry in plan]
+    if not any(source == json.loads(path.read_text()) for path in PROJECT_ROOT.glob(FINAL_PLAN_GLOB)):
+        raise ValueError("final plan differs from the tagged ordered plans")
+    audit_path = args.plan.with_suffix(".pairing.json")
+    if not audit_path.exists():
+        raise ValueError("final plan requires its baseline pairing audit")
+    audit = read_json(audit_path)
+    if audit.get("source_plan_hash") != digest(source) or audit.get("paired_plan_hash") != digest(plan):
+        raise ValueError("final pairing audit plan hashes do not match")
+    if not isinstance(audit.get("reference_root"), str) or not audit["reference_root"]:
+        raise ValueError("final pairing audit requires a reference-root")
+    paired, pairs = attach_baseline_states(source, Path(audit["reference_root"]), task_names)
+    if paired != plan or pairs != audit.get("pairs"):
+        raise ValueError("final pairing audit no longer matches the baseline cohort")
+    return pairs
+
+
+def check_session_baseline_contracts(plan, pairs, contract_hashes):
+    """Refuse baseline twins recorded under a different harness/policy contract."""
+    if len(plan) != len(pairs):
+        raise ValueError("baseline contract audit does not cover the whole plan")
+    for index, (entry, pair) in enumerate(zip(plan, pairs)):
+        expected = contract_hashes[entry["policy_label"]]
+        if pair.get("index") != index or not expected or pair.get("baseline_contract_hash") != expected:
+            raise ValueError(f"baseline contract does not match the current worker/harness at index {index}")
+
+
 def command_pair_session(args):
     audit_path = args.output.with_suffix(".pairing.json")
     if args.output.exists() or audit_path.exists():
@@ -430,6 +480,16 @@ def command_session(args):
     release_commit = check_session_release_tag(args.release_tag) if args.release_tag else None
     if args.release_tag and any("expect_state" not in entry for entry in plan):
         raise ValueError("final session plans require a same-pod expect_state for every entry")
+    pairs = check_session_frozen_inputs(args, plan, model_config, time_config, set(tasks)) if args.release_tag else None
+    splits = validate_splits(read_json(args.splits))
+    if args.release_tag:
+        if splits != validate_splits(read_json(DEFAULT_SPLITS)):
+            raise ValueError("final splits differ from the tagged configuration")
+        pool = task_pool()
+        for task in contexts:
+            config = tasks[task][0]
+            if config != pool.get(task):
+                raise ValueError("final task settings differ from the tagged configuration")
     session_contract = {"plan": plan, "model_config": {key: value for key, value in model_config.items()
                                                        if key != "api_key_env"},
                         "time_pressure_config": time_config, "time_pressure": contexts,
@@ -463,14 +523,16 @@ def command_session(args):
         if identity.get("backend") != entry["backend"] or not identity.get("checkpoint_manifest_sha256"):
             raise ValueError(f"worker identity does not match plan for {entry['policy_label']}")
     session_contract["policy_identities"] = {label: policy.identity for label, policy in policies.items()}
-    agent = HTTPAgent(model_config, session_mode=True, spend_guard=guard)
-    splits = validate_splits(read_json(args.splits))
     contracts = {}
     for label, policy in policies.items():
         payload, contract_hash = benchmark_contract([tasks[task][0] for task in contexts], policy.identity, splits)
         payload["time_pressure_config"] = time_config
         contracts[label] = payload, digest(payload)
     session_contract["episode_contract_hashes"] = {label: value[1] for label, value in contracts.items()}
+    if pairs is not None:
+        check_session_baseline_contracts(plan, pairs, session_contract["episode_contract_hashes"])
+        session_contract["baseline_pairing"] = pairs
+    agent = HTTPAgent(model_config, session_mode=True, spend_guard=guard)
 
     def run_entry(entry, wrapped_agent, episode_output, index):
         config, prompts, limits = tasks[entry["task"]]

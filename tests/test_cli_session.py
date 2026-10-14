@@ -198,5 +198,155 @@ class CliSessionTests(unittest.TestCase):
                 cli.positive_float(value)
 
 
+class FrozenSessionTests(unittest.TestCase):
+    def fixture(self, folder):
+        from tests.test_session import BaselinePairingTests, plan
+        command = CliSessionTests().inputs(folder)
+        source = [plan()]
+        (folder / "configs/final/plans").mkdir(parents=True)
+        (folder / "configs/final/plans/scene0.json").write_text(json.dumps(source))
+        model = json.loads((folder / "model.json").read_text())
+        (folder / "configs/model-test.json").write_text(json.dumps(model))
+        timing = json.loads((folder / "time.json").read_text())
+        timing["status"] = "frozen"
+        (folder / "time.json").write_text(json.dumps(timing))
+        (folder / "configs/time_pressure.json").write_text(json.dumps(timing))
+        baseline = BaselinePairingTests().baseline(folder / "baselines")
+        paired, pairs = cli.attach_baseline_states(source, folder / "baselines", {"OpenDrawer"})
+        (folder / "plan.json").write_text(json.dumps(paired))
+        (folder / "workers.json").write_text(json.dumps({"K": "http://127.0.0.1:8765"}))
+        audit = {"source_plan_hash": cli.digest(source), "paired_plan_hash": cli.digest(paired),
+                 "reference_root": str(folder / "baselines"), "pairs": pairs}
+        (folder / "plan.pairing.json").write_text(json.dumps(audit))
+        args = cli.parser().parse_args(command)
+        return args, paired, model, timing, baseline
+
+    def check(self, folder, args, plan, model, timing):
+        with mock.patch.object(cli, "PROJECT_ROOT", folder), \
+                mock.patch.object(cli, "DEFAULT_TIME_PRESSURE", folder / "configs/time_pressure.json"):
+            return cli.check_session_frozen_inputs(args, plan, model, timing, {"OpenDrawer"})
+
+    def test_valid_inputs_recheck_baselines_and_preserve_failed_twins(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            args, plan, model, timing, _ = self.fixture(folder)
+            pairs = self.check(folder, args, plan, model, timing)
+            self.assertEqual(len(pairs), 1)
+            cli.check_session_baseline_contracts(plan, pairs, {"K": "code-contract"})
+            with self.assertRaisesRegex(ValueError, "baseline contract"):
+                cli.check_session_baseline_contracts(plan, pairs, {"K": "changed-contract"})
+
+    def test_nonfrozen_or_modified_timing_and_model_are_rejected(self):
+        for change in ("provisional", "timing", "story", "model", "experience", "recording"):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory)
+                args, plan, model, timing, _ = self.fixture(folder)
+                if change == "provisional":
+                    timing["status"] = "provisional"
+                elif change == "timing":
+                    timing["call_seconds"][model["model"]] = 7
+                elif change == "story":
+                    timing["tasks"]["OpenDrawer"]["story"]["limit_seconds"] = None
+                    (folder / "configs/time_pressure.json").write_text(json.dumps(timing))
+                elif change == "model":
+                    model["timeout_seconds"] = 99
+                elif change == "experience":
+                    args.experience_limit = 2
+                else:
+                    args.video_record_interval = 1
+                with self.assertRaises(ValueError):
+                    self.check(folder, args, plan, model, timing)
+
+    def test_plan_audit_or_baseline_mutation_is_rejected(self):
+        for change in ("plan", "source_hash", "paired_hash", "pairs", "state", "contract", "missing_audit"):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory)
+                args, plan, model, timing, baseline = self.fixture(folder)
+                audit_path = folder / "plan.pairing.json"
+                audit = json.loads(audit_path.read_text())
+                if change == "plan":
+                    plan[0]["scene_seed"] = 1
+                elif change in ("source_hash", "paired_hash"):
+                    audit["source_plan_hash" if change == "source_hash" else "paired_plan_hash"] = "b" * 64
+                elif change == "pairs":
+                    audit["pairs"] = []
+                elif change == "state":
+                    (baseline / "evaluator/states.jsonl").write_text(json.dumps({"step": 0, "state_sha256": "b" * 64}))
+                elif change == "contract":
+                    manifest = json.loads((baseline / "manifest.json").read_text())
+                    manifest["contract_hash"] = "changed-contract"
+                    (baseline / "manifest.json").write_text(json.dumps(manifest))
+                if change == "missing_audit":
+                    audit_path.unlink()
+                else:
+                    audit_path.write_text(json.dumps(audit))
+                with self.assertRaises(ValueError):
+                    self.check(folder, args, plan, model, timing)
+
+    def test_final_input_rejection_precedes_worker_and_model_contact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            command = CliSessionTests().inputs(folder)
+            command[command.index("--development"):command.index("--development") + 1] = ["--release-tag", "test-tag"]
+            with mock.patch.object(cli, "check_session_release_tag", return_value="commit"), \
+                    mock.patch.object(cli, "RemotePolicy") as policy, \
+                    mock.patch.object(cli, "HTTPAgent") as agent, mock.patch("builtins.print"):
+                self.assertEqual(cli.main(command), 2)
+            policy.assert_not_called()
+            agent.assert_not_called()
+
+    def test_final_baseline_contract_mismatch_precedes_model_construction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            args, plan, model, timing, _ = self.fixture(folder)
+            args.release_tag = "test-tag"
+            args.dry_run = False
+            policy = mock.Mock(identity={"backend": "groot", "checkpoint_manifest_sha256": "verified"})
+            with mock.patch.object(cli, "PROJECT_ROOT", folder), \
+                    mock.patch.object(cli, "DEFAULT_TIME_PRESSURE", folder / "configs/time_pressure.json"), \
+                    mock.patch.object(cli, "check_session_release_tag", return_value="commit"), \
+                    mock.patch.object(cli, "implementation_hashes", return_value={"fixture": "test-code"}), \
+                    mock.patch.object(cli, "RemotePolicy", return_value=policy), \
+                    mock.patch.object(cli, "HTTPAgent") as agent:
+                with self.assertRaisesRegex(ValueError, "baseline contract"):
+                    cli.command_session(args)
+            agent.assert_not_called()
+            self.assertFalse((folder / "run/sessions/test-session").exists())
+
+    def test_matching_final_inputs_run_the_existing_episode_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            args, plan, model, timing, baseline = self.fixture(folder)
+            args.release_tag = "test-tag"
+            policy = FakePolicy()
+            policy.identity = {"backend": "groot", "checkpoint_manifest_sha256": "verified"}
+            env = FakeEnvironment(success=lambda step: step >= 5, native="Open the drawer.")
+            env.horizon = 750
+            with mock.patch.object(cli, "PROJECT_ROOT", folder), \
+                    mock.patch.object(cli, "DEFAULT_TIME_PRESSURE", folder / "configs/time_pressure.json"), \
+                    mock.patch.object(cli, "check_session_release_tag", return_value="commit"), \
+                    mock.patch.object(cli, "implementation_hashes", return_value={"fixture": "test-code"}), \
+                    mock.patch.object(cli, "RemotePolicy", return_value=policy), \
+                    mock.patch.object(cli, "HTTPAgent", side_effect=PublicAgent), \
+                    mock.patch("robot_benchmark.adapters.robocasa.RoboCasaEnvironment", return_value=env), \
+                    mock.patch.object(cli, "encode_episode_videos", return_value={}), mock.patch("builtins.print"):
+                _, contract_hash = cli.benchmark_contract([cli.task_pool()["OpenDrawer"]], policy.identity,
+                                                          cli.validate_splits(cli.read_json(args.splits)))
+                manifest = json.loads((baseline / "manifest.json").read_text())
+                manifest["contract_hash"] = contract_hash
+                (baseline / "manifest.json").write_text(json.dumps(manifest))
+                audit_path = folder / "plan.pairing.json"
+                audit = json.loads(audit_path.read_text())
+                audit["pairs"][0]["baseline_contract_hash"] = contract_hash
+                audit_path.write_text(json.dumps(audit))
+                self.assertEqual(cli.command_session(args), 0)
+            episode = folder / "run/sessions/test-session/episodes/0000"
+            retained = json.loads((episode / "manifest.json").read_text())
+            self.assertEqual(retained["kind"], "llm")
+            self.assertEqual(retained["contract_hash"], contract_hash)
+            session_contract = json.loads((episode.parent.parent / "manifest.json").read_text())["session_contract"]
+            self.assertEqual(session_contract["baseline_pairing"], audit["pairs"])
+
+
 if __name__ == "__main__":
     unittest.main()

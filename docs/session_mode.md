@@ -7,7 +7,7 @@ episodes, with time charged under W1's scoring contract.
 ## Sources and scope
 
 Use `docs/briefs/w3_harness.md` and the fixed ownership/interfaces in
-`docs/work_split.md`. The latest inspected W1 branch (`a06b209`) revises the
+`docs/work_split.md`. The latest inspected W1 branch (`171eb9a`) revises the
 interface: `call_seconds` maps model identifiers to calibrated seconds; task
 entries carry a deadline and an optional nested story. Its final policy set is
 `groot`, `groot_u30`, `pi05`. The final scope is monitoring, declaration timing
@@ -85,6 +85,13 @@ the common GPU type, selected plans, fixed time parameters and release tag.
   The second local verification covers 350 tests, baseline pairing and spend guards.
   Actual W1 reader compatibility was checked at its latest inspected branch
   (`171eb9a`) using retained mock infrastructure attempts, never scored experiments.
+- Frozen-input checks added: final timing must be marked frozen and equal the
+  tagged file; model config and ordered source plan must match shipped files.
+  Pairing audits are re-read against the baseline cohort, and each baseline's
+  contract must match the current worker/harness before model construction.
+  Final experience limit is 24 and recording interval is 10; task configs and
+  splits must equal the tagged versions. Fresh full suite: 356 tests pass.
+  Focused independent review found no actionable bugs. Live gates remain open.
 - No live W3 episode or paid model probe yet. This environment currently has no
   `ANTHROPIC_API_KEY`, `PRIME_API_KEY`, `PRIME_TEAM_ID`, or project `.env`; no Prime
   CLI is installed. Interactive-shell presence checks agree. Model/GPU spending
@@ -132,7 +139,11 @@ The live pilot uses `--development` without `--dry-run`, with an explicit
 `--api-dollar-cap`. Final sessions use
 `--release-tag release-2026-10-14` instead of `--development`, at a clean checkout
 whose HEAD equals that tag. Every final plan entry must have the same-pod
-baseline's `expect_state`.
+baseline's `expect_state`, with the adjacent `.pairing.json` audit. Final mode
+also verifies the inputs above. A final dry run rechecks local baselines and
+frozen files but does not contact workers, so it cannot verify live worker
+identity or the worker-specific baseline contract. Those checks run before a
+model is constructed in live mode.
 
 ## Same-pod baseline pairing
 
@@ -208,10 +219,10 @@ Prime GPU credits do not pay these direct Anthropic calls.
 
 ## Next continuation, without redefining completion
 
-- Pairing/spend-guard follow-up is ready for push to PR #3 after its green full suite
-  and independent review. No Critical/Important review blockers remain for that scope.
-- Add final frozen-input/baseline-contract checks before permitting final runs;
-  the current tag guard checks clean matching HEAD and required state hashes.
+- Core and pairing/spend-guard commits are pushed to PR #3. Frozen-input and
+  baseline-contract checks have passed the 356-test suite and focused review.
+- W1 may review the implementation now; merging/tagging remain Tom's integration
+  responsibility. The pilot status is [stage6_pilot.md](stage6_pilot.md).
 - Fetch `main`, W1 and W2 again. Consume W1's merged timing/plans and W2's backends
   without editing their files. Baseline-to-plan artifact compatibility has been
   checked offline; full integrated live evidence is still required.
