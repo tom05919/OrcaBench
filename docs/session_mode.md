@@ -77,10 +77,11 @@ the common GPU type, selected plans, fixed time parameters and release tag.
 
 ## Current progress
 
-Current live state: actual eight-episode pilot, W1 scoring and representative v6
-calibration completed; API $0.5787914 and compute $0.939, pod terminated. Details
+Current live state: actual eight-episode pilot, W1 scoring and full-pilot v6
+calibration completed; API $1.2148545 and compute $0.939, pod terminated. Details
 are in `docs/stage6_pilot.md` and `runs/stage6_pilot/w1-delivery.json`. Final release
-and GPU coordination remain open. Earlier implementation/readiness milestones:
+and policy qualification/selection remain open. Final GPU is A100 80 GB SXM4
+(W1 `4278ec7`). Earlier implementation/readiness milestones:
 
 - GitHub main pulled at `2663171`; W1 and W2 newer branches inspected read-only.
 - Previous presentation work preserved in Git stash and not reapplied across the
@@ -400,7 +401,7 @@ into `main`, selection, configuration freezing and the release tag.
   W3-owned defect, verify failure, fix, run focused/full checks and get one
   bounded review. Commit/push only W3-owned paths, then fetch partner branches.
   If no W3 issue appears, report that result without manufacturing changes.
-- [ ] **3. Live prerequisites.** Provision Anthropic/Prime credentials locally;
+- [x] **3. Live prerequisites.** Provision Anthropic/Prime credentials locally;
   record explicit API/GPU caps, billing account, and agreed GPU type. Confirm
   worker checkpoint qualification with W2. Check wallet/offers/model access
   before creating a guarded pod. Credentials are never printed or committed.
@@ -417,6 +418,23 @@ into `main`, selection, configuration freezing and the release tag.
   usage, pilot scoring and final attempt counts. W1 writes the combined report;
   W3 checks its claims against artifacts. Completion requires real execution,
   scoring and integrated code, not only passing local tests.
+
+**Latest freeze calibration (W1 `4278ec7`, rule fixed before replay):** replayed
+all 27 observations of all eight pilot episodes once per model, sequentially on
+the Mac, corrected v6, medium effort, only each episode's preceding projected
+experience. All 54 replies strict/valid; no retries, errors or exclusions. Frozen
+charges by the rule are **Opus 4.74 s / Sonnet 1.76 s**, n=27 each; first-call
+medians 2.135/1.685 s (n=8), later medians 5.05/1.76 s (n=19). These supersede
+the earlier six-sample medians below. Both models received the exact same public
+pilot inputs with the original provisional 4.7-second scalar, via an artifact-only
+timing copy; actual payload pairs were verified equal except model ID. W1 writes
+the resulting charges before story limits; no W1 config file changed.
+Raw samples, counts, cache/host limitations and costs: `docs/stage6_pilot.md`;
+artifacts: `runs/stage6_pilot/calibration-all-20261014T212408Z/`.
+Replay API cost $0.6360631 within the existing $20 calibration bucket; cumulative
+API $1.2148545, compute $0.939. No GPU rental. Final GPU A100 80 GB SXM4 is now
+fixed in W1's decision log. Final pod B still requires Tom's integrated tagged
+release, qualified policy selection, frozen timing/stories and ordered plans.
 
 **Actual development execution completed (October 14):** eight terminal episodes,
 3 successes / 5 false completions / 0 infrastructure exclusions, 27 strict

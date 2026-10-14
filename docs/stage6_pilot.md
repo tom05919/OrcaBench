@@ -1,9 +1,83 @@
 # W3 pilot status — October 14, 2026
 
 **The real eight-episode development pilot, W1 scoring and representative v6
-replay calibration are complete.** Final benchmark runs remain pending Tom's
-integrated frozen release and the common GPU agreement. Earlier readiness and
+replay calibration are complete.** The full-pilot replay below supersedes the
+initial six-sample medians. Final runs await Tom's integrated frozen release and
+qualified selection/plans. Final GPU is A100 80 GB SXM4 (W1 `4278ec7`). Earlier readiness and
 mock evidence below is historical, separate from the actual results here.
+
+## W1 full-pilot calibration — October 14, rule fixed before replay
+
+W1 `4278ec7deb6a4d04ca604a29224497a351752a0a`, `docs/decisions.md`, fixes each
+model's charge as the median of one replay per recorded pilot observation.
+**All 27 observations of all eight episodes were replayed once per model on the
+Mac, sequentially, with corrected prompt v6 and effort medium. No GPU was used.**
+The observed mix is 8 first calls and 19 later calls per model; no older calibration
+or ordinary pilot calls enter this new median.
+
+| Model ID | Frozen charge by W1's rule: overall median | n / HTTP attempts | First median (n=8) | Later median (n=19) | Retries / exclusions | API dollars |
+|---|---|---|---|---|---|---|
+| `claude-opus-5-5` | **4.74 s** | 27 / 27 | 2.135 s | 5.05 s | 0 / 0 | 0.4354354 |
+| `claude-sonnet-5-5` | **1.76 s** | 27 / 27 | 1.685 s | 1.76 s | 0 / 0 | 0.2006277 |
+
+All **54 replies were strict and valid**, with no request errors, missing samples,
+recovered replies or exclusions. Timings come from the unchanged probe's rounded
+hundredth-second rows; even-sized subgroup medians can have three decimal places.
+
+Each episode received only its own preceding projected terminal records (0 through
+7 records), fixed for every observation of that episode. Before calls, all 27
+Opus payloads matched the actual recorded pilot requests exactly, and every
+Opus/Sonnet pair matched except model ID. Actual retained sent requests were also
+checked pairwise after replay. To preserve literal identical inputs, an **artifact-
+only** timing copy gives both models the recorded pilot's provisional **4.7 s**
+public call charge. This common input scalar is separate from the resulting
+measured charges above. No W1 timing/config/decision file was edited.
+
+Raw samples in seconds, in original observation order within each episode
+(the first number in each cell is that episode's first call):
+
+| Episode | Task | Opus samples | Sonnet samples |
+|---|---|---|---|
+| 0000 | PanTransfer | 2.89, 4.12, 6.51, 6.04, 5.26 | 1.59, 1.73, 1.60, 1.62, 1.63 |
+| 0001 | PanTransfer | 2.05, 5.77 | 1.98, 1.28 |
+| 0002 | CloseFridge | 2.18, 4.88, 4.74 | 1.49, 1.50, 1.94 |
+| 0003 | CloseFridge | 1.78, 4.35, 3.12 | 2.11, 1.76, 1.70 |
+| 0004 | PanTransfer | 2.39, 5.05, 4.92, 4.64 | 2.04, 1.75, 2.73, 5.50 |
+| 0005 | PanTransfer | 3.64, 4.98, 6.13, 5.65 | 1.76, 1.66, 4.76, 5.95 |
+| 0006 | CloseFridge | 1.82, 6.29, 4.15 | 1.54, 4.73, 1.97 |
+| 0007 | CloseFridge | 2.09, 5.58, 6.03 | 1.61, 3.82, 7.07 |
+
+Per model, input usage was identical: 78,892 uncached / 5,414 cache-write /
+45,387 cache-read tokens. Output usage was 4,186 Opus and 2,477 Sonnet tokens.
+The ordinary five-minute caching behavior is retained. This is one replay per
+observation of an Opus-generated development session, not a repeated-measure
+uncertainty estimate; this replay used the Mac, while the initial 12-call replay
+ran on the pilot pod. No samples were trimmed or replaced.
+
+Full replay cost **$0.6360631**, funded within the existing $20 calibration bucket
+with a single $10 guard/shared ledger. Prior calibration cost was $0.096624;
+combined calibration expense is $0.7326871. Total project API spend is now
+**$1.2148545**, compute remains **$0.939**, combined **$2.1538545**, within the
+separate $100 API / $250 compute caps. No rental was initiated for this replay.
+
+Artifacts (local, ignored):
+
+- Summary, all raw samples, subgroup statistics, usage and exclusions:
+  `runs/stage6_pilot/calibration-all-20261014T212408Z/summary.json` and `samples.csv`.
+- Prespecified rule ref, input/source/config hashes, every observation's public
+  payload digest and context length, per-episode preceding experience and common
+  timing copy: the same root's `inputs.json` and `inputs/`.
+- Append-only call timings, redacted request/response traces and logs:
+  the same root's `episode-0000/` through `episode-0007/`.
+- One shared spend ledger: the same root's `api_spend.jsonl`, linked from every
+  episode directory; only one probe process ran at a time.
+- Updated canonical delivery: `runs/stage6_pilot/w1-delivery.json`; the original
+  six-sample delivery is preserved as `w1-delivery-initial.json`.
+
+Full W3 suite before publishing: **361 tests passed in 5.581 s**,
+`runs/stage6_pilot/calibration-all-20261014T212408Z/w3-suite.log`. No harness,
+adapter, runner or probe code changed. W1 now owns writing the two charges into
+the frozen configuration before computing story limits.
 
 ## W1 delivery — actual development results, October 14
 
@@ -30,7 +104,7 @@ claim follows from these eight episodes. Scorer artifact:
 `runs/stage6_pilot/scoring/score.json`; copied scoring input:
 `runs/stage6_pilot/inputs/time-pressure.json`.
 
-### Representative prompt-v6 latency for the freeze
+### Initial two-observation replay — superseded by full-pilot replay above
 
 Both models replayed the actual CloseFridge/K episode `0002`, with only its two
 preceding completed PanTransfer records. First observation: index 0, step 0,
@@ -102,8 +176,9 @@ Fresh full W3 verification before delivery push: **361 tests passed in 6.665 s**
 digest and presentation stash remain unchanged. No W1/W2-owned file was edited.
 
 Final pod B has **not** started. It still requires Tom's clean tagged release,
-qualified/selected policy set, frozen timing/stories/plans and the shared GPU
-agreement. W2's π0.5 remains untested in the inspected partner snapshot. Do not
+qualified/selected policy set and frozen timing/stories/plans. The shared GPU
+is now fixed as A100 80 GB SXM4 at W1 `4278ec7`.
+W2's π0.5 remains untested in the inspected partner snapshot. Do not
 keep or re-rent development compute while these release inputs are pending.
 
 ## Historical live preflight and pilot setup — October 14
@@ -262,11 +337,11 @@ documentation changed; this test result supplies no robot-policy qualification.
 
 | Required runtime evidence | Status |
 |---|---|
-| Opus representative pooled median under prompt6 | 3.08 s, 6 replay calls |
-| Sonnet representative pooled median under prompt6 | 1.44 s, 6 replay calls |
+| Opus representative median under prompt6 | 4.74 s, 27 full-pilot replay calls |
+| Sonnet representative median under prompt6 | 1.76 s, 27 full-pilot replay calls |
 | Eight-episode Opus RoboCasa session | Complete: 3 success, 5 false completion, 0 infrastructure |
 | W1 scoring of that real pilot | Complete with retained provisional inputs; regret/learning null |
-| Actual compute/API spend from W3 | $0.939 / $0.5787914; pod terminated |
+| Actual compute/API spend from W3 | $0.939 / $1.2148545; pod terminated |
 
 ## Execution order
 
@@ -296,6 +371,7 @@ The project-local Prime CLI is installed at the pod guard's `0.11.0` pin;
 the operational launcher, authenticated account checks, guards and development
 execution have now been verified as described above. Both local keys and explicit
 caps are available. Integrated frozen timing, final plans, qualified final policy
-selection, common final GPU agreement and the release tag remain open.
+selection and the release tag remain open. The final GPU type is fixed at
+A100 80 GB SXM4 by W1 `4278ec7`.
 The earlier credential visibility discrepancy is resolved. The expanded
 execution gates, phase allocations and reasoning are in `session_mode.md`.
