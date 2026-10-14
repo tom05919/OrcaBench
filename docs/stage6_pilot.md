@@ -60,6 +60,8 @@ evidence only.
    records the change.
 
 Commands and spend-guard details are in [session_mode.md](session_mode.md).
-Currently this checkout has no Anthropic/Prime credentials, no Prime CLI, and no
+The project-local Prime CLI is installed at the pod guard's `0.11.0` pin;
+version/help checks passed without login or paid actions. Currently this checkout
+has no Anthropic/Prime credentials and no
 integrated frozen timing, final plans or release tag. These runtime prerequisites
 remain open; successful mock tests do not complete W3's assignment.

@@ -94,8 +94,9 @@ the common GPU type, selected plans, fixed time parameters and release tag.
   Focused independent review found no actionable bugs. Live gates remain open.
 - No live W3 episode or paid model probe yet. This environment currently has no
   `ANTHROPIC_API_KEY`, `PRIME_API_KEY`, `PRIME_TEAM_ID`, or project `.env`; no Prime
-  CLI is installed. Interactive-shell presence checks agree. Model/GPU spending
-  caps and billing account are pending.
+  credentials are configured. Interactive-shell presence checks agree.
+  Model/GPU spending caps and billing account are pending. The project-local
+  Prime CLI was subsequently installed and verified as described below.
 
 ## Commands for the initial implementation
 
@@ -415,6 +416,24 @@ pass**, with logs `runs/stage6_pilot/w3-worker-stop-suite-final.log` and
 `runs/stage6_pilot/integration-suite-final.log`. The independent reviewer's
 truncated-response finding was reproduced, fixed and rechecked. No remaining
 actionable review findings. The combined checkout remains local and unpushed.
+
+**Compute tooling prepared:** `.venv-prime/bin/prime` is installed at
+`prime==0.11.0`, matching `scripts/pod_guard.sh`'s existing pin. Dependencies and
+caches stay under this project. Version and `pods create --help` succeeded with
+version checks disabled; help confirms `--team-id`. No login/account/context
+commands, rentals or API calls were executed. Install receipt:
+`runs/stage6_pilot/prime-cli-freeze.txt`; help:
+`runs/stage6_pilot/prime-pods-create-help.txt`.
+
+```bash
+PRIME_DISABLE_VERSION_CHECK=1 .venv-prime/bin/prime --version
+PRIME_DISABLE_VERSION_CHECK=1 .venv-prime/bin/prime pods create --help
+```
+
+The CLI's account configuration normally uses `~/.prime`. Before any authenticated
+command, keep account setup under this project using the existing project API
+tools or an explicitly supported configuration path; do not move another agent's
+global account context. Account/credential readiness remains pending.
 
 - Core and pairing/spend-guard commits are pushed to PR #3. Frozen-input and
   baseline-contract checks have passed the 356-test suite and focused review.
