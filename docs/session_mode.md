@@ -4,6 +4,9 @@ Owner: Ty / person 3. Branch: `w3-harness`. Goal: one supervisor configuration,
 one accumulated text context, anonymous policies interleaved across RoboCasa
 episodes, with time charged under W1's scoring contract.
 
+New W3 sessions should start with [w3_handoff.md](w3_handoff.md) for the verified
+snapshot, local artifacts and unresolved inputs, then execute this runbook.
+
 ## Sources and scope
 
 Use `docs/briefs/w3_harness.md` and the fixed ownership/interfaces in
