@@ -61,8 +61,10 @@ the common GPU type, selected plans, fixed time parameters and release tag.
    whitespace check. Record results below; mocks do not qualify a robot policy.
 5. **Integration/probe/pilot.** Consume merged W1/W2 dependencies. With settled
    credentials/caps, verify live model names/prices, probe both models with prompt6,
-   supply measured median latencies to W1, then run the eight-episode pilot on one
-   guarded pod. Score using W1's script and preserve every attempt.
+   run the eight-episode pilot on one guarded pod, then calibrate both models on
+   its representative observations. Supply those measured medians to W1, score
+   using W1's script, and preserve every attempt. Synthetic preflight timings
+   are access checks, not the representative calibration used to freeze scoring.
 6. **Final runs.** At the agreed tag and GPU type, baselines first on pod B, attach
    same-pod step-zero hashes to plans, run Sonnet sessions, copy after each phase,
    terminate and verify. Report attempts, cost, model latency and infra exclusions
@@ -184,7 +186,7 @@ PYTHONPATH=src .venv-sim/bin/python -m robot_benchmark.cli session \
   --plan runs/final/podB/plans/scene1000.json --workers runs/final/podB/workers-scene1000.json \
   --agent-config configs/model-sonnet-5-5.dev.json --time-pressure configs/time_pressure.json \
   --session-id sonnet-scene1000 --release-tag release-2026-10-14 \
-  --api-dollar-cap "${W3_API_CAP:?Set the approved total API cap first}" --output runs/final/podB
+  --api-dollar-cap "${W3_FINAL_API_CAP:?Set the final-session allocation within the total API cap}" --output runs/final/podB
 ```
 
 Repeat for all four scene plans. W2 uses the same command on pod A with its own
@@ -255,7 +257,7 @@ PYTHONPATH=src .venv-sim/bin/python -m robot_benchmark.cli session \
   --workers runs/stage6_pilot/inputs/workers.json \
   --time-pressure runs/stage6_pilot/inputs/time-pressure.json \
   --agent-config configs/model-opus-5-5.dev.json --session-id opus-eight \
-  --development --api-dollar-cap "${W3_API_CAP:?Set the approved API cap}" \
+  --development --api-dollar-cap "${W3_PILOT_API_CAP:?Set the pilot allocation within the total API cap}" \
   --output runs/stage6_pilot/opus-pilot
 
 PYTHONPATH=src .venv-sim/bin/python scripts/score_time.py \
@@ -315,12 +317,13 @@ PYTHONPATH=src .venv-sim/bin/python scripts/probe_model.py \
   --observation-indices 0 --repeats 3 \
   --time-pressure runs/stage6_pilot/inputs/time-pressure.json --task CloseFridge \
   --policy-label K --experience runs/stage6_pilot/inputs/experience-before-0002.json \
-  --api-dollar-cap "${W3_CALIBRATION_API_CAP:?Set a separate approved calibration cap}" \
+  --api-dollar-cap "${W3_CALIBRATION_FIRST_API_CAP:?Set the first-observation calibration allocation}" \
   --output runs/stage6_pilot/calibration-first/probe.json
 ```
 
 Inspect the stored observation count before choosing a mid-episode index and
-repeat that probe into a new directory with the corresponding index. A one-call
+repeat that probe into a new directory with the corresponding index and
+`W3_CALIBRATION_MID_API_CAP` as its separate allocation. A one-call
 episode has no mid-episode observation; select another recorded episode and
 derive its preceding experience instead of inventing frames. Record sample
 counts, context lengths, retries and separate first/mid medians alongside the
@@ -391,7 +394,7 @@ into `main`, selection, configuration freezing and the release tag.
   worker checkpoint qualification with W2. Check wallet/offers/model access
   before creating a guarded pod. Credentials are never printed or committed.
 - [ ] **4. Preflight → pilot → calibration.** Execute the exact development
-  commands above. Preserve every attempt, verify eight completed non-infra
+  commands above. Preserve every attempt, verify eight terminal non-infra
   episodes, score with W1, and measure both models on representative first/mid
   stored observations. Give W1 sample counts, medians, config/commit identity
   and artifact paths. Missing/failed calls remain recorded, never invented.
@@ -403,6 +406,135 @@ into `main`, selection, configuration freezing and the release tag.
   usage, pilot scoring and final attempt counts. W1 writes the combined report;
   W3 checks its claims against artifacts. Completion requires real execution,
   scoring and integrated code, not only passing local tests.
+
+### Live execution gates and rationale (October 14, refreshed)
+
+The user reports adding both keys. A fresh presence-only check of the project
+`.env` and shell still sees neither `PRIME_API_KEY` nor `ANTHROPIC_API_KEY`.
+The `.env` remains mode 600. Key location and separate API/compute dollar caps
+have been requested; values must not be posted in chat. No paid call or rental
+has been attempted. Possessing a key is different from making it available to
+this process; do not search unrelated credential stores or overwrite an account.
+
+**1. Establish one reproducible starting point.** Fetch before each phase and
+record the exact branch SHAs. The current snapshots are main `2663171`,
+W1 `efaac23`, W2 `945cb7a`, and W3 `845d963`. Continue using the detached local
+integration checkout for development validation; do not merge partner branches
+into `w3-harness` or push the disposable merge. Tom still owns the release merge.
+The three frozen learned policies are experimental subjects, not code for W3
+to modify or train. The pilot needs only the already measured `groot` and
+`groot_u30`; do not wait for or duplicate W2's π0.5 qualification to run it.
+
+**Why:** this unblocks W1's calibration dependency while W2 measures π0.5,
+without taking over task selection, scoring, or the policy ladder.
+
+**2. Resolve credentials, account, allocations and API access before rental.**
+Read the named local credential source without printing it. Confirm the Prime
+billing scope (personal versus an explicitly selected team), wallet and current
+offers with read-only requests. Check official model access/pricing, then run
+the two-model v6 synthetic preflight above: one first and one mid observation
+per model, four logical calls before retries, effort medium. Require successful
+strict JSON and valid decisions; retain failed requests and stop to diagnose.
+Do not silently substitute a model ID or effort level when access fails.
+
+For read-only Prime checks, reuse `adapters.http.request_json` with GET and an
+in-memory bearer header. Installed `prime==0.11.0` source identifies
+`https://api.primeintellect.ai/api/v1/user/whoami`, `/billing/wallet`, `/pods`
+and `/availability/gpus`. Keep responses in the ignored readiness directory and
+only report account scope, balance, pod IDs and relevant offers. Do not print
+headers. The installed CLI/SDK eagerly initializes `~/.prime` even with an
+explicit key, and `prime whoami` persists identity, so neither is the mechanism
+for these project-local read-only checks. Do not override `HOME`.
+
+Use separate allocations `W3_PREFLIGHT_API_CAP`, `W3_PILOT_API_CAP`,
+`W3_CALIBRATION_FIRST_API_CAP`, `W3_CALIBRATION_MID_API_CAP`, and
+`W3_FINAL_API_CAP`. Their sum
+must not exceed the user's total `W3_API_CAP`; different output directories
+have independent ledgers. In particular, do not give the pilot the whole total
+and then spend additional independent allocations. Conservative per-attempt
+headroom is $5.08192 for Opus and $2.54096 for Sonnet under the currently
+implemented standard-price guard; these are reservation bounds, not forecasts.
+Choose actual allocations only after total caps are supplied and prices verified.
+
+**Why:** failed API access should not consume rented GPU time. Explicit allocation
+also prevents several individually capped phases from exceeding the total budget.
+
+**3. Prepare the guarded development pod.** Compare offers with at least 16 CPU
+cores, GPU memory for the qualified workers, and the GPU type agreed with W2.
+Record quote, account, pod ID, hourly price, image and a hard deadline before
+work begins. Include setup time, storage/other quoted charges and the pod-side
+backstop's 45-minute grace in the compute allocation; do not infer a deadline
+from GPU hourly price alone. Arm the existing external watchdog before rental,
+bind its exact returned pod ID, then arm the pod-side backstop before experiments.
+Verify the watchdog's process can actually access credentials independently of
+the interactive shell. Keep account configuration and caches inside this project.
+Reuse W2's pinned bootstrap/checkpoints, verify worker health and identity, and
+run the existing preflight checks. Never replace a failed learned policy with a
+mock or a script. Do not modify the unowned guard/bootstrap scripts without Tom.
+
+**Why:** previous project runs lost money and data when the laptop slept. CPU
+throughput matters for RoboCasa, and watchdog readiness is an execution gate,
+not something to add after a run is underway.
+
+**4. Run and score the development pilot.** Use the exact eight-entry plan above
+(two tasks × two scenes × two qualified policies), one Opus configuration,
+anonymous labels, and only projected earlier terminal outcomes. Copy provisional
+timing inputs before starting. Preserve session/episode manifests, JSONL,
+decisions, usage, timings, errors, videos and observation PNGs. Eight terminal
+non-infrastructure episodes complete this pilot even if robot tasks fail; fewer
+than eight are a partial pilot, not a reason to delete attempts. A dead worker,
+budget exhaustion or repeated infrastructure failures stops execution. W1's
+scorer must read all retained attempts and separately count exclusions. This
+validates the real path, not a final score or a baseline regret comparison.
+
+**5. Measure latency from the pilot, then hand off the freeze inputs.** Replay
+one first observation and one existing mid-episode observation three times per
+model (12 logical calls total before retries), with matching task, anonymous
+label and only that episode's preceding projected experience. If a recorded
+episode lacks a mid observation, choose another recorded episode and reconstruct
+its own preceding experience; never invent an observation. Preserve per-call
+durations, retries, usage and failures. Report first/mid and pooled medians,
+successful/attempted call counts, experience lengths, prompt/model configuration
+and source SHA to W1. Keep synthetic preflight and pilot calls out of that pooled
+replay calibration. Small sample size is a limitation, not evidence of precision.
+Copy back the pilot and calibration frames before terminating the pod.
+
+**Why:** the number and size of images and earlier records affect response time.
+Representative measured costs let W1 freeze charges and W2/W1 compute story
+limits; historical charges and synthetic images cannot establish those costs.
+
+**6. Run final pod B only after Tom's freeze.** Require a clean tagged checkout,
+frozen timing/story configuration, selected task/policy list, ordered plans,
+qualified workers and the common GPU type. If π0.5 remains unavailable, Tom
+chooses whether to delay or use two policies; W3 does not choose a replacement.
+Run always-defer first on every selected cell, then create same-pod paired
+plans/audits, run all four Sonnet sessions in order, then `reissue_200` over the
+same selected cells. With three policies and seven tasks this is 84 + 84 + 84
+= 252 episodes; a formally approved two-policy design would change the count.
+Restart baselines remain unpaired. Keep sessions sequential within each context;
+do not increase concurrency in a way that changes live model latency conditions.
+
+**Why:** identical starting states and a frozen evaluation contract make the
+supervisor comparison interpretable. Final episodes must not begin on provisional
+parameters just to fill the presentation's results table.
+
+**7. Deliver evidence and keep partners current.** At each completed phase,
+copy JSON/JSONL/MP4 and cost receipts to W3's run directories, update
+`docs/stage6_pilot.md`, run the required full unittest suite before pushing,
+push only W3-owned documentation/code, and fetch partner branches again. Preserve
+PNG frames through calibration; final archival follows W1's compact-copy rule.
+Do not commit credentials, large artifacts, or the integration checkout. Give W2
+the documented Opus command for pod A. Terminate the exact W3 pod and verify its
+status before claiming completion. W1 owns the final analysis and report; W3
+supplies measurements, attempt counts, exclusions and reproducible commands.
+
+**Fresh no-spend execution:** the exact eight-entry development plan and both
+models' four prompt6 first/mid payloads passed dry runs against the combined
+checkout. Receipt and input hashes:
+`runs/stage6_pilot/readiness-20261014T195057Z/readiness.json`.
+This made zero model calls and ran zero robot episodes. The release tag is still
+absent. The immediate live gates are credential visibility and dollar caps;
+final execution additionally waits on partner qualification/selection/freeze.
 
 **Review focus:** timing-schema drift; worker-label/backend mismatch; scorer
 ignoring retained infrastructure attempts; cross-pod baseline pairing; partial
@@ -472,8 +604,8 @@ global account context. Account/credential readiness remains pending.
   checked offline; full integrated live evidence is still required.
 - Credentials/caps/account selection are external prerequisites. Once available,
   prepare the project-local Prime environment, verify wallet/offers and API access,
-  run both v6 latency probes, then the guarded eight-episode pilot. Deliver actual
-  medians and scored pilot evidence to W1 through this branch.
+  run the API preflight, guarded eight-episode pilot and representative v6 latency
+  probes. Deliver actual medians and scored pilot evidence through this branch.
 - Run final pod B only after the agreed tag/GPU type/task plans exist. Keep the
   full W3 goal active until the code is integrated, measured timings are available,
   the pilot is scored and final sessions/artifacts are complete. Local tests alone

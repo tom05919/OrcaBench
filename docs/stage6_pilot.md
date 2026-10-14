@@ -31,6 +31,14 @@ evidence only.
 - Applied W1's requested story-clock wording and confirmed pod B's expanded
   assignment at W1 `efaac23`. Fresh checks: 361 W3 and 386 combined tests pass;
   review found no actionable issues. Calibration must use this corrected prompt.
+- Refetched GitHub: main `2663171`, W1 `efaac23`, W2 `945cb7a`, W3 `845d963`;
+  no newer partner commits or release tag were present. A fresh offline readiness
+  check validated the exact eight-entry pilot plan and four v6 payloads covering
+  both models' first/mid synthetic observations. Both commands exited 0, with
+  zero real model calls and zero robot episodes. Input hashes and commands:
+  `runs/stage6_pilot/readiness-20261014T195057Z/readiness.json` (local, ignored).
+- Full W3 suite rerun before publishing the execution plan: 361 tests passed
+  in 6.613 seconds; log `runs/stage6_pilot/w3-execution-plan-suite.log`.
 
 | Required runtime evidence | Status |
 |---|---|
@@ -69,5 +77,9 @@ version/help checks passed without login or paid actions. Currently this checkou
 has no Anthropic/Prime credentials and no
 integrated frozen timing, final plans or release tag. These runtime prerequisites
 remain open; successful mock tests do not complete W3's assignment.
-An empty mode-600 `.env` template now exists locally for credential/cap setup;
-no account key or spending limit has been supplied yet.
+The user reports adding both keys, but a fresh presence-only check of the
+mode-600 project `.env` and process environment still finds neither key.
+The credential location and separate compute/API spending limits have been
+requested. Do not interpret this discrepancy as invalid keys or failed API
+authentication: no authenticated request has been attempted. The expanded
+execution gates, phase allocations and reasoning are in `session_mode.md`.
