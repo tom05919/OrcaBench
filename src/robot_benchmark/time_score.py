@@ -208,6 +208,82 @@ def best_fixed_rules(episodes, config, horizons):
     return rules
 
 
+def _median(values):
+    values = sorted(values)
+    return values[len(values) // 2] if values else None
+
+
+def pooled_rules(episodes, config, horizons):
+    """The best single no-restart declaration step per task, chosen over every policy's runs together: the rule a
+    supervisor that ignores which policy it supervises would use. Returns {task: step} and, per (backend, task), that
+    step's value on the backend's own runs. A policy's own rule minus this is what adapting to the policy is worth."""
+    cells = {key: runs for key, runs in rule_runs(episodes, config).items() if key[2] == "no_restart"}
+    steps = {}
+    for task in sorted({task for _, task, _ in cells}):
+        pooled = [run for (_, t, _), runs in cells.items() if t == task for run in runs]
+        steps[task] = best_step(pooled, config, task, horizons[task])
+    values = {(backend, task): rule_value(runs, config, task, steps[task]) for (backend, task, _), runs in cells.items()}
+    return steps, values
+
+
+def best_rule_value(rules, backend, task):
+    """The best fixed rule's value over every restart family for (backend, task), or None."""
+    values = [r["value"] for (b, t, _), r in rules.items() if (b, t) == (backend, task)]
+    return max(values) if values else None
+
+
+def read_session(path):
+    """A W3 session: the entries of `session.jsonl` in order, each with its episode loaded. `episode_dir` may be
+    absolute, relative to the session folder, or relative to the run root (`<root>/sessions/<id>/session.jsonl`)."""
+    path = Path(path)
+    entries = []
+    for entry in _jsonl(path):
+        folder = Path(entry["episode_dir"])
+        if not folder.is_absolute():
+            candidates = [path.parent / folder, path.parent.parent.parent / folder]
+            folder = next((c for c in candidates if (c / "result.json").exists()), candidates[0])
+        entries.append({**entry, "episode": read_episode(folder)})
+    return entries
+
+
+def session_summary(entries, config, rules, pooled_values):
+    """Per anonymous policy label in one session: value, regret against the best fixed rule for that policy, the
+    pooled rule's value on the same cells, behaviour, and learning (second-half minus first-half regret; negative
+    means the supervisor improved on that policy as the session went on)."""
+    by_label, skipped = {}, 0
+    for order, entry in enumerate(entries):
+        e = entry["episode"]
+        if e["infrastructure_error"]:
+            skipped += 1
+            continue
+        scored, behaviour = score_episode(e, config), supervisor_measures(e)
+        best = best_rule_value(rules, e["backend"], e["task"])
+        by_label.setdefault(entry["policy_label"], []).append({
+            "order": order, "backend": e["backend"], "task": e["task"], "value": scored["value"],
+            "regret": None if best is None else best - scored["value"],
+            "pooled_value": pooled_values.get((e["backend"], e["task"])), "calls": scored["calls"],
+            "interval": behaviour["median_interval"], "restarts": behaviour["restarts"],
+            "rewrites": behaviour["prompt_changes"], "declaration": behaviour["declaration"]})
+    mean = lambda xs: sum(xs) / len(xs) if xs else None
+    summary = {}
+    for label, rows in by_label.items():
+        regrets = [r["regret"] for r in rows if r["regret"] is not None]
+        half = len(regrets) // 2
+        declarations = {}
+        for r in rows:
+            declarations[r["declaration"]] = declarations.get(r["declaration"], 0) + 1
+        summary[label] = {
+            "backend": rows[0]["backend"], "n": len(rows), "value": mean([r["value"] for r in rows]),
+            "regret": mean(regrets),
+            "pooled_rule_value": mean([r["pooled_value"] for r in rows if r["pooled_value"] is not None]),
+            "learning": (mean(regrets[half:]) - mean(regrets[:half])) if half else None,
+            "calls": mean([r["calls"] for r in rows]), "restarts": mean([r["restarts"] for r in rows]),
+            "rewrites": mean([r["rewrites"] for r in rows]),
+            "median_interval": _median([r["interval"] for r in rows if r["interval"]]),
+            "declarations": declarations}
+    return {"policies": summary, "infrastructure_errors": skipped}
+
+
 def supervisor_measures(episode):
     """How a supervisor behaved: declaration timing against the checker, check-in intervals, interruptions."""
     first_success = next((i for i, ok in enumerate(episode["success_by_step"]) if ok), None)
@@ -223,5 +299,5 @@ def supervisor_measures(episode):
     else:
         timing = "false: reached, then lost"
     return {"declaration": timing, "lag_seconds": lag, "calls": episode["calls"],
-            "median_interval": sorted(episode["intervals"])[len(episode["intervals"]) // 2] if episode["intervals"] else None,
+            "median_interval": _median(episode["intervals"]),
             "prompt_changes": episode["prompt_changes"], "restarts": episode["prompt_restarts"]}

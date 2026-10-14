@@ -14,13 +14,15 @@ rule: declare at step T, chosen in hindsight. It then scores every LLM episode:
 import argparse
 import json
 from pathlib import Path
+import random
 import statistics
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from robot_benchmark.time_score import (best_fixed_rules, best_step, load_config, read_episode, rule_runs,  # noqa: E402
-                                        rule_source, rule_value, score_episode, supervisor_measures)
+from robot_benchmark.time_score import (best_fixed_rules, best_step, load_config, pooled_rules,  # noqa: E402
+                                        read_episode, read_session, rule_runs, rule_source, rule_value,
+                                        score_episode, session_summary, supervisor_measures)
 
 
 def horizons():
@@ -56,7 +58,8 @@ def score(episodes, config, limits):
         families = [r for (b, t, _), r in rules.items() if (b, t) == (e["backend"], e["task"])]
         best = max(families, key=lambda r: r["value"]) if families else None
         scored, behaviour = score_episode(e, config), supervisor_measures(e)
-        row = {"value": scored["value"], "success": scored["success"], "charged_seconds": scored["charged_seconds"],
+        row = {"task": e["task"], "scene": e["scene_seed"], "backend": e["backend"],
+               "value": scored["value"], "success": scored["success"], "charged_seconds": scored["charged_seconds"],
                "calls": scored["calls"], "declaration": behaviour["declaration"], "lag_seconds": behaviour["lag_seconds"],
                "restarts": behaviour["restarts"], "prompt_changes": behaviour["prompt_changes"],
                "regret": None if best is None else best["value"] - scored["value"]}
@@ -72,6 +75,60 @@ def score(episodes, config, limits):
                 row["paired_regret_heldout"] = rule_value(twins, config, e["task"], step) - scored["value"]
         cells.setdefault((e["agent"], e["backend"], e["task"]), []).append(row)
     return rules, cells
+
+
+def clustered_bootstrap(rows, key, draws=5000, seed=0):
+    """Mean of `key` and a 95% interval, resampling (task, scene) clusters with replacement."""
+    clusters = {}
+    for r in rows:
+        if r.get(key) is not None:
+            clusters.setdefault((r["task"], r["scene"]), []).append(r[key])
+    if not clusters:
+        return None
+    keys, rng, means = sorted(clusters), random.Random(seed), []
+    for _ in range(draws):
+        sample = [v for k in (rng.choice(keys) for _ in keys) for v in clusters[k]]
+        means.append(sum(sample) / len(sample))
+    means.sort()
+    values = [v for vs in clusters.values() for v in vs]
+    return {"mean": round(sum(values) / len(values), 3), "ci95": [round(means[int(0.025 * draws)], 3),
+            round(means[int(0.975 * draws)], 3)], "episodes": len(values), "clusters": len(keys)}
+
+
+def difference(rows_a, rows_b, key, draws=5000, seed=0):
+    """Mean of `key` for A minus B, with a 95% interval over (task, scene) clusters present for both."""
+    group = lambda rows: {k: [r[key] for r in rows if (r["task"], r["scene"]) == k and r.get(key) is not None]
+                          for k in {(r["task"], r["scene"]) for r in rows}}
+    a, b = group(rows_a), group(rows_b)
+    keys = sorted(k for k in a if a[k] and b.get(k))
+    if not keys:
+        return None
+    rng, diffs = random.Random(seed), []
+    for _ in range(draws):
+        pick = [rng.choice(keys) for _ in keys]
+        sa = [v for k in pick for v in a[k]]
+        sb = [v for k in pick for v in b[k]]
+        diffs.append(sum(sa) / len(sa) - sum(sb) / len(sb))
+    diffs.sort()
+    point = (sum(v for k in keys for v in a[k]) / sum(len(a[k]) for k in keys)
+             - sum(v for k in keys for v in b[k]) / sum(len(b[k]) for k in keys))
+    return {"mean": round(point, 3), "ci95": [round(diffs[int(0.025 * draws)], 3), round(diffs[int(0.975 * draws)], 3)],
+            "clusters": len(keys)}
+
+
+def primary(cells):
+    """The pre-declared primary result (docs/final_experiment.md): per model, paired held-out regret with a clustered
+    bootstrap interval, and the difference between every pair of models."""
+    by_model = {}
+    for (agent, _, _), rows in cells.items():
+        by_model.setdefault(agent, []).extend(rows)
+    out = {"per_model": {m: clustered_bootstrap(rows, "paired_regret_heldout") for m, rows in sorted(by_model.items())},
+           "differences": {}}
+    models = sorted(by_model)
+    for i, a in enumerate(models):
+        for b in models[i + 1:]:
+            out["differences"][f"{a} - {b}"] = difference(by_model[a], by_model[b], "paired_regret_heldout")
+    return out
 
 
 def summarize(rules, cells):
@@ -106,7 +163,9 @@ def main():
     config, limits = load_config(args.config), horizons()
     episodes = load(args.roots)
     report = {"roots": [str(r) for r in args.roots], "call_seconds": config["call_seconds"], "episodes": len(episodes)}
-    report.update(summarize(*score(episodes, config, limits)))
+    rules, cells = score(episodes, config, limits)
+    report.update(summarize(rules, cells))
+    report["primary"] = primary(cells)
     print(f"{len(episodes)} episodes; seconds per call {config['call_seconds']}\n\nBest fixed rule (declare at step T, "
           "in hindsight) per backend and task:")
     for r in report["fixed_rules"]:
@@ -119,6 +178,37 @@ def main():
               f"value {s['value']:.3f} regret {s['regret']} paired {s['paired_regret']} held-out "
               f"{s['paired_regret_heldout']} (n={s['paired_n']}) "
               f"calls {s['calls']} rewrites {s['prompt_changes']} restarts {s['restarts']} {s['declarations']}")
+    print("\nPrimary (paired held-out regret; positive means the fixed rule did better):")
+    for model, result in report["primary"]["per_model"].items():
+        print(f"  {model}: {result}")
+    for pair, result in report["primary"]["differences"].items():
+        print(f"  {pair}: {result}")
+    sessions = sorted(path for root in args.roots for path in Path(root).rglob("session.jsonl"))
+    if sessions:
+        rules = best_fixed_rules(episodes, config, limits)
+        _, pooled = pooled_rules(episodes, config, limits)
+        report["sessions"], totals = [], {}
+        print("\nSessions (per anonymous policy label; learning < 0 means regret fell in the second half):")
+        for path in sessions:
+            entries = read_session(path)
+            model = next((e["episode"]["agent"] for e in entries if e["episode"]["llm"]), None)
+            summary = session_summary(entries, config, rules, pooled)
+            report["sessions"].append({"path": str(path), "model": model, **summary})
+            for label, p in summary["policies"].items():
+                print(f"  {path.parent.name:14s} {model} {label} ({p['backend']}) n={p['n']} value {p['value']:.3f} "
+                      f"regret {p['regret']} pooled-rule value {p['pooled_rule_value']} learning {p['learning']} "
+                      f"calls {p['calls']} interval {p['median_interval']} restarts {p['restarts']}")
+                totals.setdefault((model, p["backend"]), []).append(p)
+        report["session_totals"] = []
+        print("\nAcross sessions, per model and policy:")
+        for (model, backend), rows in sorted(totals.items(), key=lambda item: tuple(map(str, item[0]))):
+            weighted = lambda key: mean([p[key] for p in rows for _ in range(p["n"]) if p[key] is not None])
+            row = {"model": model, "backend": backend, "episodes": sum(p["n"] for p in rows),
+                   "value": weighted("value"), "regret": weighted("regret"),
+                   "pooled_rule_value": weighted("pooled_rule_value"), "learning": mean(
+                       [p["learning"] for p in rows if p["learning"] is not None])}
+            report["session_totals"].append(row)
+            print(f"  {model} {backend}: {row}")
     if args.call_seconds:
         report["sensitivity"] = {}
         print("\nSensitivity to the call charge (all LLM episodes pooled):")

@@ -8,6 +8,9 @@
 >   several policies of different ability.
 > - **Environment:** real RoboCasa tasks, mixing unseen composite tasks with trained ones. Time is charged on the task
 >   clock for every LLM call.
+> - **Score:** value = success × (1 − charged time / deadline), with each model's calibrated latency charged per call;
+>   scored against the best fixed supervision rule (`docs/time_score.md`, `python3 scripts/score_time.py <run roots>`).
+>   The final experiment and the report draft are `docs/final_experiment.md` and `docs/report.md`.
 > - **Evidence so far:** stages 2-5 in `docs/stage*_results.md`, and the abstract simulator in `docs/sim_results.md`.
 > - **Out of date:** the sections below describe the September 27 CerealAndBowl pilot and the October 1
 >   intervention-judgement design. They are kept for their commands and history.

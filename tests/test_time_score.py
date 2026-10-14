@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from robot_benchmark.time_score import (best_fixed_rules, load_config, read_episode, score_episode, success_at,
-                                        supervisor_measures, value)
+from robot_benchmark.time_score import (best_fixed_rules, load_config, pooled_rules, read_episode, read_session,
+                                        score_episode, session_summary, success_at, supervisor_measures, value)
 
 LLM_AGENT = {"provider": "anthropic", "model": "claude-opus-5-5"}
 SCRIPTED = {"kind": "diagnostic", "model": "ordinary_full_task_policy"}
@@ -15,7 +15,7 @@ CONFIG = {"call_seconds": {"claude-opus-5-5": 5.0}, "tasks": {
 
 
 def episode(root, name, task="Plain", kind="llm_development", agent=LLM_AGENT, steps=400, success=True,
-            truth=None, extra=None, decisions=(), model_calls=0, false_completion=False, **result):
+            truth=None, extra=None, decisions=(), model_calls=0, false_completion=False, backend="groot", **result):
     """An episode folder; `truth` is the per-step checker state, `extra` maps predicate names to per-step lists."""
     folder = Path(root) / name
     (folder / "evaluator").mkdir(parents=True)
@@ -24,7 +24,7 @@ def episode(root, name, task="Plain", kind="llm_development", agent=LLM_AGENT, s
         "scene_seed": 1000, "policy_seed": 0, "steps": steps, "success": success, "false_completion": false_completion,
         "model_calls": model_calls, "infrastructure_error": None, "intervals": [100] * (steps // 100), **result}))
     (folder / "manifest.json").write_text(json.dumps({"task": task, "kind": kind, "agent": agent,
-                                                      "policy": {"backend": "groot"}}))
+                                                      "policy": {"backend": backend}}))
     (folder / "decisions.jsonl").write_text("".join(json.dumps(d) + "\n" for d in decisions))
     rows = []
     for step, ok in enumerate(truth):
@@ -144,6 +144,45 @@ class TimeScoreTests(unittest.TestCase):
         shipped = load_config(Path(__file__).resolve().parents[1] / "configs" / "time_pressure.json")
         tasks = {p.stem for p in (Path(__file__).resolve().parents[1] / "configs" / "tasks").glob("*.json")}
         self.assertEqual(set(shipped["tasks"]), tasks)
+
+
+class PooledAndSessionTests(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        for backend, first in (("fast", 100), ("slow", 400)):
+            for i in range(2):
+                episode(self.root / "runs", f"{backend}{i}", kind="diagnostic_reference", agent=SCRIPTED,
+                        backend=backend, steps=first, truth=[False] * first + [True])
+        self.runs = [read_episode(p) for p in sorted((self.root / "runs").iterdir())]
+
+    def test_pooled_rule_is_one_step_for_every_policy_and_adaptation_has_a_value(self):
+        steps, values = pooled_rules(self.runs, CONFIG, {"Plain": 1000})
+        self.assertEqual(steps, {"Plain": 400})  # declaring at 100 would fail every slow run
+        own = best_fixed_rules(self.runs, CONFIG, {"Plain": 1000})
+        self.assertAlmostEqual(own[("fast", "Plain", "no_restart")]["value"], 0.95)
+        self.assertAlmostEqual(values[("fast", "Plain")], 0.80)  # adapting to the fast policy is worth 0.15
+
+    def test_session_summary_scores_each_label_and_its_learning(self):
+        session = self.root / "sessions" / "s1"
+        session.mkdir(parents=True)
+        lines = []
+        for order, (label, backend, steps) in enumerate((("K", "fast", 300), ("R", "slow", 450), ("K", "fast", 120),
+                                                         ("R", "slow", 420))):
+            name = f"ep{order}"
+            episode(session / "episodes", name, backend=backend, steps=steps, truth=[False] * steps + [True],
+                    model_calls=2, decisions=[run(0, steps, "go"), COMPLETE(steps)])
+            lines.append(json.dumps({"session_id": "s1", "index": order, "policy_label": label, "backend": backend,
+                                     "task": "Plain", "scene_seed": 1000, "policy_seed": 0,
+                                     "episode_dir": f"episodes/{name}"}) + "\n")
+        (session / "session.jsonl").write_text("".join(lines))
+        rules = best_fixed_rules(self.runs, CONFIG, {"Plain": 1000})
+        _, pooled = pooled_rules(self.runs, CONFIG, {"Plain": 1000})
+        summary = session_summary(read_session(session / "session.jsonl"), CONFIG, rules, pooled)["policies"]
+        k = summary["K"]  # values 1 - (15 + 10)/100 = 0.75, then 1 - (6 + 10)/100 = 0.84; own rule 0.95
+        self.assertEqual((k["backend"], k["n"]), ("fast", 2))
+        self.assertAlmostEqual(k["regret"], ((0.95 - 0.75) + (0.95 - 0.84)) / 2)
+        self.assertAlmostEqual(k["learning"], (0.95 - 0.84) - (0.95 - 0.75))  # negative: it improved
+        self.assertAlmostEqual(k["pooled_rule_value"], 0.80)
 
 
 if __name__ == "__main__":

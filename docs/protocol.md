@@ -175,6 +175,24 @@ and policy time, and infrastructure errors. Preserve every attempted episode.
 Infrastructure-incomplete attempts remain visible but are not silently converted
 into model failures or replaced without provenance.
 
+## Time-charged score (October 13, 2026; supersedes binary success as the primary score)
+
+Binary success above still decides whether an episode succeeded. The benchmark's primary per-episode score is now
+**value = success × max(0, 1 − charged_seconds / deadline_seconds)**.
+
+- **charged_seconds:** robot seconds to the end of the episode, plus the supervisor model's calibrated seconds per
+  response, for every response including rejected ones. Each model's charge is its median latency measured once under
+  the final prompt and effort, then frozen. Scripted baselines are not charged.
+- **deadline_seconds:** the task's step budget in seconds.
+- **Story tasks** also fail if more than `limit_seconds` of charged time pass between their trigger predicate and the
+  declaration.
+- **Failures score 0** however long they took, so a false completion never pays.
+
+The primary experiment result is **paired held-out regret** against the best fixed rule, with a clustered bootstrap
+interval. Settings live in `configs/time_pressure.json`; the definitions, the offline validation and the fixed-rule
+family are in `docs/time_score.md`; the analysis plan is in `docs/final_experiment.md`. The scoring module is
+analysis-only and outside the contract hash, like `scorecard.py`.
+
 ## Diagnostic oracle
 
 A hand-authored supervisor may read simulator truth only for feasibility and

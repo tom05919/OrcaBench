@@ -90,8 +90,19 @@ The day-by-day plan to October 16 is `docs/work_split.md`. In order of dependenc
    with PortionHotDogs and GarnishPancake?
 2. **W3 session mode.** The real harness runs every episode independently; the benchmark needs one supervisor that sees
    earlier episodes' outcomes across several policies. Add the time-aware prompt (version 6).
-3. **W1 time-charged scoring and the best fixed rule.** Apply them offline to stages 3-5 first. Fix the time parameters
-   and `docs/final_experiment.md` on October 14.
+3. **W1 is done up to its external inputs (October 13, branch `w1-scoring`):**
+   - **Built and tested:** the time-charged score (`time_score.py`, `scripts/score_time.py`), session scoring, the
+     clustered-bootstrap primary result, the story-limit rule (`scripts/set_story_limits.py`), the final selection
+     rules (`scripts/select_final.py`), and session plans (`scripts/make_session_plans.py`).
+   - **Written:** `docs/time_score.md` (with the offline validation on stage 3), `docs/final_experiment.md` (protocol,
+     freeze checklist, analysis plan) and the `docs/report.md` draft.
+   - **Decided by Tom:** a per-model call charge, deadline = step budget, the first response charged, and restart
+     baselines on one pod.
+   - **Still waiting for:**
+     - W2's ladder table and ceiling summary, for the selection and story limits;
+     - W3's latency calibration and session mode;
+     - the final runs, for report section 5;
+     - stage 4's restart runs from Ranveer (copy their JSON into `runs/stage4_remote/`) for the offline restart rules.
 4. **Tag one commit.** Then run baselines, Opus 5.5 and Sonnet 5.5 sessions on one GPU type (pods A and B), and write
    it up.
 5. **Smaller items:**

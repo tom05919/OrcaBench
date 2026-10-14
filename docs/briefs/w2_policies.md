@@ -70,6 +70,8 @@ GPU work on your own credits, plus file changes in the files you own.
      1000-1003 × policy seeds 0-1.
    - **Reading rule, fixed before results:** if the sequencer succeeds in at least 2 more of 8 paired episodes than
      plain, re-prompting can help on that task.
+   - **Summary for W1:** write `runs/stage6_ceiling/summary.json` in the format fixed in `docs/work_split.md`.
+     `scripts/select_final.py` applies the selection rules to it and to the ladder table.
    - **Test update:** `tests/test_task_catalog.py` currently requires `SEQUENCES` to cover exactly the
      `composite_seen` tasks; update it.
 4. **Trigger predicates for W1**, with the names fixed in `docs/work_split.md`:
