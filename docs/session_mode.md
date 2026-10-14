@@ -424,6 +424,15 @@ once its inputs arrive. Do not repeat completed mock checks as live progress.
 Receipt: `runs/stage6_pilot/continuation-20261014T195929Z/readiness.json`;
 status and W1-facing null measurement table: `docs/stage6_pilot.md`.
 
+**Credential gate update (October 14, 20:03 UTC):** the saved project `.env` now
+contains both keys. Read-only authenticated Prime identity/default-wallet/pod
+GETs and both Anthropic model GETs returned HTTP 200. The default Prime wallet
+is personal and reports zero pods. No paid model request or rental occurred;
+the v6 preflight remains unrun. Explicit compute/API totals, phase allocations
+and the desired billing scope remain open, so step 3 is not yet complete. The
+latest receipt is `runs/stage6_pilot/credentials-20261014T200315Z/readiness.json`;
+it supersedes earlier credential-visibility findings without changing them.
+
 ### Live execution gates and rationale (October 14, refreshed)
 
 The user reports adding both keys. A fresh presence-only check of the project

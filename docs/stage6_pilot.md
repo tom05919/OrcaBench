@@ -4,6 +4,28 @@
 robot-policy pilot results from W3. Local test results below are implementation
 evidence only.
 
+## Credential access cleared — October 14, 20:03 UTC
+
+After the user saved `.env`, both API keys are now present in that mode-600 file.
+Read-only authenticated GETs succeeded with HTTP 200 for Prime identity, its
+default wallet and pod list, and Anthropic's individual Opus/Sonnet model
+endpoints. Both returned the configured model IDs. Prime's default wallet has
+`team_id: null` (personal scope) and its pod list reports zero pods. This does
+not establish the user's desired billing scope or an authorized dollar cap.
+
+The separate total compute/API caps and phase allocations remain unset; requested
+those totals and the desired personal/team billing choice. No paid Messages
+request, prompt-v6 preflight, robot-policy episode or rental has occurred.
+Read-only model access is not a successful v6 payload/strict-JSON preflight and
+provides no latency calibration. Medians, pilot scores and exclusions remain
+null/unmeasured. GPU agreement and Tom's frozen release are still pending.
+
+Receipt: `runs/stage6_pilot/credentials-20261014T200315Z/readiness.json`.
+Account/model responses are retained beside it in ignored mode-600 files; keys
+and request headers were not printed or saved in those artifacts. This supersedes
+the credential-absence finding below. Resume with phase allocations and the live
+two-model preflight once the separate caps and billing scope are supplied.
+
 ## Continuation check — October 14, 19:59 UTC
 
 Fetched GitHub before proceeding. Main remains `2663171`, W1 `efaac23`, W2
