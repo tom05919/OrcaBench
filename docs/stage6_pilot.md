@@ -15,6 +15,19 @@ evidence only.
   No model requests were sent by these checks.
 - W1's actual session reader was checked against retained mock infrastructure
   attempts at W1 commit `171eb9a`. This verifies artifact compatibility only.
+- Combined W1 `171eb9a`, W2 `945cb7a` and W3 `4c185e6` snapshots passed
+  381 tests in an isolated, detached local checkout. W1-generated 21-entry plans
+  and both W3 prompt6 payloads validated offline. W1's full scorer consumed a
+  W3 CLI/HTTPAgent mock session containing one terminal and one infrastructure
+  attempt, preserving the exclusion and null baseline comparisons. No actual
+  model/robot requests or partner-branch changes occurred.
+- Integration review found and fixed W3's worker-death stop gap. The session now
+  stops after the failed worker's health/identity check fails, including truncated
+  HTTP responses. Healthy workers still allow the existing simulator-error rule.
+  Final fresh checks after the fix: 360 W3 tests and 385 combined tests pass.
+  Independent review confirmed its finding resolved. Logs:
+  `runs/stage6_pilot/w3-worker-stop-suite-final.log` and
+  `runs/stage6_pilot/integration-suite-final.log`.
 
 | Required runtime evidence | Status |
 |---|---|

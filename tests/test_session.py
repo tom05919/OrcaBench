@@ -252,6 +252,23 @@ class SessionTests(unittest.TestCase):
             self.assertEqual(outcome["status"], "api_spend_limit")
             self.assertEqual(outcome["attempted_episodes"], 1)
 
+    def test_dead_worker_stops_before_an_interleaved_healthy_episode(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempted = []
+            def stopped(entry, agent, episode_output, index):
+                attempted.append(entry["backend"])
+                episode_output.mkdir(parents=True)
+                retained = {**result("infrastructure_error"), "session_stop": "policy_worker_unavailable"}
+                (episode_output / "result.json").write_text(json.dumps(retained))
+                return episode_output, retained, []
+            args = self.run_args(tmp, stopped, [plan(), plan(label="R", backend="pi05", seed=1), plan(seed=2)])
+            args["workers"] = {**args["workers"], "R": "http://127.0.0.1:8766"}
+            rows = session.run_session(**args)
+            self.assertEqual(attempted, ["groot"], "A dead worker must stop the session before another backend runs")
+            self.assertEqual(len(rows), 1)
+            state = json.loads((Path(tmp) / "sessions/one/session_result.json").read_text())
+            self.assertEqual(state["status"], "policy_worker_unavailable")
+
     def test_early_setup_error_has_conventional_manifest_and_result_for_w1_reader(self):
         with tempfile.TemporaryDirectory() as tmp:
             def fail(*args):

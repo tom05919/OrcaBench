@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+from http.client import HTTPException
 import json
 import math
 import os
@@ -37,7 +38,8 @@ from .runner import Runner
 from .scorecard import load_scored_episodes, scorecard
 from .screening import freeze_release, label_seeds, load_episodes, native_card_performance
 from .tasks.predicates import SEQUENCES
-from .session import DEFAULT_EXPERIENCE_LIMIT, attach_baseline_states, public_time_context, run_session, validate_plan
+from .session import (DEFAULT_EXPERIENCE_LIMIT, POLICY_WORKER_UNAVAILABLE, attach_baseline_states,
+                      public_time_context, run_session, validate_plan)
 from .video import encode_episode_videos
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -49,6 +51,7 @@ DEFAULT_TIME_PRESSURE = PROJECT_ROOT / "configs" / "time_pressure.json"
 FINAL_PLAN_GLOB = "configs/final/plans/scene*.json"
 FINAL_MODEL_GLOB = "configs/model-*.json"
 FINAL_VIDEO_RECORD_INTERVAL = 10
+WORKER_HEALTH_TIMEOUT_SECONDS = 5
 CONTRACT_FILES = (
     "src/robot_benchmark/cli.py",
     "src/robot_benchmark/session.py",
@@ -549,7 +552,17 @@ def command_session(args):
                              manifest_extra={"session_id": args.session_id, "session_index": index,
                                              "policy_label": entry["policy_label"],
                                              "session_contract_hash": digest(session_contract)})
-        if guard.exhausted:
+        if result.get("status") == "infrastructure_error" or result.get("infrastructure_error"):
+            label = entry["policy_label"]
+            try:
+                health = RemotePolicy(workers[label], timeout=WORKER_HEALTH_TIMEOUT_SECONDS)
+                if health.identity != policies[label].identity:
+                    raise RuntimeError("worker identity changed after the infrastructure failure")
+            except (OSError, RuntimeError, ValueError, HTTPException) as error:
+                result["session_stop"] = POLICY_WORKER_UNAVAILABLE
+                result["session_stop_error"] = f"{type(error).__name__}: {error}"
+                write_json(episode_output / "result.json", result)
+        if guard.exhausted and result.get("session_stop") != POLICY_WORKER_UNAVAILABLE:
             result["session_stop"] = "api_spend_limit"
             write_json(episode_output / "result.json", result)
         decisions_path = episode_output / "decisions.jsonl"

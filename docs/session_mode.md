@@ -342,6 +342,80 @@ Prime GPU credits do not pay these direct Anthropic calls.
 
 ## Next continuation, without redefining completion
 
+### Forward execution plan (October 14)
+
+**Goal:** deliver measured v6 call charges, a scored eight-episode pilot, and
+pod B's final baselines/Sonnet sessions while keeping workstream ownership intact.
+
+**Architecture:** keep implementation on `w3-harness`. Use a detached, ignored
+checkout under `runs/stage6_pilot/integration-check` to test current W1/W2/W3
+snapshots together. Local validation merges are disposable; Tom owns integration
+into `main`, selection, configuration freezing and the release tag.
+
+**Spec:** `docs/briefs/w3_harness.md`, latest W1 `docs/final_experiment.md`.
+**Tools:** Git, Python 3.12 unittest, existing CLI/probe/scorer, guarded Prime pods.
+
+- [x] **1. Combined interface validation, now.** Snapshot the three branch SHAs,
+  create the isolated checkout, merge the snapshots locally, and run
+  `PYTHONPATH=src python -m unittest discover -s tests -v`. Retain merge conflicts
+  and test output in W3's ignored run directory. Resolve only shared append-only
+  decision-log conflicts; any partner-owned code issue is reported without
+  rewriting their branch. Confirm W1 reads/scorers consume real W3-format mock
+  sessions and all W2 worker backends validate. No runtime policy qualification
+  is inferred from these checks.
+- [x] **2. Fix only demonstrated W3 issues.** Write a regression test for any
+  W3-owned defect, verify failure, fix, run focused/full checks and get one
+  bounded review. Commit/push only W3-owned paths, then fetch partner branches.
+  If no W3 issue appears, report that result without manufacturing changes.
+- [ ] **3. Live prerequisites.** Provision Anthropic/Prime credentials locally;
+  record explicit API/GPU caps, billing account, and agreed GPU type. Confirm
+  worker checkpoint qualification with W2. Check wallet/offers/model access
+  before creating a guarded pod. Credentials are never printed or committed.
+- [ ] **4. Preflight → pilot → calibration.** Execute the exact development
+  commands above. Preserve every attempt, verify eight completed non-infra
+  episodes, score with W1, and measure both models on representative first/mid
+  stored observations. Give W1 sample counts, medians, config/commit identity
+  and artifact paths. Missing/failed calls remain recorded, never invented.
+- [ ] **5. Final release → pod B.** Consume Tom's tagged frozen release, generated
+  plans and timing inputs. Run same-pod always-defer first, pair all planned
+  cells, run Sonnet, copy artifacts after each phase, terminate/verify the pod.
+  W2 receives the same documented session command for Opus on pod A.
+- [ ] **6. Delivery audit.** Update `docs/stage6_pilot.md` with actual latency,
+  usage, pilot scoring and final attempt counts. W1 writes the combined report;
+  W3 checks its claims against artifacts. Completion requires real execution,
+  scoring and integrated code, not only passing local tests.
+
+**Review focus:** timing-schema drift; worker-label/backend mismatch; scorer
+ignoring retained infrastructure attempts; cross-pod baseline pairing; partial
+sessions incorrectly presented as eight completed episodes. Existing W3 tests
+cover these locally; steps 1 and 4 must verify the combined and live paths.
+
+**Execution evidence:** partner snapshots W1 `171eb9a`, W2 `945cb7a`, W3
+`4c185e6` combined in a detached local checkout. Only `docs/decisions.md` needed
+conflict resolution, preserving both appended histories; all code merged cleanly.
+Initial combined suite passed 381 tests. W1's generator produced four 21-entry
+plans; W3 validated one offline with all three backends and built both prompt6
+payloads. The actual W3 CLI/HTTPAgent, with mocked transport/environment/policy,
+produced one terminal and one infrastructure attempt. W1's actual `score_time.py`
+read both, charged both successful episode responses and separately reported the
+infrastructure attempt. Baseline regret/learning stayed null. Artifacts:
+`runs/stage6_pilot/integration-check/runs/w3-interface-check/validation.json`
+and `score.json`. These are explicitly mock checks, never benchmark results.
+
+**Demonstrated W3 fix:** after an infrastructure episode, recheck that worker's
+health and identity with a five-second timeout. A dead/replaced worker stops the
+session immediately as `policy_worker_unavailable`, retaining the original
+episode result/error. A simulator failure with a healthy worker keeps the existing
+two-consecutive-error rule. Regression checks cover interleaved backends,
+changed checkpoints, refused connections and truncated HTTP health responses.
+This aligns the existing final stop rule and changes pre-freeze implementation
+hashes; it does not change the model's observations or decision semantics.
+Final verification after the review fix: **360 W3 tests and 385 combined tests
+pass**, with logs `runs/stage6_pilot/w3-worker-stop-suite-final.log` and
+`runs/stage6_pilot/integration-suite-final.log`. The independent reviewer's
+truncated-response finding was reproduced, fixed and rechecked. No remaining
+actionable review findings. The combined checkout remains local and unpushed.
+
 - Core and pairing/spend-guard commits are pushed to PR #3. Frozen-input and
   baseline-contract checks have passed the 356-test suite and focused review.
 - W1 may review the implementation now; merging/tagging remain Tom's integration

@@ -21,6 +21,8 @@ ANONYMOUS_LABELS = ("K", "R", "T", "V", "W", "Z")
 DEFAULT_EXPERIENCE_LIMIT = 24
 MAX_SEED = 2**32 - 1
 DEFAULT_MAX_INFRASTRUCTURE_ERRORS = 2
+POLICY_WORKER_UNAVAILABLE = "policy_worker_unavailable"
+SESSION_STOP_REASONS = frozenset({"api_spend_limit", POLICY_WORKER_UNAVAILABLE})
 PAIR_VALIDATION_PORT_BASE = 8765
 SCORE = "success x max(0, 1 - charged_seconds / deadline_seconds)"
 TERMINAL_STATUSES = frozenset({"success", "false_completion", "step_budget_exhausted", "decision_budget_exhausted"})
@@ -386,8 +388,8 @@ def run_session(*, output, session_id, plan, workers, task_names, agent, run_ent
                 _write(session_dir / "session_result.json", {"status": "interrupted", "attempted_episodes": len(rows)})
                 raise
         consecutive_errors = consecutive_errors + 1 if infrastructure else 0
-        if isinstance(result, dict) and result.get("session_stop") == "api_spend_limit":
-            status = "api_spend_limit"
+        if isinstance(result, dict) and result.get("session_stop") in SESSION_STOP_REASONS:
+            status = result["session_stop"]
             break
         if consecutive_errors >= max_infrastructure_errors:
             status = "infrastructure_error"

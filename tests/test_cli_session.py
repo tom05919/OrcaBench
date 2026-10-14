@@ -1,4 +1,5 @@
 import copy
+from http.client import IncompleteRead
 import json
 import argparse
 import subprocess
@@ -116,6 +117,83 @@ class CliSessionTests(unittest.TestCase):
                 self.assertEqual(cli.main(command), 2)
             agent.assert_not_called()
             self.assertFalse((folder / "run/sessions/test-session").exists())
+
+    def test_failed_worker_health_stops_before_the_next_backend_runs(self):
+        first = FakePolicy()
+        first.identity = {"backend": "groot", "checkpoint_manifest_sha256": "verified"}
+        second = FakePolicy()
+        second.identity = {"backend": "pi05", "checkpoint_manifest_sha256": "verified"}
+        errors = (ConnectionError("health refused"), IncompleteRead(b"partial health response", 17))
+        for error in errors:
+            with self.subTest(error=type(error).__name__), tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory)
+                command = self.inputs(folder)
+                def environment(*args, **kwargs):
+                    env = FakeEnvironment(step_error=ConnectionError("worker died during rollout"))
+                    env.horizon = 750
+                    return env
+                with mock.patch.object(cli, "RemotePolicy", side_effect=[first, second, error]), \
+                        mock.patch.object(cli, "HTTPAgent", side_effect=PublicAgent), \
+                        mock.patch("robot_benchmark.adapters.robocasa.RoboCasaEnvironment", side_effect=environment), \
+                        mock.patch.object(cli, "encode_episode_videos", return_value={}), mock.patch("builtins.print"):
+                    self.assertEqual(cli.main(command), 1)
+                session = folder / "run/sessions/test-session"
+                rows = [json.loads(line) for line in (session / "session.jsonl").read_text().splitlines()]
+                self.assertEqual(len(rows), 1, "Do not attempt an interleaved backend after the failed worker dies")
+                result = json.loads((session / "episodes/0000/result.json").read_text())
+                self.assertEqual(result["status"], "infrastructure_error")
+                self.assertEqual(result["session_stop"], "policy_worker_unavailable")
+                self.assertIn(type(error).__name__, result["session_stop_error"])
+                state = json.loads((session / "session_result.json").read_text())
+                self.assertEqual(state["status"], "policy_worker_unavailable")
+
+    def test_healthy_worker_after_simulator_failure_allows_next_episode(self):
+        first = FakePolicy()
+        first.identity = {"backend": "groot", "checkpoint_manifest_sha256": "verified"}
+        second = FakePolicy()
+        second.identity = {"backend": "pi05", "checkpoint_manifest_sha256": "verified"}
+        failed = FakeEnvironment(step_error=RuntimeError("simulator render failure"))
+        healthy = FakeEnvironment(success=lambda step: step >= 5)
+        failed.horizon = healthy.horizon = 750
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            command = self.inputs(folder)
+            with mock.patch.object(cli, "RemotePolicy", side_effect=[first, second, first]), \
+                    mock.patch.object(cli, "HTTPAgent", side_effect=PublicAgent), \
+                    mock.patch("robot_benchmark.adapters.robocasa.RoboCasaEnvironment", side_effect=[failed, healthy]), \
+                    mock.patch.object(cli, "encode_episode_videos", return_value={}), mock.patch("builtins.print"):
+                self.assertEqual(cli.main(command), 0)
+            session = folder / "run/sessions/test-session"
+            state = json.loads((session / "session_result.json").read_text())
+            self.assertEqual(state["status"], "completed")
+            self.assertEqual(state["attempted_episodes"], 2)
+            first_result = json.loads((session / "episodes/0000/result.json").read_text())
+            self.assertNotIn("session_stop", first_result)
+            self.assertEqual(first_result["status"], "infrastructure_error")
+
+    def test_replaced_worker_identity_stops_after_an_infrastructure_failure(self):
+        first = FakePolicy()
+        first.identity = {"backend": "groot", "checkpoint_manifest_sha256": "verified"}
+        second = FakePolicy()
+        second.identity = {"backend": "pi05", "checkpoint_manifest_sha256": "verified"}
+        replacement = FakePolicy()
+        replacement.identity = {**first.identity, "checkpoint_manifest_sha256": "different"}
+        failed = FakeEnvironment(step_error=RuntimeError("worker failed"))
+        failed.horizon = 750
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            command = self.inputs(folder)
+            with mock.patch.object(cli, "RemotePolicy", side_effect=[first, second, replacement]), \
+                    mock.patch.object(cli, "HTTPAgent", side_effect=PublicAgent), \
+                    mock.patch("robot_benchmark.adapters.robocasa.RoboCasaEnvironment", return_value=failed), \
+                    mock.patch.object(cli, "encode_episode_videos", return_value={}), mock.patch("builtins.print"):
+                self.assertEqual(cli.main(command), 1)
+            session = folder / "run/sessions/test-session"
+            state = json.loads((session / "session_result.json").read_text())
+            self.assertEqual(state["attempted_episodes"], 1)
+            first_result = json.loads((session / "episodes/0000/result.json").read_text())
+            self.assertEqual(first_result["session_stop"], "policy_worker_unavailable")
+            self.assertIn("identity changed", first_result["session_stop_error"])
 
     def test_time_config_changes_session_identity(self):
         with tempfile.TemporaryDirectory() as directory:
