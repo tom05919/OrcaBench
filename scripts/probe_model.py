@@ -25,7 +25,7 @@ import struct
 from time import perf_counter
 import zlib
 
-from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent, SESSION_POLICY_LABELS, projected_experience
+from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent, SESSION_POLICY_LABELS, projected_experience, AnthropicSpendGuard, BudgetLimitError, ANTHROPIC_STANDARD_PRICES
 from robot_benchmark.contracts import CAMERAS, PROPRIO, Limits, validate_decision
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -120,7 +120,8 @@ def probe_call(agent, label, observation):
     except (KeyboardInterrupt, SystemExit) as error:
         row.update({"ok": False, "error": f"{type(error).__name__}: {error}", "interrupted": True})
     except Exception as error:
-        row.update({"ok": False, "error": f"{type(error).__name__}: {error}"})
+        row.update({"ok": False, "error": f"{type(error).__name__}: {error}",
+                    "budget_exhausted": isinstance(error, BudgetLimitError)})
     else:
         body = (agent.last_trace or {}).get("response", {}).get("body", {})
         row.update({"ok": True, "stop_reason": body.get("stop_reason"), "parse": reply.parse or ("strict" if agent.config["provider"] == "json_http" and isinstance(reply.decision, dict) else "unparsed"),
@@ -133,6 +134,9 @@ def probe_call(agent, label, observation):
         except ValueError as error:
             row["valid"], row["validation_error"] = False, str(error)
     row["seconds"] = round(perf_counter() - start, 2)
+    if agent.spend_guard is not None:
+        row["minimum_required_reservation"] = agent.spend_guard.minimum_required_reservation
+        row["spent_dollars"] = agent.spend_guard.spent_dollars
     row["retries"] = (agent.last_trace or {}).get("retries", [])
     row["trace"] = without_image_data(agent.last_trace or {})
     return row
@@ -174,8 +178,11 @@ def main(argv=None):
     parser.add_argument("--task", default="CloseFridge", help="task whose deadline and story to probe")
     parser.add_argument("--policy-label", choices=sorted(SESSION_POLICY_LABELS), default="K")
     parser.add_argument("--experience", type=Path, help="JSON list of public finished-episode records")
+    parser.add_argument("--api-dollar-cap", type=float, help="required for live calls; one total cap across all models")
     parser.add_argument("--dry-run", action="store_true", help="validate and save redacted exact requests without calls or credentials")
     args = parser.parse_args(argv)
+    if not args.dry_run and args.api_dollar_cap is None:
+        parser.error("live probes require an explicit --api-dollar-cap")
     observations = (replayed_observations(args.episode, args.observation_indices) if args.episode
                     else synthetic_observations())
     planned = len(args.agent_configs) * len(args.efforts) * len(observations) * args.repeats
@@ -200,8 +207,11 @@ def main(argv=None):
             if config.get("api_key_env") is not None and not isinstance(config["api_key_env"], str):
                 raise ValueError("api_key_env must be a string or null")
             config = {key: value for key, value in config.items() if key != "api_key_env"}
+        guard = None
+        if not args.dry_run:
+            guard = AnthropicSpendGuard(config["model"], args.api_dollar_cap, output.parent / "api_spend.jsonl")
         for effort in args.efforts:
-            agent = HTTPAgent(config, session_mode=bool(args.time_pressure))
+            agent = HTTPAgent(config, session_mode=bool(args.time_pressure), spend_guard=guard)
             if config["provider"] == "anthropic":
                 # Historical v5 probes can compare efforts; session calibration is fixed at medium.
                 agent._output_config = lambda effort=effort: {"effort": effort, "format": copy.deepcopy(DECISION_FORMAT)}
@@ -222,7 +232,9 @@ def main(argv=None):
     if args.dry_run:
         report = {"created_at": created_at, "dry_run": True, "requests": [
             {"model": agent.config["model"], "prompt_version": agent.identity["prompt_version"],
-             "payload": without_image_data({"request": {"body": payload}})["request"]["body"]}
+             "payload": without_image_data({"request": {"body": payload}})["request"]["body"],
+             "minimum_required_reservation": (float(AnthropicSpendGuard.reservation_for_model(agent.config["model"]))
+                  if agent.config["provider"] == "anthropic" and agent.config["model"] in ANTHROPIC_STANDARD_PRICES else None)}
             for agent, _, _, payload in requests]}
         with output.open("x") as stream:
             stream.write(json.dumps(report, indent=2) + "\n")
@@ -245,6 +257,8 @@ def main(argv=None):
                                "valid", "seconds")}), flush=True)
             if row.get("interrupted"):
                 raise KeyboardInterrupt(row["error"])
+            if row.get("budget_exhausted"):
+                break
     summary = summarize(rows)
     print(json.dumps({"output": str(output), "model_timings": str(timing_path), "summary": summary}, indent=2))
     if any(not row["ok"] for row in rows):

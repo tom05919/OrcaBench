@@ -21,6 +21,7 @@ ANONYMOUS_LABELS = ("K", "R", "T", "V", "W", "Z")
 DEFAULT_EXPERIENCE_LIMIT = 24
 MAX_SEED = 2**32 - 1
 DEFAULT_MAX_INFRASTRUCTURE_ERRORS = 2
+PAIR_VALIDATION_PORT_BASE = 8765
 SCORE = "success x max(0, 1 - charged_seconds / deadline_seconds)"
 TERMINAL_STATUSES = frozenset({"success", "false_completion", "step_budget_exhausted", "decision_budget_exhausted"})
 PLAN_FIELDS = frozenset({"task", "scene_seed", "policy_seed", "policy_label", "backend"})
@@ -94,6 +95,70 @@ def validate_plan(entries, task_names, workers):
     if len(set(endpoints)) != len(endpoints):
         raise ValueError("each policy label needs a distinct worker URL")
     return copy.deepcopy(entries)
+
+
+def attach_baseline_states(plan, reference_root, task_names):
+    """Attach one unambiguous always-defer twin per cell, irrespective of success.
+
+    Point reference_root at this pod's baseline cohort. Cross-host hashes will be
+    rejected by the runtime reset guard; no cross-host reproducibility is assumed.
+    """
+    if not isinstance(plan, list) or not plan:
+        raise ValueError("plan must be a nonempty JSON list")
+    labels = []
+    for entry in plan:
+        if not isinstance(entry, dict):
+            raise ValueError("plan entries must be objects")
+        label = _label(entry.get("policy_label"))
+        if label not in labels:
+            labels.append(label)
+    validation_workers = {label: f"http://127.0.0.1:{PAIR_VALIDATION_PORT_BASE + index}" for index, label in enumerate(labels)}
+    paired = validate_plan(plan, task_names, validation_workers)
+    root = Path(reference_root).resolve()
+    if not root.is_dir():
+        raise ValueError("reference-root must be an existing baseline directory")
+    candidates = {}
+    for manifest_path in sorted(root.rglob("manifest.json")):
+        if not manifest_path.resolve().is_relative_to(root):
+            raise ValueError("baseline manifest escapes reference-root")
+        manifest = json.loads(manifest_path.read_text())
+        if not isinstance(manifest, dict) or manifest.get("kind") != "baseline_always_defer":
+            continue
+        folder = manifest_path.parent
+        result_path = folder / "result.json"
+        if not result_path.exists():
+            continue
+        result = json.loads(result_path.read_text())
+        if result.get("status") not in TERMINAL_STATUSES or result.get("infrastructure_error"):
+            continue
+        if any(manifest.get(key) != result.get(key) for key in ("scene_seed", "policy_seed")):
+            raise ValueError(f"baseline seed metadata disagrees: {folder}")
+        key = (manifest.get("task"), result.get("scene_seed"), result.get("policy_seed"),
+               (manifest.get("policy") or {}).get("backend"))
+        candidates.setdefault(key, []).append((folder, manifest))
+    audit = []
+    for index, entry in enumerate(paired):
+        key = (entry["task"], entry["scene_seed"], entry["policy_seed"], entry["backend"])
+        matches = candidates.get(key, [])
+        if not matches:
+            raise ValueError(f"no usable always-defer twin for plan index {index}")
+        if len(matches) != 1:
+            raise ValueError(f"ambiguous always-defer twins for plan index {index}; use one baseline cohort")
+        folder, manifest = matches[0]
+        try:
+            with (folder / "evaluator/states.jsonl").open() as stream:
+                initial = json.loads(stream.readline())
+            state = initial["state_sha256"]
+            if type(initial.get("step")) is not int or initial["step"] != 0 or re.fullmatch(r"[0-9a-f]{64}", state) is None:
+                raise ValueError("invalid initial state")
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            raise ValueError(f"missing or invalid step-0 state hash: {folder}") from error
+        if entry.get("expect_state", state) != state:
+            raise ValueError(f"plan expect_state conflicts with the baseline at index {index}")
+        entry["expect_state"] = state
+        audit.append({"index": index, "baseline_episode": str(folder.resolve()), "state_sha256": state,
+                      "baseline_contract_hash": manifest.get("contract_hash")})
+    return paired, audit
 
 
 def _seconds(value, name, allow_zero=False):
@@ -293,6 +358,7 @@ def run_session(*, output, session_id, plan, workers, task_names, agent, run_ent
         _append(session_dir / "session.jsonl", row)
         rows.append(row)
         wrapper = SessionAgent(agent, entry["policy_label"], experience, contexts[entry["task"]], experience_limit)
+        result = None
         try:
             actual_dir, result, decisions = run_entry(copy.deepcopy(entry), wrapper, episode_dir, index)
             if Path(actual_dir).resolve() != episode_dir.resolve():
@@ -320,6 +386,9 @@ def run_session(*, output, session_id, plan, workers, task_names, agent, run_ent
                 _write(session_dir / "session_result.json", {"status": "interrupted", "attempted_episodes": len(rows)})
                 raise
         consecutive_errors = consecutive_errors + 1 if infrastructure else 0
+        if isinstance(result, dict) and result.get("session_stop") == "api_spend_limit":
+            status = "api_spend_limit"
+            break
         if consecutive_errors >= max_infrastructure_errors:
             status = "infrastructure_error"
             break

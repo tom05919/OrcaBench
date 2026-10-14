@@ -125,3 +125,121 @@ class SessionAdapterTests(unittest.TestCase):
             obs = observation(); obs['experience'][0][field] = value
             with self.subTest(field=field), self.assertRaises(ValueError):
                 self.payload(obs)
+
+
+class SpendGuardTests(unittest.TestCase):
+    def make_guard(self, folder, model='claude-opus-5-5', cap=10):
+        from pathlib import Path
+        from robot_benchmark.adapters.agents import AnthropicSpendGuard
+        return AnthropicSpendGuard(model, cap, Path(folder) / 'spend.jsonl')
+
+    def test_paid_call_settles_exact_cache_and_output_cost(self):
+        import tempfile
+        from robot_benchmark.adapters.agents import ANTHROPIC_CONTEXT_TOKEN_BOUND
+        response = ({'content': [{'type': 'text', 'text': '{"op":"complete"}'}], 'stop_reason': 'end_turn',
+                     'usage': {'input_tokens': 100, 'output_tokens': 50, 'cache_creation_input_tokens': 200,
+                               'cache_read_input_tokens': 300}}, {})
+        with tempfile.TemporaryDirectory() as folder:
+            guard = self.make_guard(folder, model='claude-sonnet-5-5')
+            agent = HTTPAgent({**CONFIG, 'model': 'claude-sonnet-5-5'}, session_mode=True, spend_guard=guard)
+            with patch('robot_benchmark.adapters.agents.request_json', return_value=response) as request:
+                agent.decide(observation())
+            self.assertEqual(request.call_count, 1)
+            self.assertEqual(request.call_args.args[0], CONFIG['endpoint'])
+            self.assertAlmostEqual(guard.spent_dollars, (100 * 2 + 50 * 10 + 200 * 2.5 + 300 * .1) / 1e6)
+            rows = [json.loads(line) for line in guard.ledger_path.read_text().splitlines()]
+            self.assertEqual([row['status'] for row in rows], ['reserved', 'settled'])
+            self.assertEqual(rows[0]['reserved_input_tokens'], ANTHROPIC_CONTEXT_TOKEN_BOUND)
+            self.assertNotIn('images', json.dumps(rows))
+
+    def test_too_small_cap_prevents_even_counting_and_paid_call(self):
+        import tempfile
+        from robot_benchmark.adapters.agents import BudgetLimitError
+        with tempfile.TemporaryDirectory() as folder:
+            guard = self.make_guard(folder, cap=.01)
+            with patch('robot_benchmark.adapters.agents.request_json') as request, self.assertRaises(BudgetLimitError):
+                HTTPAgent(CONFIG, session_mode=True, spend_guard=guard).decide(observation())
+            request.assert_not_called()
+            self.assertTrue(guard.exhausted)
+            self.assertEqual(guard.spent_dollars, 0)
+
+    def test_retry_unknown_usage_consumes_reservation_and_blocks_next_attempt(self):
+        import tempfile
+        from robot_benchmark.adapters.agents import BudgetLimitError
+        with tempfile.TemporaryDirectory() as folder:
+            guard = self.make_guard(folder, cap=6)
+            with patch('robot_benchmark.adapters.agents.request_json', side_effect=TimeoutError('lost')) as request, \
+                 patch('robot_benchmark.adapters.agents.sleep'), self.assertRaises(BudgetLimitError):
+                HTTPAgent(CONFIG, session_mode=True, spend_guard=guard).decide(observation())
+            self.assertEqual(request.call_count, 1)
+            self.assertGreater(guard.spent_dollars, 5)
+            self.assertLessEqual(guard.spent_dollars, 6)
+            rows = [json.loads(line) for line in guard.ledger_path.read_text().splitlines()]
+            self.assertIn('unknown_actual', [row['status'] for row in rows])
+
+    def test_interruption_and_failure_preserve_reservation_in_ledger(self):
+        import tempfile
+        for side_effect in ([KeyboardInterrupt], [ValueError('malformed response')]):
+            with tempfile.TemporaryDirectory() as folder:
+                guard = self.make_guard(folder)
+                with patch('robot_benchmark.adapters.agents.request_json', side_effect=side_effect) as request:
+                    with self.assertRaises((KeyboardInterrupt, TimeoutError, ValueError)):
+                        HTTPAgent(CONFIG, session_mode=True, spend_guard=guard).decide(observation())
+                self.assertLessEqual(request.call_count, 2)
+                rows = [json.loads(line) for line in guard.ledger_path.read_text().splitlines()]
+                self.assertTrue(rows)
+                self.assertNotIn('iVBOR', json.dumps(rows))
+
+    def test_shared_ledger_enforces_one_total_cap_across_models_and_reload(self):
+        import tempfile
+        from robot_benchmark.adapters.agents import BudgetLimitError
+        with tempfile.TemporaryDirectory() as folder:
+            opus = self.make_guard(folder, cap=6)
+            sonnet = self.make_guard(folder, model='claude-sonnet-5-5', cap=6)
+            with patch('robot_benchmark.adapters.agents.request_json', side_effect=KeyboardInterrupt):
+                with self.assertRaises(KeyboardInterrupt):
+                    HTTPAgent(CONFIG, session_mode=True, spend_guard=opus).decide(observation())
+            self.assertEqual(sonnet.spent_dollars, opus.spent_dollars)
+            self.assertTrue(sonnet.exhausted)
+            with self.assertRaises(ValueError):
+                self.make_guard(folder, cap=7)
+            with patch('robot_benchmark.adapters.agents.request_json') as request, self.assertRaises(BudgetLimitError):
+                HTTPAgent({**CONFIG, 'model': 'claude-sonnet-5-5'}, spend_guard=sonnet).decide(observation())
+            request.assert_not_called()
+
+    def test_missing_malformed_and_unexpected_usage_never_releases_reservation(self):
+        import tempfile
+        for usage in (None, {}, {'input_tokens': True, 'output_tokens': 1},
+                      {'input_tokens': 10, 'output_tokens': 4097},
+                      {'input_tokens': 10, 'output_tokens': 1, 'cache_creation': {'ephemeral_1h_input_tokens': 1}}):
+            with tempfile.TemporaryDirectory() as folder:
+                guard = self.make_guard(folder)
+                identifier = guard.reserve()
+                guard.finalize(identifier, usage)
+                self.assertEqual(guard.spent_dollars, guard.minimum_required_reservation)
+                self.assertEqual(json.loads(guard.ledger_path.read_text().splitlines()[-1])['status'], 'unknown_actual')
+                with self.assertRaises(ValueError):
+                    guard.finalize(identifier, usage)
+
+    def test_full_advertised_usage_can_exactly_spend_cap_without_overshoot(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as folder:
+            guard = self.make_guard(folder, cap=5.08192)
+            identifier = guard.reserve()
+            guard.finalize(identifier, {'input_tokens': 0, 'output_tokens': 4096,
+                                        'cache_creation_input_tokens': 1_000_000})
+            self.assertEqual(guard.spent_dollars, 5.08192)
+            self.assertTrue(guard.exhausted)
+
+    def test_unknown_models_and_nonstandard_provider_are_rejected(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as folder:
+            for cap in (0, True, float('nan'), float('inf')):
+                with self.assertRaises(ValueError):
+                    self.make_guard(folder, cap=cap)
+            with self.assertRaises(ValueError):
+                self.make_guard(folder, model='unknown')
+            guard = self.make_guard(folder)
+            for values in ({'provider': 'json_http'}, {'endpoint': 'https://custom.example/v1/messages'}):
+                with self.assertRaises(ValueError):
+                    HTTPAgent({**CONFIG, **values}, spend_guard=guard)

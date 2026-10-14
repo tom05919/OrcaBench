@@ -239,6 +239,19 @@ class SessionTests(unittest.TestCase):
             state = json.loads((Path(tmp) / "sessions/one/session_result.json").read_text())
             self.assertEqual(state["status"], "infrastructure_error")
 
+    def test_budget_stop_retains_attempt_and_does_not_start_another_episode(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            def stopped(entry, agent, episode_output, index):
+                episode_output.mkdir(parents=True)
+                retained = {**result("false_completion"), "session_stop": "api_spend_limit"}
+                (episode_output / "result.json").write_text(json.dumps(retained))
+                return episode_output, retained, DECISIONS
+            rows = session.run_session(**self.run_args(tmp, stopped))
+            self.assertEqual(len(rows), 1)
+            outcome = json.loads((Path(tmp) / "sessions/one/session_result.json").read_text())
+            self.assertEqual(outcome["status"], "api_spend_limit")
+            self.assertEqual(outcome["attempted_episodes"], 1)
+
     def test_early_setup_error_has_conventional_manifest_and_result_for_w1_reader(self):
         with tempfile.TemporaryDirectory() as tmp:
             def fail(*args):
@@ -358,6 +371,56 @@ class SessionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 session.run_session(**args)
             self.assertFalse((Path(tmp) / "sessions").exists())
+
+
+class BaselinePairingTests(unittest.TestCase):
+    def baseline(self, root, name="baseline", state="a" * 64, status="false_completion", backend="groot"):
+        folder = root / name
+        (folder / "evaluator").mkdir(parents=True)
+        (folder / "manifest.json").write_text(json.dumps({"artifact_type": "episode", "task": "OpenDrawer",
+            "kind": "baseline_always_defer", "scene_seed": 0, "policy_seed": 0,
+            "policy": {"backend": backend}, "contract_hash": "code-contract"}))
+        (folder / "result.json").write_text(json.dumps({"status": status, "success": False,
+                                                       "scene_seed": 0, "policy_seed": 0}))
+        (folder / "evaluator/states.jsonl").write_text(json.dumps({"step": 0, "state_sha256": state}) + "\n")
+        return folder
+
+    def test_pairing_uses_failed_baseline_without_outcome_selection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            baseline = self.baseline(root)
+            paired, audit = session.attach_baseline_states([plan()], root, {"OpenDrawer"})
+            self.assertEqual(paired[0]["expect_state"], "a" * 64)
+            self.assertNotIn("expect_state", plan())
+            self.assertEqual(audit[0]["baseline_episode"], str(baseline.resolve()))
+
+    def test_infrastructure_and_wrong_backend_cannot_supply_a_twin(self):
+        for status, backend in (("infrastructure_error", "groot"), ("false_completion", "pi05")):
+            with self.subTest(status=status, backend=backend), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.baseline(root, status=status, backend=backend)
+                with self.assertRaisesRegex(ValueError, "no usable"):
+                    session.attach_baseline_states([plan()], root, {"OpenDrawer"})
+
+    def test_duplicate_baselines_and_conflicting_existing_hash_are_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.baseline(root)
+            with self.assertRaisesRegex(ValueError, "conflicts"):
+                session.attach_baseline_states([dict(plan(), expect_state="b" * 64)], root, {"OpenDrawer"})
+            self.baseline(root, name="duplicate")
+            with self.assertRaisesRegex(ValueError, "ambiguous"):
+                session.attach_baseline_states([plan()], root, {"OpenDrawer"})
+
+    def test_missing_or_invalid_step_zero_hash_is_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            folder = self.baseline(root, state="invalid")
+            with self.assertRaisesRegex(ValueError, "step-0"):
+                session.attach_baseline_states([plan()], root, {"OpenDrawer"})
+            (folder / "evaluator/states.jsonl").write_text(json.dumps({"step": 1, "state_sha256": "a" * 64}) + "\n")
+            with self.assertRaisesRegex(ValueError, "step-0"):
+                session.attach_baseline_states([plan()], root, {"OpenDrawer"})
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import math
 import os
 from pathlib import Path
 import platform
@@ -16,7 +17,8 @@ import traceback
 from urllib.parse import urlparse
 
 from . import __version__
-from .adapters.agents import HTTPAgent, MAX_MODEL_TOKENS, SYSTEM_PROMPT, SESSION_SYSTEM_PROMPT
+from .adapters.agents import (ANTHROPIC_MESSAGES_ENDPOINT, AnthropicSpendGuard, BudgetLimitError, HTTPAgent, MAX_MODEL_TOKENS,
+                             SYSTEM_PROMPT, SESSION_SYSTEM_PROMPT)
 from .adapters.policy import RemotePolicy
 from .baselines import (AlwaysDeferAgent, Reissue50Agent, Reissue200Agent, Reissue400Agent, ReissueAgent,
                         ReplayAgent)
@@ -35,7 +37,7 @@ from .runner import Runner
 from .scorecard import load_scored_episodes, scorecard
 from .screening import freeze_release, label_seeds, load_episodes, native_card_performance
 from .tasks.predicates import SEQUENCES
-from .session import DEFAULT_EXPERIENCE_LIMIT, public_time_context, run_session, validate_plan
+from .session import DEFAULT_EXPERIENCE_LIMIT, attach_baseline_states, public_time_context, run_session, validate_plan
 from .video import encode_episode_videos
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -127,6 +129,16 @@ def positive_int(value: str) -> int:
     if not value.isdigit() or int(value) < 1:
         raise argparse.ArgumentTypeError("expected a positive integer")
     return int(value)
+
+
+def positive_float(value: str) -> float:
+    try:
+        number = float(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("expected a finite positive number") from error
+    if not math.isfinite(number) or number <= 0:
+        raise argparse.ArgumentTypeError("expected a finite positive number")
+    return number
 
 
 def parse_seeds(value: str) -> list[int]:
@@ -384,6 +396,24 @@ def check_session_release_tag(tag):
     return tagged
 
 
+def command_pair_session(args):
+    audit_path = args.output.with_suffix(".pairing.json")
+    if args.output.exists() or audit_path.exists():
+        raise ValueError("paired plan or pairing audit already exists; choose a new output")
+    source_plan = json.loads(args.plan.read_text())
+    plan, audit = attach_baseline_states(source_plan, args.reference_root, set(task_pool()))
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with audit_path.open("x") as stream:
+        json.dump({"source_plan_hash": digest(source_plan), "paired_plan_hash": digest(plan),
+                   "reference_root": str(args.reference_root.resolve()), "pairs": audit}, stream, indent=2)
+        stream.write("\n")
+    with args.output.open("x") as stream:
+        json.dump(plan, stream, indent=2)
+        stream.write("\n")
+    print(json.dumps({"paired_episodes": len(plan), "plan": str(args.output), "audit": str(audit_path)}))
+    return 0
+
+
 def command_session(args):
     if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.session_id) is None:
         raise ValueError("session-id must be a safe directory name")
@@ -404,6 +434,7 @@ def command_session(args):
                                                        if key != "api_key_env"},
                         "time_pressure_config": time_config, "time_pressure": contexts,
                         "experience_limit": args.experience_limit, "workers": workers,
+                        "api_dollar_cap": args.api_dollar_cap,
                         "release_commit": release_commit, "implementation_sha256": implementation_hashes(),
                         "kind": "llm" if args.release_tag else "llm_development",
                         "task_configs": {task: tasks[task][0] for task in contexts}}
@@ -411,18 +442,28 @@ def command_session(args):
         HTTPAgent({key: value for key, value in model_config.items() if key != "api_key_env"}, session_mode=True)
         print(json.dumps({"status": "validated_offline", "episodes": len(plan),
                           "policy_labels": sorted(workers), "prompt_version": 6,
+                          "minimum_required_reservation": float(AnthropicSpendGuard.reservation_for_model(model_config["model"])),
                           "session_contract_hash": digest(session_contract)}))
         return 0
     session_dir = args.output / "sessions" / args.session_id
     if session_dir.exists():
         raise FileExistsError(f"session already exists: {session_dir}")
+    if args.api_dollar_cap is None:
+        raise ValueError("live sessions require an explicit --api-dollar-cap")
+    if model_config.get("provider") != "anthropic" or model_config.get("endpoint") != ANTHROPIC_MESSAGES_ENDPOINT:
+        raise ValueError("live session spend guards require the official Anthropic Messages endpoint")
+    guard = AnthropicSpendGuard(model_config["model"], args.api_dollar_cap, args.output / "api_spend.jsonl")
+    try:
+        guard.check()
+    except BudgetLimitError as error:
+        raise ValueError(str(error)) from error
     policies = {label: RemotePolicy(url) for label, url in workers.items()}
     for entry in plan:
         identity = policies[entry["policy_label"]].identity
         if identity.get("backend") != entry["backend"] or not identity.get("checkpoint_manifest_sha256"):
             raise ValueError(f"worker identity does not match plan for {entry['policy_label']}")
     session_contract["policy_identities"] = {label: policy.identity for label, policy in policies.items()}
-    agent = HTTPAgent(model_config, session_mode=True)
+    agent = HTTPAgent(model_config, session_mode=True, spend_guard=guard)
     splits = validate_splits(read_json(args.splits))
     contracts = {}
     for label, policy in policies.items():
@@ -446,6 +487,9 @@ def command_session(args):
                              manifest_extra={"session_id": args.session_id, "session_index": index,
                                              "policy_label": entry["policy_label"],
                                              "session_contract_hash": digest(session_contract)})
+        if guard.exhausted:
+            result["session_stop"] = "api_spend_limit"
+            write_json(episode_output / "result.json", result)
         decisions_path = episode_output / "decisions.jsonl"
         decisions = [json.loads(line) for line in decisions_path.read_text().splitlines() if line.strip()] \
                     if decisions_path.exists() else []
@@ -871,6 +915,11 @@ def parser():
     root = argparse.ArgumentParser(prog="robot-benchmark", description=__doc__)
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    pairing = commands.add_parser("pair-session", help="attach same-pod always-defer start hashes to a plan")
+    pairing.add_argument("--plan", type=Path, required=True)
+    pairing.add_argument("--reference-root", type=Path, required=True)
+    pairing.add_argument("--output", type=Path, required=True)
+    pairing.set_defaults(function=command_pair_session)
     session = commands.add_parser("session", help="one supervisor over an ordered multi-policy plan")
     session.add_argument("--plan", type=Path, required=True)
     session.add_argument("--workers", type=Path, required=True)
@@ -880,6 +929,8 @@ def parser():
     session.add_argument("--splits", type=Path, default=DEFAULT_SPLITS)
     session.add_argument("--session-id", required=True)
     session.add_argument("--experience-limit", type=positive_int, default=DEFAULT_EXPERIENCE_LIMIT)
+    session.add_argument("--api-dollar-cap", type=positive_float,
+                         help="required live; shared cap for this output root, with worst-case per-request reserve")
     session.add_argument("--video-record-interval", type=positive_int, default=10)
     session.add_argument("--output", type=Path, required=True)
     session.add_argument("--dry-run", action="store_true", help="validate without API credentials or worker calls")

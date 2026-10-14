@@ -1,5 +1,7 @@
 import copy
 import json
+import argparse
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PublicAgent:
-    def __init__(self, config, *, session_mode=False):
+    def __init__(self, config, *, session_mode=False, spend_guard=None):
         self.identity = {"model": config["model"], "prompt_version": 6 if session_mode else 5}
         self.observations = []
 
@@ -26,12 +28,13 @@ class PublicAgent:
 
 class CliSessionTests(unittest.TestCase):
     def inputs(self, folder):
-        model = {"provider": "json_http", "model": "test-model", "endpoint": "http://localhost:9000"}
+        model = {"provider": "anthropic", "model": "claude-sonnet-5-5",
+                 "endpoint": "https://api.anthropic.com/v1/messages"}
         plan = [{"task": "OpenDrawer", "scene_seed": seed, "policy_seed": 0,
                  "policy_label": label, "backend": backend, "expect_state": "a" * 64}
                 for seed, label, backend in ((1, "K", "groot"), (2, "R", "pi05"))]
         workers = {"K": "http://127.0.0.1:8765", "R": "http://127.0.0.1:8766"}
-        timing = {"version": 1, "call_seconds": {"test-model": 2.2},
+        timing = {"version": 1, "call_seconds": {"claude-sonnet-5-5": 2.2},
                   "tasks": {"OpenDrawer": {"deadline_seconds": 37.5,
                             "story": {"text": "The food is cooling.", "clock_starts": SENTINEL,
                                       "limit_seconds": 10}}}}
@@ -39,7 +42,8 @@ class CliSessionTests(unittest.TestCase):
             (folder / f"{name}.json").write_text(json.dumps(data))
         return ["session", "--plan", str(folder / "plan.json"), "--workers", str(folder / "workers.json"),
                 "--agent-config", str(folder / "model.json"), "--time-pressure", str(folder / "time.json"),
-                "--session-id", "test-session", "--development", "--output", str(folder / "run")]
+                "--session-id", "test-session", "--development", "--api-dollar-cap", "10",
+                "--output", str(folder / "run")]
 
     def test_dry_run_validates_without_worker_contact_or_credentials(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -121,12 +125,77 @@ class CliSessionTests(unittest.TestCase):
                 cli.main(command + ["--dry-run"])
             first = json.loads(output.call_args.args[0])["session_contract_hash"]
             timing = json.loads((folder / "time.json").read_text())
-            timing["call_seconds"]["test-model"] = 3.0
+            timing["call_seconds"]["claude-sonnet-5-5"] = 3.0
             (folder / "time.json").write_text(json.dumps(timing))
             with mock.patch("builtins.print") as output:
                 cli.main(command + ["--dry-run"])
             second = json.loads(output.call_args.args[0])["session_contract_hash"]
             self.assertNotEqual(first, second)
+
+    def test_pairing_cli_preserves_source_plan_and_refuses_overwrite(self):
+        from tests import test_session
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            self.inputs(folder)
+            plan = [test_session.plan()]
+            source = folder / "pair-plan.json"
+            source.write_text(json.dumps(plan))
+            test_session.BaselinePairingTests().baseline(folder / "baselines")
+            output = folder / "paired.json"
+            command = ["pair-session", "--plan", str(source), "--reference-root", str(folder / "baselines"),
+                       "--output", str(output)]
+            with mock.patch("builtins.print"):
+                self.assertEqual(cli.main(command), 0)
+            paired = json.loads(output.read_text())
+            self.assertEqual(paired[0]["expect_state"], "a" * 64)
+            self.assertEqual(json.loads(source.read_text()), plan)
+            self.assertTrue(output.with_suffix(".pairing.json").exists())
+            original = output.read_bytes()
+            with mock.patch("builtins.print"):
+                self.assertEqual(cli.main(command), 2)
+            self.assertEqual(output.read_bytes(), original)
+
+    def test_live_session_requires_explicit_cap_before_worker_contact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            command = self.inputs(folder)
+            offset = command.index("--api-dollar-cap")
+            del command[offset:offset + 2]
+            with mock.patch.object(cli, "RemotePolicy") as policy, mock.patch("builtins.print"):
+                self.assertEqual(cli.main(command), 2)
+            policy.assert_not_called()
+
+    def test_insufficient_cap_cannot_start_workers_or_model(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            command = self.inputs(folder)
+            command[command.index("--api-dollar-cap") + 1] = "0.01"
+            with mock.patch.object(cli, "RemotePolicy") as policy, \
+                    mock.patch.object(cli, "HTTPAgent") as agent, mock.patch("builtins.print"):
+                self.assertEqual(cli.main(command), 2)
+            policy.assert_not_called()
+            agent.assert_not_called()
+
+    def test_release_tag_guard_requires_matching_clean_checkout(self):
+        def git_state(tagged, head, dirty):
+            return [mock.Mock(stdout=tagged), mock.Mock(stdout=head), mock.Mock(stdout=dirty)]
+
+        with mock.patch.object(cli.subprocess, "run", side_effect=git_state("release", "release", "")):
+            self.assertEqual(cli.check_session_release_tag("release-test"), "release")
+        for values in (("release", "changed", ""), ("release", "release", " M config.json"),
+                       ("release", "release", "?? source.py")):
+            with self.subTest(values=values), mock.patch.object(cli.subprocess, "run", side_effect=git_state(*values)):
+                with self.assertRaisesRegex(ValueError, "clean checkout"):
+                    cli.check_session_release_tag("release-test")
+        with mock.patch.object(cli.subprocess, "run", side_effect=subprocess.CalledProcessError(1, ["git"])):
+            with self.assertRaisesRegex(ValueError, "must exist"):
+                cli.check_session_release_tag("missing-tag")
+
+    def test_dollar_cap_type_rejects_nonfinite_or_nonpositive_values(self):
+        self.assertEqual(cli.positive_float("1.25"), 1.25)
+        for value in ("0", "-1", "nan", "inf", "True", "none"):
+            with self.subTest(value=value), self.assertRaises(argparse.ArgumentTypeError):
+                cli.positive_float(value)
 
 
 if __name__ == "__main__":

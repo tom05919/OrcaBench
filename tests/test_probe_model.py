@@ -28,7 +28,7 @@ class ProbeModelTests(unittest.TestCase):
             with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "secret-test-key"}), \
                  patch("robot_benchmark.adapters.agents.request_json", side_effect=side_effect) as request, \
                  patch("robot_benchmark.adapters.agents.sleep"), patch("builtins.print"):
-                status = main(["--agent-configs", str(config), "--output", str(output), *extra])
+                status = main(["--agent-configs", str(config), "--output", str(output), "--api-dollar-cap", "100", *extra])
             return status, json.loads(output.read_text()), request
 
     def test_synthetic_observations_match_the_public_sensor_schema(self):
@@ -136,7 +136,7 @@ class SessionProbeTests(unittest.TestCase):
             pressure.write_text(json.dumps(value))
             with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "secret-test-key"}), patch("builtins.print"), \
                  patch("robot_benchmark.adapters.agents.request_json", return_value=OK) as request:
-                status = main(["--agent-configs", str(config), "--time-pressure", str(pressure), "--output", str(output)])
+                status = main(["--agent-configs", str(config), "--time-pressure", str(pressure), "--output", str(output), "--api-dollar-cap", "100"])
             self.assertEqual(status, 0)
             self.assertIn("2.2", request.call_args.args[1]['system'])
             self.assertNotIn('private_trigger', json.dumps(request.call_args.args[1]))
@@ -166,7 +166,7 @@ class SessionProbeTests(unittest.TestCase):
             for prior in (output, Path(folder) / 'model_timings.jsonl'):
                 prior.write_text('retained')
                 with patch('robot_benchmark.adapters.agents.request_json') as request, self.assertRaises(FileExistsError):
-                    main(['--agent-configs', str(config), '--output', str(output)])
+                    main(['--agent-configs', str(config), '--output', str(output), '--api-dollar-cap', '100'])
                 request.assert_not_called()
                 self.assertEqual(prior.read_text(), 'retained')
                 prior.unlink()
@@ -177,7 +177,7 @@ class SessionProbeTests(unittest.TestCase):
             with patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'secret-test-key'}), patch('builtins.print'), \
                  patch('robot_benchmark.adapters.agents.request_json', side_effect=[OK, KeyboardInterrupt]):
                 with self.assertRaises(KeyboardInterrupt):
-                    main(['--agent-configs', str(config), '--output', str(output)])
+                    main(['--agent-configs', str(config), '--output', str(output), '--api-dollar-cap', '100'])
             timings = [json.loads(line) for line in (Path(folder) / 'model_timings.jsonl').read_text().splitlines()]
             self.assertEqual(len(timings), 2)
             self.assertTrue(timings[0]['ok'])
@@ -201,7 +201,56 @@ class SessionProbeTests(unittest.TestCase):
             config.write_text(json.dumps({**CONFIG, 'provider': 'json_http'}))
             with patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'secret-test-key'}), patch('builtins.print'), \
                  patch('robot_benchmark.adapters.agents.request_json', return_value=({'decision': {'op': 'complete'}, 'usage': {}}, {})):
-                self.assertEqual(main(['--agent-configs', str(config), '--output', str(output)]), 0)
+                self.assertEqual(main(['--agent-configs', str(config), '--output', str(output), '--dry-run']), 0)
+
+
+class ProbeSpendCapTests(unittest.TestCase):
+    def test_live_probe_requires_cap_before_any_network_request(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config = Path(folder) / 'model.json'; config.write_text(json.dumps(CONFIG))
+            with patch('robot_benchmark.adapters.agents.request_json') as request, \
+                 self.assertRaises(SystemExit), redirect_stderr(io.StringIO()):
+                main(['--agent-configs', str(config)])
+            request.assert_not_called()
+
+    def test_cap_exhaustion_stops_probe_and_preserves_budget_error(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config = Path(folder) / 'model.json'; config.write_text(json.dumps(CONFIG))
+            output = Path(folder) / 'probe.json'
+            with patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'secret-test-key'}), patch('builtins.print'), \
+                 patch('robot_benchmark.adapters.agents.request_json') as request:
+                status = main(['--agent-configs', str(config), '--output', str(output), '--api-dollar-cap', '.01'])
+            self.assertEqual(status, 1)
+            request.assert_not_called()
+            report = json.loads(output.read_text())
+            self.assertEqual(len(report['calls']), 1)
+            self.assertIn('BudgetLimitError', report['calls'][0]['error'])
+            self.assertGreater(report['calls'][0]['minimum_required_reservation'], 5)
+
+    def test_dry_run_discloses_full_context_headroom_without_credentials_or_calls(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config = Path(folder) / 'model.json'; config.write_text(json.dumps(CONFIG))
+            output = Path(folder) / 'dry.json'
+            with patch.dict('os.environ', {}, clear=True), patch('builtins.print'), \
+                 patch('robot_benchmark.adapters.agents.request_json') as request:
+                main(['--agent-configs', str(config), '--output', str(output), '--dry-run'])
+            request.assert_not_called()
+            row = json.loads(output.read_text())['requests'][0]
+            self.assertAlmostEqual(row['minimum_required_reservation'], 5.08192)
+
+    def test_multiple_models_share_total_probe_dollars(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); config = root / 'opus.json'; sonnet = root / 'sonnet.json'
+            config.write_text(json.dumps(CONFIG)); sonnet.write_text(json.dumps({**CONFIG, 'model': 'claude-sonnet-5-5'}))
+            output = root / 'probe.json'
+            # One unknown billed Opus failure consumes $5.08192. A second Opus
+            # attempt is unaffordable, so no other configured model can be sent.
+            with patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'secret-test-key'}), patch('builtins.print'), \
+                 patch('robot_benchmark.adapters.agents.request_json', side_effect=HTTPStatusError(400, 'bad')) as request:
+                self.assertEqual(main(['--agent-configs', str(config), str(sonnet), '--output', str(output), '--api-dollar-cap', '6']), 1)
+            self.assertEqual(request.call_count, 1)
+            rows = [json.loads(line) for line in (root / 'api_spend.jsonl').read_text().splitlines()]
+            self.assertTrue(all(row['budget_dollars'] == 6 for row in rows))
 
 
 if __name__ == "__main__":

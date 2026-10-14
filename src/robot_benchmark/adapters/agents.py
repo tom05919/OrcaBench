@@ -3,6 +3,9 @@ import copy
 import json
 import math
 import os
+from decimal import Decimal
+from pathlib import Path
+from uuid import uuid4
 from time import sleep
 from urllib.error import URLError
 from urllib.parse import urlparse
@@ -221,8 +224,131 @@ def session_system_prompt(pressure):
     return text
 
 
+ANTHROPIC_MESSAGES_ENDPOINT = "https://api.anthropic.com/v1/messages"
+# Official model overview: both models have a 1M-token context window. Token
+# counting is only an estimate and cannot tighten a strict spending bound.
+# Sources: https://platform.claude.com/docs/en/models/overview
+# https://platform.claude.com/docs/en/about-claude/pricing
+ANTHROPIC_CONTEXT_TOKEN_BOUND = 1_000_000
+TOKENS_PER_MILLION = Decimal(1_000_000)
+ANTHROPIC_STANDARD_PRICES = {
+    "claude-opus-5-5": {"input": Decimal("4"), "output": Decimal("20"),
+                        "write_5m": Decimal("5"), "write_1h": Decimal("8"), "read": Decimal("0.20")},
+    "claude-sonnet-5-5": {"input": Decimal("2"), "output": Decimal("10"),
+                          "write_5m": Decimal("2.5"), "write_1h": Decimal("4"), "read": Decimal("0.10")},
+}
+
+
+class BudgetLimitError(RuntimeError):
+    """The remaining authorized dollars cannot cover the next worst-case attempt."""
+
+
+class AnthropicSpendGuard:
+    """Strict standard-price reserve, shared by a ledger within one sequential process.
+
+    Reserve the full advertised input context at the most expensive possible
+    input rate (5-minute cache creation), plus all 4096 output tokens. Settle
+    from usage only. A timeout, interruption or missing/invalid usage retains
+    the entire reservation, since the server might have completed the request.
+    This trades run length for an auditable cap without guessed tokenizer error
+    margins. No estimate-only count_tokens call contaminates latency calibration.
+    It assumes the provider honors documented context/output limits and prices.
+    """
+    def __init__(self, model, dollar_cap, ledger_path):
+        if not isinstance(model, str) or model not in ANTHROPIC_STANDARD_PRICES:
+            raise ValueError(f"no verified standard prices for model {model!r}")
+        _finite_seconds(dollar_cap, "API dollar cap", positive=True)
+        self.model, self.cap = model, Decimal(str(dollar_cap))
+        self.ledger_path = Path(ledger_path)
+        self.prices = ANTHROPIC_STANDARD_PRICES[model]
+        self.reservation = self.reservation_for_model(model)
+        self._read_ledger()
+
+    @staticmethod
+    def reservation_for_model(model):
+        if not isinstance(model, str) or model not in ANTHROPIC_STANDARD_PRICES:
+            raise ValueError(f"no verified standard prices for model {model!r}")
+        prices = ANTHROPIC_STANDARD_PRICES[model]
+        return (prices["write_5m"] * ANTHROPIC_CONTEXT_TOKEN_BOUND
+                + prices["output"] * MAX_MODEL_TOKENS) / TOKENS_PER_MILLION
+
+    def _read_ledger(self):
+        if not self.ledger_path.exists():
+            return [], Decimal(0)
+        rows = [json.loads(line) for line in self.ledger_path.read_text().splitlines() if line.strip()]
+        if any(Decimal(str(row["budget_dollars"])) != self.cap for row in rows):
+            raise ValueError("spend ledger already uses a different dollar cap")
+        return rows, sum((Decimal(row["delta_dollars"]) for row in rows), Decimal(0))
+
+    @property
+    def minimum_required_reservation(self):
+        return float(self.reservation)
+
+    @property
+    def spent_dollars(self):
+        return float(self._read_ledger()[1])
+
+    @property
+    def exhausted(self):
+        return self._read_ledger()[1] + self.reservation > self.cap
+
+    def _append(self, status, *, delta=Decimal(0), **fields):
+        _, spent = self._read_ledger()
+        row = {"model": self.model, "status": status, "delta_dollars": str(delta),
+               "spent_dollars": float(spent + delta), "budget_dollars": float(self.cap),
+               "usage": None, "cost_dollars": 0.0, **fields}
+        self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.ledger_path.open("a") as stream:
+            stream.write(json.dumps(row) + "\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+
+    def check(self):
+        if self.exhausted:
+            self._append("budget_rejected", minimum_required_reservation=self.minimum_required_reservation)
+            raise BudgetLimitError(f"remaining API budget cannot reserve ${self.reservation} for {self.model}; "
+                                   f"spent/reserved ${self.spent_dollars:.6f} of ${self.cap}")
+
+    def reserve(self):
+        self.check()
+        identifier = uuid4().hex
+        self._append("reserved", delta=self.reservation, reservation_id=identifier,
+                     cost_dollars=float(self.reservation), reserved_input_tokens=ANTHROPIC_CONTEXT_TOKEN_BOUND,
+                     reserved_output_tokens=MAX_MODEL_TOKENS)
+        return identifier
+
+    def finalize(self, identifier, usage=None, error_type=None):
+        rows, _ = self._read_ledger()
+        matching = [row for row in rows if row.get("reservation_id") == identifier]
+        if len(matching) != 1 or matching[0]["status"] != "reserved" or matching[0]["model"] != self.model:
+            raise ValueError("spend reservation is missing or already finalized")
+        shown = None
+        try:
+            if not isinstance(usage, dict) or not {"input_tokens", "output_tokens"} <= set(usage):
+                raise ValueError("complete usage is unavailable")
+            shown = {key: _nonnegative_integer(usage.get(key, 0), key) for key in
+                     ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")}
+            creation = usage.get("cache_creation") or {}
+            if not isinstance(creation, dict):
+                raise ValueError("invalid cache creation usage")
+            one_hour = _nonnegative_integer(creation.get("ephemeral_1h_input_tokens", 0), "1h cache tokens")
+            if one_hour or sum(shown[key] for key in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")) > ANTHROPIC_CONTEXT_TOKEN_BOUND:
+                raise ValueError("usage exceeds the guarded standard 5-minute input contract")
+            if shown["output_tokens"] > MAX_MODEL_TOKENS:
+                raise ValueError("usage exceeds guarded output limit")
+            cost = (shown["input_tokens"] * self.prices["input"] + shown["output_tokens"] * self.prices["output"]
+                    + shown["cache_creation_input_tokens"] * self.prices["write_5m"]
+                    + shown["cache_read_input_tokens"] * self.prices["read"]) / TOKENS_PER_MILLION
+        except ValueError:
+            self._append("unknown_actual", reservation_id=identifier, usage=None,
+                         cost_dollars=float(self.reservation), error_type=error_type or "UnavailableUsage")
+        else:
+            self._append("settled", delta=cost - self.reservation, reservation_id=identifier, usage=shown,
+                         cost_dollars=float(cost))
+
+
 class HTTPAgent:
-    def __init__(self, config, *, session_mode=False):
+    def __init__(self, config, *, session_mode=False, spend_guard=None):
         allowed = {"provider", "model", "endpoint", "api_key_env", "max_tokens", "timeout_seconds"}
         if set(config) - allowed:
             raise ValueError(f"unexpected model configuration fields: {sorted(set(config) - allowed)}")
@@ -240,6 +366,10 @@ class HTTPAgent:
             raise ValueError("timeout_seconds must be positive")
         if config.get("api_key_env") is not None and not isinstance(config["api_key_env"], str):
             raise ValueError("api_key_env must be a string or null")
+        if spend_guard is not None and (config["provider"] != "anthropic"
+                or config["endpoint"] != ANTHROPIC_MESSAGES_ENDPOINT or spend_guard.model != config["model"]):
+            raise ValueError("spend guard requires its matching model at the official Anthropic Messages endpoint")
+        self.spend_guard = spend_guard
         self.session_mode = session_mode
         self.config = dict(config)
         self.identity = {key: value for key, value in config.items() if key != "api_key_env"}
@@ -320,11 +450,19 @@ class HTTPAgent:
         self.last_trace = {"request": {"url": self.config["endpoint"],
                          "headers": safe_headers, "body": payload}}
         for attempt, delay in enumerate((*RETRY_DELAYS_SECONDS, None), start=1):
+            reservation = None
             try:
+                if self.spend_guard is not None:
+                    reservation = self.spend_guard.reserve()
                 response, metadata = request_json(self.config["endpoint"], payload, headers,
                     self.config.get("timeout_seconds", 120), with_metadata=True)
+                if reservation is not None:
+                    self.spend_guard.finalize(reservation, response.get("usage"))
+                    reservation = None
                 break
-            except Exception as error:
+            except BaseException as error:
+                if reservation is not None:
+                    self.spend_guard.finalize(reservation, error_type=type(error).__name__)
                 failure = {"type": type(error).__name__, "message": str(error)}
                 if delay is None or not is_transient(error):
                     self.last_trace["error"] = failure
