@@ -20,11 +20,12 @@ import copy
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from statistics import median
 import struct
 from time import perf_counter
 import zlib
 
-from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent
+from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent, SESSION_POLICY_LABELS, projected_experience
 from robot_benchmark.contracts import CAMERAS, PROPRIO, Limits, validate_decision
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -102,19 +103,27 @@ def without_image_data(trace):
         for block in message.get("content", []):
             if block.get("type") == "image":
                 block["source"]["data"] = f"<{len(block['source']['data'])} base64 characters omitted>"
+    observation = trace.get("request", {}).get("body", {}).get("observation")
+    if isinstance(observation, dict):
+        for frame in [observation, *observation.get("interval_frames", [])]:
+            if isinstance(frame.get("images"), dict):
+                frame["images"] = {camera: f"<{len(data)} data-URL characters omitted>" for camera, data in frame["images"].items()}
     return trace
 
 
 def probe_call(agent, label, observation):
     start = perf_counter()
-    row = {"observation": label, "model": agent.config["model"], "effort": agent.identity["output_config"]["effort"]}
+    row = {"observation": label, "model": agent.config["model"], "effort": agent.identity.get("output_config", {}).get("effort", "medium"),
+           "prompt_version": agent.identity["prompt_version"]}
     try:
         reply = agent.decide(copy.deepcopy(observation))
+    except (KeyboardInterrupt, SystemExit) as error:
+        row.update({"ok": False, "error": f"{type(error).__name__}: {error}", "interrupted": True})
     except Exception as error:
         row.update({"ok": False, "error": f"{type(error).__name__}: {error}"})
     else:
         body = (agent.last_trace or {}).get("response", {}).get("body", {})
-        row.update({"ok": True, "stop_reason": body.get("stop_reason"), "parse": reply.parse,
+        row.update({"ok": True, "stop_reason": body.get("stop_reason"), "parse": reply.parse or ("strict" if agent.config["provider"] == "json_http" and isinstance(reply.decision, dict) else "unparsed"),
                     "raw_text": reply.raw_text, "decision": reply.decision, "usage": reply.usage,
                     "thinking_summary_chars": sum(len(block.get("thinking") or "") for block in body.get("content", [])
                                                   if block.get("type") == "thinking")})
@@ -132,13 +141,14 @@ def probe_call(agent, label, observation):
 def summarize(rows):
     groups = {}
     for row in rows:
-        groups.setdefault((row["model"], row["effort"]), []).append(row)
+        groups.setdefault((row["model"], row["effort"], row.get("prompt_version", 5)), []).append(row)
     summary = []
-    for (model, effort), group in groups.items():
+    for (model, effort, version), group in groups.items():
         ok = [row for row in group if row["ok"]]
         output = [row["usage"].get("output_tokens", 0) for row in ok if isinstance(row.get("usage"), dict)]
         summary.append({
-            "model": model, "effort": effort, "calls": len(group), "request_errors": len(group) - len(ok),
+            "model": model, "effort": effort, "prompt_version": version,
+            "median_seconds": median(row["seconds"] for row in ok) if ok else None, "calls": len(group), "request_errors": len(group) - len(ok),
             "parse": {mode: sum(row.get("parse") == mode for row in ok) for mode in ("strict", "extracted", "unparsed")},
             "valid_decisions": sum(row.get("valid", False) for row in ok),
             "stop_reasons": sorted({str(row.get("stop_reason")) for row in ok}),
@@ -160,34 +170,83 @@ def main(argv=None):
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--max-calls", type=int, default=40, help="refuse to start a probe larger than this")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--time-pressure", type=Path, help="W1 time config; enables session prompt version 6")
+    parser.add_argument("--task", default="CloseFridge", help="task whose deadline and story to probe")
+    parser.add_argument("--policy-label", choices=sorted(SESSION_POLICY_LABELS), default="K")
+    parser.add_argument("--experience", type=Path, help="JSON list of public finished-episode records")
+    parser.add_argument("--dry-run", action="store_true", help="validate and save redacted exact requests without calls or credentials")
     args = parser.parse_args(argv)
     observations = (replayed_observations(args.episode, args.observation_indices) if args.episode
                     else synthetic_observations())
     planned = len(args.agent_configs) * len(args.efforts) * len(observations) * args.repeats
     if args.repeats < 1 or planned > args.max_calls:
         parser.error(f"{planned} calls planned; raise --max-calls deliberately if that is intended")
-    rows = []
-    for path in args.agent_configs:
-        config = json.loads(path.read_text())
-        for effort in args.efforts:
-            agent = HTTPAgent(config)
-            # Probe-only override; runs keep the effort fixed in HTTPAgent._output_config.
-            agent._output_config = lambda effort=effort: {"effort": effort, "format": copy.deepcopy(DECISION_FORMAT)}
-            agent.identity["output_config"] = agent._output_config()
-            for _ in range(args.repeats):
-                for label, observation in observations:
-                    rows.append(probe_call(agent, label, observation))
-                    row = rows[-1]
-                    print(json.dumps({key: row.get(key) for key in
-                                      ("model", "effort", "observation", "ok", "error", "stop_reason", "parse",
-                                       "valid", "seconds")}), flush=True)
-    summary = summarize(rows)
+    if args.time_pressure and args.efforts != ["medium"]:
+        parser.error("session latency calibration requires exactly effort medium")
+    if args.experience and not args.time_pressure:
+        parser.error("--experience requires --time-pressure")
     output = args.output or (PROJECT_ROOT / "runs" / "probes" /
                              f"probe-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json")
+    timing_path = output.parent / "model_timings.jsonl"
+    if output.exists() or timing_path.exists():
+        raise FileExistsError("probe output or model_timings.jsonl already exists; use a new output directory")
+    time_config = json.loads(args.time_pressure.read_text()) if args.time_pressure else None
+    experience = projected_experience(json.loads(args.experience.read_text())) if args.experience else []
+    # Validate every configuration and build every request before making any paid call.
+    requests = []
+    for path in args.agent_configs:
+        config = json.loads(path.read_text())
+        if args.dry_run:
+            if config.get("api_key_env") is not None and not isinstance(config["api_key_env"], str):
+                raise ValueError("api_key_env must be a string or null")
+            config = {key: value for key, value in config.items() if key != "api_key_env"}
+        for effort in args.efforts:
+            agent = HTTPAgent(config, session_mode=bool(args.time_pressure))
+            if config["provider"] == "anthropic":
+                # Historical v5 probes can compare efforts; session calibration is fixed at medium.
+                agent._output_config = lambda effort=effort: {"effort": effort, "format": copy.deepcopy(DECISION_FORMAT)}
+                agent.identity["output_config"] = agent._output_config()
+            context = None
+            if time_config is not None:
+                from robot_benchmark.session import public_time_context
+                context = public_time_context(time_config, config["model"], args.task)
+            for _ in range(args.repeats):
+                for label, original in observations:
+                    observation = copy.deepcopy(original)
+                    if context is not None:
+                        observation.update(policy=args.policy_label, experience=experience, time_pressure=context)
+                    payload = agent.build_payload(observation)
+                    requests.append((agent, label, observation, payload))
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps({"created_at": datetime.now(timezone.utc).isoformat(), "summary": summary,
-                                  "calls": rows}, indent=2) + "\n")
-    print(json.dumps({"output": str(output), "summary": summary}, indent=2))
+    created_at = datetime.now(timezone.utc).isoformat()
+    if args.dry_run:
+        report = {"created_at": created_at, "dry_run": True, "requests": [
+            {"model": agent.config["model"], "prompt_version": agent.identity["prompt_version"],
+             "payload": without_image_data({"request": {"body": payload}})["request"]["body"]}
+            for agent, _, _, payload in requests]}
+        with output.open("x") as stream:
+            stream.write(json.dumps(report, indent=2) + "\n")
+        print(json.dumps({"output": str(output), **report}, indent=2))
+        return 0
+    rows = []
+    # Reserve the output before calls; update after each attempted call so an interrupt
+    # cannot erase completed responses. The companion ledger is flushed per attempt.
+    with output.open("x") as stream:
+        stream.write(json.dumps({"created_at": created_at, "summary": [], "calls": []}) + "\n")
+    with timing_path.open("x") as timings:
+        for agent, label, observation, _ in requests:
+            row = probe_call(agent, label, observation)
+            rows.append(row)
+            timings.write(json.dumps({key: value for key, value in row.items() if key != "trace"}) + "\n")
+            timings.flush()
+            output.write_text(json.dumps({"created_at": created_at, "summary": summarize(rows), "calls": rows}, indent=2) + "\n")
+            print(json.dumps({key: row.get(key) for key in
+                              ("model", "effort", "prompt_version", "observation", "ok", "error", "stop_reason", "parse",
+                               "valid", "seconds")}), flush=True)
+            if row.get("interrupted"):
+                raise KeyboardInterrupt(row["error"])
+    summary = summarize(rows)
+    print(json.dumps({"output": str(output), "model_timings": str(timing_path), "summary": summary}, indent=2))
     if any(not row["ok"] for row in rows):
         return 1
     return 0 if all(row["parse"] == "strict" for row in rows) else 2

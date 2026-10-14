@@ -59,3 +59,10 @@ defaults, whether current-frame image history is sufficient, the exact paired
 continuation cases, the evaluation sample size beyond the 20-seed pilot, and the
 two model identifiers. Resolve them on development seeds before freezing the
 release contract.
+
+
+## W3 session contract additions (October 13)
+
+| Date | Decision | Rationale and effect |
+|---|---|---|
+| 2026-10-13 | Add ordered multi-policy sessions and prompt version 6 for session adapters. | The deliberate past-outcome exception reveals terminal success/failure and declaration correctness only after an episode ends, as required by the W3 brief. Prior experience contains anonymous labels, native goals, accepted decisions, steps and calls, capped at 24 records; it excludes backend, seeds, reward, evaluator predicates, coordinates and infrastructure errors. Current task success remains hidden. Experience precedes current content with a cache boundary on its final block. Timing reads W1's per-model charges and nested story config; hidden trigger names/state are never model-visible. Legacy isolated calls retain prompt 5 and all decision/effort/retry settings remain fixed. Session plans and timing/model/worker identities are hashed; cli.py and session.py now enter CONTRACT_FILES, and contract payloads record both prompts and available time settings. Interrupted episodes save partial results before propagating cancellation. These are evaluation-contract changes before freeze; historical contracts cannot be reused as fresh references. |
