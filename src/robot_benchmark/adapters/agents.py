@@ -220,7 +220,9 @@ def session_system_prompt(pressure):
         story = pressure["story"]
         text += f"Story: {story['text']}\n"
         if story["limit_seconds"] is not None:
-            text += f"The story has a hard limit of {story['limit_seconds']} charged seconds; past it the task fails.\n"
+            text += (f"The story has a hard limit of {story['limit_seconds']} charged seconds, "
+                     "counted from the event in the story, or from step 0 if it names none; "
+                     "past it the task fails.\n")
     return text
 
 

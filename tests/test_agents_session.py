@@ -52,6 +52,26 @@ class SessionAdapterTests(unittest.TestCase):
         self.assertIn('medium', json.dumps(payload['output_config']))
         self.assertIn('finished episodes', payload['system'])
 
+    def test_story_clock_origin_is_explained_without_private_trigger_names(self):
+        stories = (
+            ('The vegetables cool once the pan leaves the stove.', 'pan_off_stove'),
+            ('The ice starts melting as soon as it leaves the bowl.', 'ice_out_of_bowl'),
+            ('The pancake is cooling.', 'step0'),
+        )
+        for text, trigger in stories:
+            with self.subTest(story=text):
+                obs = observation()
+                obs['time_pressure']['story'] = {'text': text, 'limit_seconds': 17,
+                                                'clock_starts': trigger, 'triggered': True}
+                payload = self.payload(obs)
+                self.assertIn('counted from the event in the story', payload['system'])
+                self.assertIn('from step 0 if it names none', payload['system'])
+                self.assertIn(text, payload['system'])
+                self.assertNotIn('clock_starts', json.dumps(payload))
+                self.assertNotIn('triggered', json.dumps(payload))
+                if trigger != 'step0':
+                    self.assertNotIn(trigger, json.dumps(payload))
+
     def test_experience_projects_known_fields_and_caps_at_last_24(self):
         obs = observation()
         obs['experience'] = [dict(copy.deepcopy(RECORD), goal=str(i), reward=98765) for i in range(30)]

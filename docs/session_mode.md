@@ -7,7 +7,7 @@ episodes, with time charged under W1's scoring contract.
 ## Sources and scope
 
 Use `docs/briefs/w3_harness.md` and the fixed ownership/interfaces in
-`docs/work_split.md`. The latest inspected W1 branch (`171eb9a`) revises the
+`docs/work_split.md`. The latest inspected W1 branch (`efaac23`) revises the
 interface: `call_seconds` maps model identifiers to calibrated seconds; task
 entries carry a deadline and an optional nested story. Its final policy set is
 `groot`, `groot_u30`, `pi05`. The final scope is monitoring, declaration timing
@@ -93,8 +93,9 @@ the common GPU type, selected plans, fixed time parameters and release tag.
   splits must equal the tagged versions. Fresh full suite: 356 tests pass.
   Focused independent review found no actionable bugs. Live gates remain open.
 - No live W3 episode or paid model probe yet. This environment currently has no
-  `ANTHROPIC_API_KEY`, `PRIME_API_KEY`, `PRIME_TEAM_ID`, or project `.env`; no Prime
-  credentials are configured. Interactive-shell presence checks agree.
+  `ANTHROPIC_API_KEY`, `PRIME_API_KEY`, or `PRIME_TEAM_ID` configured.
+  A Git-ignored `.env` template was prepared with mode 600 and empty values;
+  it contains no credentials or approved caps. Shell presence checks agree.
   Model/GPU spending caps and billing account are pending. The project-local
   Prime CLI was subsequently installed and verified as described below.
 
@@ -188,8 +189,25 @@ PYTHONPATH=src .venv-sim/bin/python -m robot_benchmark.cli session \
 
 Repeat for all four scene plans. W2 uses the same command on pod A with its own
 paired plans and worker maps, Opus config, `opus-scene1000`, and its API cap. Both
-pods use the agreed GPU type and exact tag. Do not include `reissue_200` on pod B
-unless W1/Tom approves the move and logs it.
+pods use the agreed GPU type and exact tag. W3 confirms Tom's October 14 move
+(`w1-scoring` commit `efaac23`): **pod B runs always-defer, Sonnet sessions and
+`reissue_200`, about 252 episodes, on at least 16 CPU cores**. Pod A keeps
+always-defer, Opus, `reissue_50` and `reissue`. Restart comparisons remain unpaired.
+
+After Sonnet, run the fixed 200-step restart schedule on every frozen cell:
+
+```bash
+PYTHONPATH=src .venv-sim/bin/python -m robot_benchmark.cli baseline \
+  --task-configs configs/tasks/{ArrangeTea,MakeIceLemonade,PanTransfer,WaffleReheat,OpenCabinet,PickPlaceCounterToStove,CloseFridge}.json \
+  --scene-seeds 1000,1001,1002,1003 --policy-seeds 0 --agent reissue_200 \
+  --policy-url http://127.0.0.1:8765 --video-record-interval 10 \
+  --skip-existing --output runs/final/podB/reissue_200/groot
+```
+
+The task list above is provisional; use the frozen selection. Repeat for the
+other backend worker URLs and backend-named output folders. Copy after this
+phase before terminating the pod. Keep this root separate from always-defer so
+baseline pairing cannot include restart episodes or duplicate cohorts.
 
 ## Eight-episode development pilot
 
@@ -416,6 +434,16 @@ pass**, with logs `runs/stage6_pilot/w3-worker-stop-suite-final.log` and
 `runs/stage6_pilot/integration-suite-final.log`. The independent reviewer's
 truncated-response finding was reproduced, fixed and rechecked. No remaining
 actionable review findings. The combined checkout remains local and unpushed.
+
+**W1 clock clarification:** prompt6's story-limit sentence now specifies that
+charged seconds count from the event named in the story, or from step 0 if it
+names none. The wording exposes no predicate names or trigger state. Regression
+cases cover the pan event, ice event and a step-zero cooling story. This is a
+pre-freeze prompt correction; calibration must use this corrected prompt.
+Fresh checks with W1 `efaac23`: **361 W3 tests and 386 combined tests pass**.
+The bounded review found no actionable issues. Logs:
+`runs/stage6_pilot/w3-story-clock-suite.log` and
+`runs/stage6_pilot/integration-story-clock-suite.log`.
 
 **Compute tooling prepared:** `.venv-prime/bin/prime` is installed at
 `prime==0.11.0`, matching `scripts/pod_guard.sh`'s existing pin. Dependencies and

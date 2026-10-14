@@ -28,6 +28,9 @@ evidence only.
   Independent review confirmed its finding resolved. Logs:
   `runs/stage6_pilot/w3-worker-stop-suite-final.log` and
   `runs/stage6_pilot/integration-suite-final.log`.
+- Applied W1's requested story-clock wording and confirmed pod B's expanded
+  assignment at W1 `efaac23`. Fresh checks: 361 W3 and 386 combined tests pass;
+  review found no actionable issues. Calibration must use this corrected prompt.
 
 | Required runtime evidence | Status |
 |---|---|
@@ -56,8 +59,9 @@ evidence only.
    sample counts, latency and artifact paths here.
 5. After Tom merges, freezes and tags the common release, run pod B's same-pod
    always-defer baselines followed by Sonnet sessions. Copy artifacts after each
-   phase and verify pod termination. Move `reissue_200` only if Tom agrees and
-   records the change.
+   phase and verify pod termination. Tom approved moving `reissue_200` to pod B
+   in W1 commit `efaac23`; W3 confirms always-defer, Sonnet and `reissue_200`,
+   about 252 episodes with at least 16 cores.
 
 Commands and spend-guard details are in [session_mode.md](session_mode.md).
 The project-local Prime CLI is installed at the pod guard's `0.11.0` pin;
@@ -65,3 +69,5 @@ version/help checks passed without login or paid actions. Currently this checkou
 has no Anthropic/Prime credentials and no
 integrated frozen timing, final plans or release tag. These runtime prerequisites
 remain open; successful mock tests do not complete W3's assignment.
+An empty mode-600 `.env` template now exists locally for credential/cap setup;
+no account key or spending limit has been supplied yet.
