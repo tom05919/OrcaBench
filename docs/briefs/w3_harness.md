@@ -47,7 +47,8 @@ episodes. Build that session mode and a prompt that states the time cost, then r
 4. **Time-aware system prompt (version 6, a contract change).** It must state:
    - that each response is charged `call_seconds` on the task clock, read from `configs/time_pressure.json` (W1's
      file; the format is in `docs/work_split.md`) and not hard-coded;
-   - the task's deadline and story when present;
+   - the task's deadline (`deadline_seconds`, from step 0) and, when the task has a `story`, its `text` and, if
+     `limit_seconds` is not null, the limit;
    - that several policies of different ability take turns and that records of earlier episodes come first;
    - the score, using W1's wording in `docs/time_score.md`.
 
