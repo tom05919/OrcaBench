@@ -1,8 +1,10 @@
 """Time-charged scoring (docs/time_score.md).
 
 An episode is worth `success x max(0, 1 - charged_seconds / deadline_seconds)`:
-- `charged_seconds` is the robot time up to the end of the episode plus a fixed charge for every response from an LLM
-  supervisor. Physics pauses while a model thinks, so without the charge a slow supervisor would cost nothing.
+- `charged_seconds` is the robot time up to the end of the episode plus, for every response from an LLM supervisor,
+  that model's calibrated latency (`call_seconds[model]`: the median seconds per call measured once under the run's
+  prompt and effort, then frozen). Physics pauses while a model thinks, so without the charge a slow supervisor would
+  cost nothing, and measuring live latency would let a model look faster by thinking less.
 - A failure is worth 0 however long it took, whether a false "complete" or the step budget running out. Declaring
   early on a doomed episode therefore gains nothing.
 - A time-sensitive task may also set a story limit: the task fails if more than `limit_seconds` of charged time pass
@@ -19,9 +21,10 @@ STEPS_PER_SECOND = 20
 
 def load_config(path):
     config = json.loads(Path(path).read_text())
-    if not (isinstance(config.get("call_seconds"), (int, float)) and config["call_seconds"] >= 0
-            and isinstance(config.get("tasks"), dict)):
-        raise ValueError("time config needs call_seconds >= 0 and a tasks mapping")
+    charges = config.get("call_seconds")
+    if not (isinstance(charges, dict) and charges and isinstance(config.get("tasks"), dict)
+            and all(isinstance(v, (int, float)) and v >= 0 for v in charges.values())):
+        raise ValueError("time config needs call_seconds as {model: seconds >= 0} and a tasks mapping")
     for task, spec in config["tasks"].items():
         if not (isinstance(spec.get("deadline_seconds"), (int, float)) and spec["deadline_seconds"] > 0):
             raise ValueError(f"{task}: deadline_seconds must be positive")
@@ -65,6 +68,15 @@ def read_episode(folder):
     }
 
 
+def call_charge(episode, config):
+    """Seconds charged per response for this episode's supervisor: 0 for scripted runs; an LLM must be calibrated."""
+    if not episode["llm"]:
+        return 0.0
+    if episode["agent"] not in config["call_seconds"]:
+        raise ValueError(f"no calibrated call_seconds for model {episode['agent']!r}")
+    return config["call_seconds"][episode["agent"]]
+
+
 def value(success, charged, deadline):
     return max(0.0, 1.0 - charged / deadline) if success else 0.0
 
@@ -80,7 +92,7 @@ def score_episode(episode, config):
     """Value and time accounting for one episode as it was run."""
     spec = config["tasks"][episode["task"]]
     robot = episode["steps"] / STEPS_PER_SECOND
-    charged = robot + config["call_seconds"] * episode["calls"]
+    charged = robot + call_charge(episode, config) * episode["calls"]
     success, story = episode["success"], None
     if spec.get("story") and spec["story"].get("limit_seconds") is not None:
         start = spec["story"]["clock_starts"]
@@ -90,7 +102,7 @@ def score_episode(episode, config):
         else:
             story_seconds = (0.0 if trigger is None else
                              (episode["steps"] - trigger) / STEPS_PER_SECOND
-                             + config["call_seconds"] * _calls_from(episode, trigger))
+                             + call_charge(episode, config) * _calls_from(episode, trigger))
             story = {"status": "ok" if story_seconds <= spec["story"]["limit_seconds"] else "expired",
                      "seconds": story_seconds}
             success = success and story["status"] == "ok"

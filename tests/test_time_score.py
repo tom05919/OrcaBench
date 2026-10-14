@@ -8,7 +8,7 @@ from robot_benchmark.time_score import (best_fixed_rules, load_config, read_epis
 
 LLM_AGENT = {"provider": "anthropic", "model": "claude-opus-5-5"}
 SCRIPTED = {"kind": "diagnostic", "model": "ordinary_full_task_policy"}
-CONFIG = {"call_seconds": 5.0, "tasks": {
+CONFIG = {"call_seconds": {"claude-opus-5-5": 5.0}, "tasks": {
     "Plain": {"deadline_seconds": 100.0},
     "Iced": {"deadline_seconds": 100.0, "story": {"text": "Ice melts.", "clock_starts": "ice_out", "limit_seconds": 10.0}},
 }}
@@ -59,6 +59,15 @@ class TimeScoreTests(unittest.TestCase):
         self.assertEqual(score_episode(llm, CONFIG)["charged_seconds"], 20.0 + 15.0)
         self.assertAlmostEqual(score_episode(llm, CONFIG)["value"], 0.65)
         self.assertEqual(score_episode(scripted, CONFIG)["charged_seconds"], 20.0)
+
+    def test_each_model_pays_its_own_calibrated_latency_and_unlisted_models_fail(self):
+        config = {**CONFIG, "call_seconds": {"claude-opus-5-5": 4.0, "claude-sonnet-5-5": 2.0}}
+        sonnet = episode(self.root, "sonnet", agent={"provider": "anthropic", "model": "claude-sonnet-5-5"},
+                         model_calls=3, decisions=[run(0, 400, "go"), COMPLETE(400)])
+        self.assertEqual(score_episode(sonnet, config)["charged_seconds"], 20.0 + 6.0)
+        other = episode(self.root, "other", agent={"provider": "anthropic", "model": "claude-other"}, model_calls=1)
+        with self.assertRaises(ValueError):
+            score_episode(other, config)
 
     def test_story_limit_counts_from_the_trigger_and_includes_later_calls(self):
         ice = [False] * 100 + [True] * 301  # the ice leaves the bowl at step 100; episode ends at step 400
@@ -127,7 +136,10 @@ class TimeScoreTests(unittest.TestCase):
     def test_config_validation_and_shipped_config(self):
         with self.assertRaises(ValueError):
             path = Path(self.root) / "bad.json"
-            path.write_text(json.dumps({"call_seconds": 5, "tasks": {"T": {"deadline_seconds": 0}}}))
+            path.write_text(json.dumps({"call_seconds": {"m": 5}, "tasks": {"T": {"deadline_seconds": 0}}}))
+            load_config(path)
+        with self.assertRaises(ValueError):  # a single number is no longer accepted: every model is calibrated
+            path.write_text(json.dumps({"call_seconds": 5, "tasks": {"T": {"deadline_seconds": 10}}}))
             load_config(path)
         shipped = load_config(Path(__file__).resolve().parents[1] / "configs" / "time_pressure.json")
         tasks = {p.stem for p in (Path(__file__).resolve().parents[1] / "configs" / "tasks").glob("*.json")}

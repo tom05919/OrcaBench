@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Score episode folders with the time-charged value (src/robot_benchmark/time_score.py, docs/time_score.md).
 
-For each (backend, task) it finds the best fixed rule: declare at step T, chosen in hindsight over the unsupervised
-runs found under the roots. It then scores every LLM episode against it twice:
-- against the rule's average value over all those runs;
-- **paired**: against the rule applied to the unsupervised runs of the same scene and policy seed under the same
-  root (same machine, so the same start state when the stage checked it).
+For each (backend, task) and each scripted rule family (no restart; restart every N steps) it finds the best fixed
+rule: declare at step T, chosen in hindsight. It then scores every LLM episode:
+- **regret**: against the best family's average value (the restart families may come from another machine, so this
+  comparison is unpaired);
+- **paired**: against the no-restart rule applied to the unsupervised runs of the same scene and policy seed under
+  the same root (same machine, so the same start state when the stage checked it), with T chosen in hindsight and,
+  for the held-out version, without that scene.
 
   python3 scripts/score_time.py runs/stage3_remote [more roots] [--call-seconds 0 2.5 5 10] [--output out.json]
 """
@@ -51,11 +53,13 @@ def score(episodes, config, limits):
         if not e["llm"] or e["infrastructure_error"] or e["task"] not in config["tasks"]:
             continue
         rule = rules.get((e["backend"], e["task"], "no_restart"))
+        families = [r for (b, t, _), r in rules.items() if (b, t) == (e["backend"], e["task"])]
+        best = max(families, key=lambda r: r["value"]) if families else None
         scored, behaviour = score_episode(e, config), supervisor_measures(e)
         row = {"value": scored["value"], "success": scored["success"], "charged_seconds": scored["charged_seconds"],
                "calls": scored["calls"], "declaration": behaviour["declaration"], "lag_seconds": behaviour["lag_seconds"],
                "restarts": behaviour["restarts"], "prompt_changes": behaviour["prompt_changes"],
-               "regret": None if rule is None else rule["value"] - scored["value"]}
+               "regret": None if best is None else best["value"] - scored["value"]}
         twins = unsupervised.get((e["root"], e["backend"], e["task"], e["scene_seed"], e["policy_seed"]), [])
         if rule and twins:
             paired = rule_value(twins, config, e["task"], rule["step"])
@@ -95,14 +99,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("roots", type=Path, nargs="+")
     parser.add_argument("--config", type=Path, default=ROOT / "configs" / "time_pressure.json")
-    parser.add_argument("--call-seconds", type=float, nargs="*", help="sensitivity: rescore with these charges")
+    parser.add_argument("--call-seconds", type=float, nargs="*",
+                        help="sensitivity: rescore with this charge for every model")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     config, limits = load_config(args.config), horizons()
     episodes = load(args.roots)
     report = {"roots": [str(r) for r in args.roots], "call_seconds": config["call_seconds"], "episodes": len(episodes)}
     report.update(summarize(*score(episodes, config, limits)))
-    print(f"{len(episodes)} episodes; call charge {config['call_seconds']} s\n\nBest fixed rule (declare at step T, "
+    print(f"{len(episodes)} episodes; seconds per call {config['call_seconds']}\n\nBest fixed rule (declare at step T, "
           "in hindsight) per backend and task:")
     for r in report["fixed_rules"]:
         print(f"  {r['backend']:15s} {r['task']:26s} {r['source']:22s} n={r['n']:3d}  T={str(r['step']):>5s}  "
@@ -118,7 +123,7 @@ def main():
         report["sensitivity"] = {}
         print("\nSensitivity to the call charge (all LLM episodes pooled):")
         for seconds in args.call_seconds:
-            variant = {**config, "call_seconds": seconds}
+            variant = {**config, "call_seconds": {model: seconds for model in config["call_seconds"]}}
             pooled = [row for rows in score(episodes, variant, limits)[1].values() for row in rows]
             report["sensitivity"][str(seconds)] = {
                 "value": mean([r["value"] for r in pooled]),
