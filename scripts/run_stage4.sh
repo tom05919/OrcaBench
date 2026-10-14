@@ -94,6 +94,8 @@ start_workers() {
   for ((i = 0; i < STREAMS; i++)); do
     until curl -s -m 3 "localhost:$((BASE_PORT + i))/health" > /dev/null; do
       sleep 5
+      ! grep -q Traceback "$OUT/worker-$((BASE_PORT + i)).log" \
+        || { stamp "worker $((BASE_PORT + i)) died; stopping"; exit 1; }
       (( (waited += 5) < 1800 )) || { stamp "worker $((BASE_PORT + i)) not healthy after 30 min; stopping"; exit 1; }
     done
   done

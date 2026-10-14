@@ -22,6 +22,14 @@ rm -f "$ROOT/PIPELINE_DONE"
 trap 'echo "$? $(date -u +%FT%TZ)" > "$ROOT/PIPELINE_DONE"' EXIT
 stamp() { echo "[$(date -u +%H:%M:%S)] $*" >> "$ROOT/driver.log"; }
 
+# The pinned openpi imports pytest at runtime (src/openpi/models_pytorch/gemma_pytorch.py); upstream's `uv sync`
+# installs it with the default dev group, but configs/requirements-pi05.txt leaves it out, so every pi05 worker died at
+# import on the first attempt (October 14). Install the version in openpi's uv.lock until that file is fixed.
+uv pip install --python .venv-pi05/bin/python pytest==8.3.5 >> "$ROOT/driver.log" 2>&1 \
+  || { stamp "pytest install failed"; exit 1; }
+.venv-pi05/bin/python -c "from openpi.policies import policy_config" >> "$ROOT/driver.log" 2>&1 \
+  || { stamp "openpi import failed; stopping"; exit 1; }
+
 stamp "build start"
 for seed in 1000 1001 1002 1003; do
   .venv-sim/bin/python scripts/check_task_pool.py --seed $seed --tasks $STORY $LEAVE \
