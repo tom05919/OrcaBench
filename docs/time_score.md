@@ -20,8 +20,10 @@ settings: `configs/time_pressure.json`; tests: `tests/test_time_score.py`. Tom d
   - **Calibration:** each model's charge is its median wall-clock seconds per call, measured **once** under the run's
     exact settings (final prompt, effort `medium`), then frozen. Live latency is not used: it varies with API load,
     and it would let a model look faster by thinking less during a run.
-  - **Provisional values:** Opus 5.5 4.7 s (stage 3, 161 calls) and Sonnet 5.5 2.2 s (stage 1, 77 calls, older
-    prompt). They are re-measured from W3's probe and pilot with prompt version 6 and frozen on October 14.
+  - **Calibrated values (October 14):** Opus 5.5 **4.74 s** and Sonnet 5.5 **1.76 s**: the median over W3's replay
+    of all 27 observations of its eight-episode pilot, once per model, under prompt version 6 (`docs/stage6_pilot.md`).
+    First calls are faster than later ones (Opus 2.14 s against 5.05 s). The provisional values were Opus 4.7 s
+    (stage 3, 161 calls) and Sonnet 2.2 s (stage 1, 77 calls, older prompt).
   - **Unlisted model:** scoring a model with no calibrated value is an error.
 - **deadline_seconds = the task's step budget in seconds** (registry horizon / 20), for every task (decided). It needs
   no calibration on any policy's results.

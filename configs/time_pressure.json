@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "status": "October 13: call_seconds per model (provisional medians: Opus stage 3, Sonnet stage 1; re-measured with the final prompt from W3's probe and pilot and frozen on October 14), deadline = step budget, first response charged (docs/decisions.md, docs/time_score.md). Story limits are set from W2's data.",
+  "status": "October 14: call_seconds calibrated (W3's replay of all 27 pilot observations once per model under prompt version 6, effort medium; median per model; rule in docs/decisions.md). Deadline = step budget, first response charged (docs/decisions.md, docs/time_score.md). Story limits pending W2's scripts/set_story_limits.py; status becomes \"frozen\" once they are written.",
   "call_seconds": {
-    "claude-opus-5-5": 4.7,
-    "claude-sonnet-5-5": 2.2
+    "claude-opus-5-5": 4.74,
+    "claude-sonnet-5-5": 1.76
   },
   "value": "success x max(0, 1 - charged_seconds / deadline_seconds); charged = robot seconds + call_seconds[model] per LLM response",
   "tasks": {
