@@ -4,6 +4,55 @@
 robot-policy pilot results from W3. Local test results below are implementation
 evidence only.
 
+## Continuation check — October 14, 19:59 UTC
+
+Fetched GitHub before proceeding. Main remains `2663171`, W1 `efaac23`, W2
+`945cb7a`; W3 started this continuation at `67152bb`. No release tag exists.
+The integration checkout remains detached at `53e96be` with its six deliberate
+modified source/test files; it was inspected without edits, resets or merges.
+The prior presentation stash is preserved.
+
+Fresh presence-only checks still find neither `ANTHROPIC_API_KEY` nor
+`PRIME_API_KEY` in the process environment or project `.env` (mode 600).
+Neither total spending cap nor any phase allocation is set. Requested only the
+local credential source location, separate compute/API dollar caps and Prime
+billing scope; no key values were requested. Wallet, offers, billing identity
+and account-specific model access remain unverified because no authenticated
+request was attempted. A Prime balance is not spending authorization.
+
+Bounded read-only partner inspection confirms actual runtime evidence for the
+pilot's `groot` and `groot_u30` profiles. π0.5 remains untested/null. No task met
+the ceiling rescue rule. The final GPU type is still unconfirmed: W2's historical
+A100 80 GB ladder and L40S 48 GB pretrain rentals are not an agreement for pods
+A/B. Tom still owns qualification/selection/freeze decisions. These gates do
+not require redesigning or rerunning the passed mock interface checks.
+
+Official [pricing](https://platform.claude.com/docs/en/about-claude/pricing),
+[Opus](https://platform.claude.com/docs/en/models/opus-5-5/overview) and
+[Sonnet](https://platform.claude.com/docs/en/models/sonnet-5-5/overview) references
+were rechecked. Model IDs, one-million-token context bounds and standard rates
+match the existing guard; no code/config change is needed. This documentation
+check does not establish credential validity or paid API access.
+
+| W3 live evidence in this continuation | Value |
+|---|---|
+| Model requests / robot-policy episodes attempted | 0 / 0 |
+| Opus / Sonnet representative v6 medians | null / null (unmeasured) |
+| Pilot score / scorer exclusions | null / null (pilot not run) |
+| Initiated API / compute spending | $0 / $0 |
+| Rentals initiated | 0 |
+
+Presence booleans, exact refs, integration diff digest, standard prices and
+unresolved gates are retained in
+`runs/stage6_pilot/continuation-20261014T195929Z/readiness.json`; bounded partner
+findings are in the adjacent `partner-state.txt`. These are readiness artifacts,
+not experimental results. Resume at the existing live prerequisites, then run
+the two-model preflight before rental; final pod B additionally requires Tom's
+frozen release and the common GPU type. All earlier artifacts remain intact.
+Fresh W3 full-suite verification passed: 361 tests in 6.624 seconds, retained in
+`runs/stage6_pilot/continuation-20261014T195929Z/w3-suite.log`. Only W3 status/runbook
+documentation changed; this test result supplies no robot-policy qualification.
+
 ## Evidence available
 
 - Session mode, prompt6, privacy projection, retained attempts, baseline pairing,

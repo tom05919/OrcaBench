@@ -410,6 +410,20 @@ into `main`, selection, configuration freezing and the release tag.
   W3 checks its claims against artifacts. Completion requires real execution,
   scoring and integrated code, not only passing local tests.
 
+**Continuation receipt (October 14, 19:59 UTC):** fetched main `2663171`, W1
+`efaac23`, W2 `945cb7a`, W3 `67152bb`; partner refs are unchanged and no tag is
+present. Read-only inspection preserved the detached integration checkout and
+presentation stash. Both keys, both total caps and phase allocations remain
+absent from the process and project `.env`. Credential source location, separate
+caps and billing scope are pending user inputs; no authenticated check, model
+request, robot episode or rental was attempted. Official model IDs, context
+bounds and standard pricing were rechecked and match the implemented guard.
+W2 has actual evidence for both pilot GR00T profiles, but π0.5 and the final GPU
+type remain unconfirmed. Keep step 3 open and proceed directly to preflight
+once its inputs arrive. Do not repeat completed mock checks as live progress.
+Receipt: `runs/stage6_pilot/continuation-20261014T195929Z/readiness.json`;
+status and W1-facing null measurement table: `docs/stage6_pilot.md`.
+
 ### Live execution gates and rationale (October 14, refreshed)
 
 The user reports adding both keys. A fresh presence-only check of the project
