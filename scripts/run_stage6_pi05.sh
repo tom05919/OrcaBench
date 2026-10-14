@@ -22,13 +22,34 @@ rm -f "$ROOT/PIPELINE_DONE"
 trap 'echo "$? $(date -u +%FT%TZ)" > "$ROOT/PIPELINE_DONE"' EXIT
 stamp() { echo "[$(date -u +%H:%M:%S)] $*" >> "$ROOT/driver.log"; }
 
-# The pinned openpi imports pytest at runtime (src/openpi/models_pytorch/gemma_pytorch.py); upstream's `uv sync`
-# installs it with the default dev group, but configs/requirements-pi05.txt leaves it out, so every pi05 worker died at
-# import on the first attempt (October 14). Install the version in openpi's uv.lock until that file is fixed.
-uv pip install --python .venv-pi05/bin/python pytest==8.3.5 >> "$ROOT/driver.log" 2>&1 \
-  || { stamp "pytest install failed"; exit 1; }
-.venv-pi05/bin/python -c "from openpi.policies import policy_config" >> "$ROOT/driver.log" 2>&1 \
-  || { stamp "openpi import failed; stopping"; exit 1; }
+# configs/requirements-pi05.txt lists openpi's direct dependencies without its lock, so a fresh resolve drifts far from
+# what openpi tested (October 14: 34 lock packages missing, 125 at other versions). Both pi05 attempts died at import:
+# first on pytest (openpi's dev group, imported by gemma_pytorch.py), then on chex (pulled in only by the locked optax
+# 0.2.4). openpi's training config also imports robocasa (groot_utils), which bootstrap leaves out of .venv-pi05, and
+# robocasa asserts numpy 2.2.5 and mujoco 3.3.1 at import. Upstream installs openpi into the RoboCasa environment, so
+# until those files are fixed, rebuild .venv-pi05 from the pinned openpi's uv.lock plus robocasa's and robosuite's
+# requirements (configs/requirements-sim.txt, robocasa's pins winning; lerobot stays at openpi's commit; tianshou is
+# left out because nothing on this path imports it and it needs protobuf 3), then the editable installs of
+# scripts/bootstrap_gpu.py plus robosuite and robocasa. Verified on a Mac (CPU jax) on October 14: the imports and
+# config.get_config('pi05_pretrain_human300') load.
+OPENPI=vendor/src/openpi
+pi05_env() {
+  (cd "$OPENPI" && uv export --frozen --no-dev --no-emit-workspace --no-hashes --no-header) > "$ROOT/openpi-lock.txt" &&
+  grep -vE '^(numpy|mujoco|lerobot|tianshou|pytest)\b' configs/requirements-sim.txt > "$ROOT/robocasa-extra.txt" &&
+  printf 'numpy==2.2.5\nmujoco==3.3.1\n' > "$ROOT/overrides.txt" &&
+  uv venv --clear --python 3.11 .venv-pi05 &&
+  uv pip install --python .venv-pi05/bin/python -r "$ROOT/openpi-lock.txt" -r "$ROOT/robocasa-extra.txt" \
+    --override "$ROOT/overrides.txt" pytest==8.3.5 &&
+  uv pip install --python .venv-pi05/bin/python --no-deps -e "$OPENPI/packages/openpi-client" -e "$OPENPI" \
+    -e vendor/src/robosuite -e vendor/src/robocasa -e . &&
+  uv pip freeze --python .venv-pi05/bin/python > "$ROOT/pi05-freeze.txt" &&
+  .venv-pi05/bin/python -c "from openpi.policies import policy_config; from openpi.training import config
+config.get_config('pi05_pretrain_human300'); import robot_benchmark.policy_worker" &&
+  XLA_PYTHON_CLIENT_PREALLOCATE=false .venv-pi05/bin/python -c "import jax
+assert any(d.platform == 'gpu' for d in jax.devices()), jax.devices()"
+}
+pi05_env >> "$ROOT/driver.log" 2>&1 || { stamp "pi05 environment from openpi's lock failed; stopping"; exit 1; }
+stamp "pi05 environment rebuilt from openpi's lock"
 
 stamp "build start"
 for seed in 1000 1001 1002 1003; do
