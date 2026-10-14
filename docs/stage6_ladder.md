@@ -180,3 +180,24 @@ seen tasks partly forgotten). There is no third policy of clearly different abil
 anyway, `groot_pretrain` is the one to add as a weaker-on-unseen variant of `groot`, with the borderline unseen gap
 (p = 0.057) stated. The only leave-alone task for all four policies is PickPlaceCounterToStove (`groot_u30` on the
 line at 4/8); OpenCabinet drops out with `groot_pretrain` at 3/8.
+
+## π0.5 (plan, fixed before the run, October 14)
+
+Tom chose π0.5 as the third benchmark policy, a second architecture (`docs/final_experiment.md`, freeze step 0). It
+has never run in this project, so it is untested (null) until this run.
+
+- **Checkpoint:** `pi05_pretrain_human300/multitask_learning/75000` at revision `c484448a`, already pinned
+  (`policy_worker.py`, `scripts/download_checkpoint.py --backend pi05`), installed with
+  `bootstrap_gpu.py --include-pi05 --download-pi05-checkpoint` into `.venv-pi05`.
+- **Grid (`scripts/run_stage6_pi05.sh`):** the ladder's 8 story and 5 leave-alone tasks x scenes 1000-1003 x policy
+  seeds 0, 1 (104 episodes), plain, video every 10 steps, after a build check of the 13 tasks at the four scenes.
+  Four pi05 workers; `run_stage4.sh` turns off JAX's 75% GPU memory preallocation for pi05 and stops if a worker is
+  not healthy within 30 minutes.
+- **Smoke first:** one plain OpenCabinet episode at scene 1000, policy seed 0 (kept in `smoke/`, not counted). An
+  infrastructure error stops the run; then Tom decides between moving the freeze and proceeding with the two GR00T
+  policies, and π0.5 is reported as untested.
+- **Reading:** the ladder's rules above, per task; the counts go into `runs/stage6_ladder/analysis.json` (folder
+  linked in as `runs/stage6_ladder/pi05`) for `scripts/select_final.py`. The story tasks' episodes log the clock
+  triggers, for `scripts/set_story_limits.py`.
+- **Compute:** one Prime pod on Ranveer's account (80 GB GPU), caps **$8 GPU, pod deadline 4 hours after creation**
+  with a 30-minute backstop, `BUDGET_MINUTES=200`; pod guard, backstop and Mac watchdog as before.

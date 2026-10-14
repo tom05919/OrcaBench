@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from robot_benchmark.tasks.predicates import SEQUENCES  # noqa: E402
 
 TRIGGERS = ("ice_out_of_bowl", "pan_off_stove")  # clock triggers in tasks/predicates.py, not task progress
-BACKENDS = ("groot", "groot_pretrain", "groot_u10", "groot_u30")  # those without a folder under --root are skipped
+BACKENDS = ("groot", "groot_pretrain", "groot_u10", "groot_u30", "pi05")  # skipped without a folder under --root
 
 
 def wilson(k, n, z=1.96):
