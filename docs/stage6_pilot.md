@@ -1,10 +1,112 @@
 # W3 pilot status — October 14, 2026
 
-**The real pilot has not run.** Live version-6 synthetic API preflight passed;
-representative RoboCasa latencies and robot-policy pilot results remain absent.
-Local test results below are implementation evidence only.
+**The real eight-episode development pilot, W1 scoring and representative v6
+replay calibration are complete.** Final benchmark runs remain pending Tom's
+integrated frozen release and the common GPU agreement. Earlier readiness and
+mock evidence below is historical, separate from the actual results here.
 
-## Live preflight and pilot setup — October 14
+## W1 delivery — actual development results, October 14
+
+The Opus session completed all eight planned episodes, with **3 successes,
+5 false completions and 0 infrastructure exclusions**. All 27 model responses
+were strict JSON; no decisions were rejected. It used 6,160 control steps.
+Every attempted episode, including failures, is retained. Both learned workers
+used the pinned revision `c484448aba1a9b60a04c9b0ca117241518ea69f3`, with verified
+checkpoint manifests. This is development evidence, not a frozen comparison.
+
+W1's actual scorer (`efaac23`) read all eight episodes and the session records
+using the copied **provisional** Opus charge of 4.7 seconds. Per-cell results:
+
+| Backend | Task | Successes / attempts | Mean time-charged value |
+|---|---|---|---|
+| `groot` | CloseFridge | 2 / 2 | 0.142 |
+| `groot_u30` | CloseFridge | 1 / 2 | 0.066 |
+| `groot` | PanTransfer | 0 / 2 | 0.000 |
+| `groot_u30` | PanTransfer | 0 / 2 | 0.000 |
+
+Baseline regret, paired regret, held-out primary regret and learning remain
+**null** because this pilot has no baseline cohort. No rescue or adaptation
+claim follows from these eight episodes. Scorer artifact:
+`runs/stage6_pilot/scoring/score.json`; copied scoring input:
+`runs/stage6_pilot/inputs/time-pressure.json`.
+
+### Representative prompt-v6 latency for the freeze
+
+Both models replayed the actual CloseFridge/K episode `0002`, with only its two
+preceding completed PanTransfer records. First observation: index 0, step 0,
+3 images. Mid observation: index 1, step 200, 15 images including interval frames.
+All images are 256 × 256 PNGs; raw PNG payload totals are 167,253 and 814,832 bytes.
+Each observation was replayed three times per model, sequentially on the same
+pilot pod after the session ended. Effort remained medium; no frame was invented.
+
+| Model ID | First median (n=3) | Mid median (n=3) | Pooled median (n=6) | Successful / attempted logical calls | HTTP attempts | Retries / excluded calls | Calibration API dollars |
+|---|---|---|---|---|---|---|---|
+| `claude-opus-5-5` | 1.85 s | 4.34 s | **3.08 s** | 6 / 6 | 6 | 0 / 0 | 0.065052 |
+| `claude-sonnet-5-5` | 1.08 s | 2.01 s | **1.44 s** | 6 / 6 | 6 | 0 / 0 | 0.031572 |
+
+All 12 replay responses were strict, valid JSON. Synthetic preflight and ordinary
+pilot calls are excluded from these replay medians. Samples in seconds:
+Opus first `[2.13, 1.85, 1.53]`, mid `[4.34, 4.03, 5.39]`; Sonnet first
+`[1.03, 1.51, 1.08]`, mid `[2.01, 2.17, 1.37]`.
+
+Experience: 2 records, 1,341 serialized JSON characters; model-visible experience
+blocks contain 904 and 433 characters. Across its six replay calls, Opus used
+12,306 uncached input / 0 cache-write / 11,040 cache-read / 681 output tokens;
+Sonnet used 12,306 / 1,840 / 9,200 / 144 respectively. The five-minute cache mix
+is part of the measured condition: all Opus replay calls hit the prefix cache;
+Sonnet's first call wrote it and the remaining calls hit it.
+
+This is a small calibration sample from one task/episode and a short experience
+context, equally weighting first/mid calls; it does not estimate uncertainty or
+the distribution of all final-session contexts. Timing rows are rounded to
+hundredths of a second by the existing probe. Tom owns the frozen charges and
+story limits; W3 has not rewritten W1's timing configuration.
+
+### Spend, termination and retained artifacts
+
+Actual Claude spend: preflight $0.043512, pilot $0.4386554, first replay $0.023550,
+mid replay $0.073074; **total $0.5787914**, 43 HTTP attempts, no unknown-usage
+reservations. Prime's wallet billing entry for the exact pod reports **$0.939**;
+combined development spend is **$1.5177914**. Prime balance after termination:
+$249.061. These are actual usage/billing amounts, within the separate $250
+compute and $100 API project caps. History's raw `total_billed_price` is not
+interpreted as dollars; the receipt uses the matched wallet `amount_usd` field.
+
+Pod `433e8c50e3394425b4df2c2c420e2d6d` was terminated and a fresh authenticated
+pod list reports **zero active pods**. Only this pod's launchd/caffeinate resources
+were stopped. Actual hardware: A100 80 GB SXM4, driver 595.91.07, CPU quota
+27.2 cores (32 advertised). The initial `/workspace` FUSE mount could not enforce
+file permissions; bootstrap was moved to `/root/OrcaBench` on its 120 GB local
+filesystem, with `.env` mode 600 and the mounted copy removed. Logs are retained.
+
+All artifacts are local and Git-ignored; only small W3 documentation is pushed:
+
+- W1-facing machine-readable delivery, samples, usage, exclusions, source/config/
+  actual system-prompt/scorer/timing hashes: `runs/stage6_pilot/w1-delivery.json`.
+- Eight attempts, results, manifests, decisions, observations, evaluator records,
+  model traces/timings, PNGs and videos:
+  `runs/stage6_pilot/opus-pilot/sessions/opus-eight/`.
+- Replay reports, per-call timings, traces and spend ledgers:
+  `runs/stage6_pilot/calibration-first/` and `calibration-mid/`.
+- Preceding experience and retained provisional inputs: `runs/stage6_pilot/inputs/`.
+- Scorer output/log: `runs/stage6_pilot/scoring/`.
+- Environment freezes and checkpoint manifests: `runs/stage6_pilot/environment/`.
+- Quote/create/status/termination records and actual matched compute bill:
+  `runs/stage6_pilot/compute-launch-20261014T2012/final-compute-receipt.json`.
+- Copy verification: `runs/stage6_pilot/delivery-integrity.json` (8 results,
+  27 observations, 309 nonempty referenced frames, 12 accepted replay calls;
+  all 24 camera videos also verified nonempty).
+
+Fresh full W3 verification before delivery push: **361 tests passed in 6.665 s**,
+`runs/stage6_pilot/w3-live-delivery-suite.log`. The integration checkout's diff
+digest and presentation stash remain unchanged. No W1/W2-owned file was edited.
+
+Final pod B has **not** started. It still requires Tom's clean tagged release,
+qualified/selected policy set, frozen timing/stories/plans and the shared GPU
+agreement. W2's π0.5 remains untested in the inspected partner snapshot. Do not
+keep or re-rent development compute while these release inputs are pending.
+
+## Historical live preflight and pilot setup — October 14
 
 The user authorized **$250 total Prime compute** and **$100 total Claude API**
 for this project. API allocations are $10 preflight, $20 pilot, $10 first-frame
@@ -51,7 +153,7 @@ Pod-side backstop, bootstrap, learned-worker checks and the eight episodes are
 next. Source bundle/dirty-overlay hashes, quote, creation attempt and bound ID
 are retained in `runs/stage6_pilot/compute-launch-20261014T2012/`.
 
-## Credential access cleared — October 14, 20:03 UTC
+## Historical credential check — October 14, 20:03 UTC
 
 After the user saved `.env`, both API keys are now present in that mode-600 file.
 Read-only authenticated GETs succeeded with HTTP 200 for Prime identity, its
@@ -73,7 +175,7 @@ and request headers were not printed or saved in those artifacts. This supersede
 the credential-absence finding below. Resume with phase allocations and the live
 two-model preflight once the separate caps and billing scope are supplied.
 
-## Continuation check — October 14, 19:59 UTC
+## Historical continuation check — October 14, 19:59 UTC
 
 Fetched GitHub before proceeding. Main remains `2663171`, W1 `efaac23`, W2
 `945cb7a`; W3 started this continuation at `67152bb`. No release tag exists.
@@ -122,7 +224,7 @@ Fresh W3 full-suite verification passed: 361 tests in 6.624 seconds, retained in
 `runs/stage6_pilot/continuation-20261014T195929Z/w3-suite.log`. Only W3 status/runbook
 documentation changed; this test result supplies no robot-policy qualification.
 
-## Evidence available
+## Offline implementation evidence
 
 - Session mode, prompt6, privacy projection, retained attempts, baseline pairing,
   API attempt ledger and final frozen-input checks are implemented on
@@ -160,11 +262,11 @@ documentation changed; this test result supplies no robot-policy qualification.
 
 | Required runtime evidence | Status |
 |---|---|
-| Opus median seconds per call under prompt6 | Unmeasured |
-| Sonnet median seconds per call under prompt6 | Unmeasured |
-| Eight-episode Opus RoboCasa session | Not run |
-| W1 scoring of that real pilot | Not run |
-| Actual GPU/API spend from W3 | No paid calls or rentals initiated |
+| Opus representative pooled median under prompt6 | 3.08 s, 6 replay calls |
+| Sonnet representative pooled median under prompt6 | 1.44 s, 6 replay calls |
+| Eight-episode Opus RoboCasa session | Complete: 3 success, 5 false completion, 0 infrastructure |
+| W1 scoring of that real pilot | Complete with retained provisional inputs; regret/learning null |
+| Actual compute/API spend from W3 | $0.939 / $0.5787914; pod terminated |
 
 ## Execution order
 
@@ -191,13 +293,9 @@ documentation changed; this test result supplies no robot-policy qualification.
 
 Commands and spend-guard details are in [session_mode.md](session_mode.md).
 The project-local Prime CLI is installed at the pod guard's `0.11.0` pin;
-version/help checks passed without login or paid actions. Currently this checkout
-has no Anthropic/Prime credentials and no
-integrated frozen timing, final plans or release tag. These runtime prerequisites
-remain open; successful mock tests do not complete W3's assignment.
-The user reports adding both keys, but a fresh presence-only check of the
-mode-600 project `.env` and process environment still finds neither key.
-The credential location and separate compute/API spending limits have been
-requested. Do not interpret this discrepancy as invalid keys or failed API
-authentication: no authenticated request has been attempted. The expanded
+the operational launcher, authenticated account checks, guards and development
+execution have now been verified as described above. Both local keys and explicit
+caps are available. Integrated frozen timing, final plans, qualified final policy
+selection, common final GPU agreement and the release tag remain open.
+The earlier credential visibility discrepancy is resolved. The expanded
 execution gates, phase allocations and reasoning are in `session_mode.md`.

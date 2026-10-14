@@ -4,8 +4,10 @@ Owner: Ty / person 3. Branch: `w3-harness`. Goal: one supervisor configuration,
 one accumulated text context, anonymous policies interleaved across RoboCasa
 episodes, with time charged under W1's scoring contract.
 
-New W3 sessions should start with [w3_handoff.md](w3_handoff.md) for the verified
-snapshot, local artifacts and unresolved inputs, then execute this runbook.
+New W3 sessions should read [w3_handoff.md](w3_handoff.md) for the earlier snapshot,
+then this runbook and [stage6_pilot.md](stage6_pilot.md) for the current live state.
+The development pilot/calibration is complete and the pod is terminated; resume
+at Tom's frozen release and final pod B, preserving the existing integration tree.
 
 ## Sources and scope
 
@@ -75,6 +77,11 @@ the common GPU type, selected plans, fixed time parameters and release tag.
 
 ## Current progress
 
+Current live state: actual eight-episode pilot, W1 scoring and representative v6
+calibration completed; API $0.5787914 and compute $0.939, pod terminated. Details
+are in `docs/stage6_pilot.md` and `runs/stage6_pilot/w1-delivery.json`. Final release
+and GPU coordination remain open. Earlier implementation/readiness milestones:
+
 - GitHub main pulled at `2663171`; W1 and W2 newer branches inspected read-only.
 - Previous presentation work preserved in Git stash and not reapplied across the
   new file-ownership split.
@@ -97,11 +104,12 @@ the common GPU type, selected plans, fixed time parameters and release tag.
   Final experience limit is 24 and recording interval is 10; task configs and
   splits must equal the tagged versions. Fresh full suite: 356 tests pass.
   Focused independent review found no actionable bugs. Live gates remain open.
-- No live W3 episode or paid model probe yet. This environment currently has no
+- Initial readiness, before the credential update: no live W3 episode or paid
+  model probe; this environment then had no
   `ANTHROPIC_API_KEY`, `PRIME_API_KEY`, or `PRIME_TEAM_ID` configured.
   A Git-ignored `.env` template was prepared with mode 600 and empty values;
   it contains no credentials or approved caps. Shell presence checks agree.
-  Model/GPU spending caps and billing account are pending. The project-local
+  Model/GPU spending caps and billing account were pending. The project-local
   Prime CLI was subsequently installed and verified as described below.
 
 ## Commands for the initial implementation
@@ -396,7 +404,7 @@ into `main`, selection, configuration freezing and the release tag.
   record explicit API/GPU caps, billing account, and agreed GPU type. Confirm
   worker checkpoint qualification with W2. Check wallet/offers/model access
   before creating a guarded pod. Credentials are never printed or committed.
-- [ ] **4. Preflight → pilot → calibration.** Execute the exact development
+- [x] **4. Preflight → pilot → calibration.** Execute the exact development
   commands above. Preserve every attempt, verify eight terminal non-infra
   episodes, score with W1, and measure both models on representative first/mid
   stored observations. Give W1 sample counts, medians, config/commit identity
@@ -409,6 +417,23 @@ into `main`, selection, configuration freezing and the release tag.
   usage, pilot scoring and final attempt counts. W1 writes the combined report;
   W3 checks its claims against artifacts. Completion requires real execution,
   scoring and integrated code, not only passing local tests.
+
+**Actual development execution completed (October 14):** eight terminal episodes,
+3 successes / 5 false completions / 0 infrastructure exclusions, 27 strict
+Opus replies, W1 scorer consumed all eight using the retained provisional timing.
+Representative replay medians from six successful calls/model are Opus **3.08 s**
+and Sonnet **1.44 s**; first/mid medians are 1.85/4.34 s and 1.08/2.01 s.
+Twelve replay calls were strict/valid, zero retries/exclusions, with only the
+chosen episode's preceding two records and actual first/mid frames. Synthetic
+preflight and ordinary pilot calls are excluded from the replay medians.
+Details, sample/cache limitations, usage and paths are in `docs/stage6_pilot.md`;
+machine-readable W1 delivery: `runs/stage6_pilot/w1-delivery.json`.
+Actual API spend $0.5787914 and billed compute $0.939, total $1.5177914.
+The exact development pod is terminated; zero active pods verified. All attempts,
+frames, videos, scorer outputs, environment/checkpoint records and receipts are
+copied locally. Development credential/account/cap/worker gates are met; the
+common **final** GPU agreement remains open in step 3/5, alongside Tom's frozen
+release. Step 6's development delivery is complete; final run audit is pending.
 
 **Continuation receipt (October 14, 19:59 UTC):** fetched main `2663171`, W1
 `efaac23`, W2 `945cb7a`, W3 `67152bb`; partner refs are unchanged and no tag is
@@ -451,7 +476,8 @@ are in `docs/stage6_pilot.md`. Final GPU agreement/tag are still open.
 
 ### Live execution gates and rationale (October 14, refreshed)
 
-The user reports adding both keys. A fresh presence-only check of the project
+Historical entry, superseded by the actual execution update above: the user
+reported adding both keys. That presence-only check of the project
 `.env` and shell still sees neither `PRIME_API_KEY` nor `ANTHROPIC_API_KEY`.
 The `.env` remains mode 600. Key location and separate API/compute dollar caps
 have been requested; values must not be posted in chat. No paid call or rental
@@ -635,7 +661,8 @@ PRIME_DISABLE_VERSION_CHECK=1 .venv-prime/bin/prime pods create --help
 The CLI's account configuration normally uses `~/.prime`. Before any authenticated
 command, keep account setup under this project using the existing project API
 tools or an explicitly supported configuration path; do not move another agent's
-global account context. Account/credential readiness remains pending.
+global account context. Actual account/credential readiness has since been
+verified using the project-local operational launcher and read-only HTTP calls.
 
 - Core and pairing/spend-guard commits are pushed to PR #3. Frozen-input and
   baseline-contract checks have passed the 356-test suite and focused review.
