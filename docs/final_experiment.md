@@ -18,7 +18,8 @@ here. The rest is computed by scripts from their outputs, under rules written be
 | Baselines | always-defer on both pods (paired with every LLM episode); `reissue_50` and `reissue` (100) on pod A, `reissue_200` on pod B (all unpaired) | Decided October 13; `reissue_200` moved to pod B on October 14 |
 | Score | value = success × max(0, 1 − charged / deadline). Deadline = step budget; per-model call charge, frozen; first response charged; story limits from `scripts/set_story_limits.py` | `configs/time_pressure.json` |
 
-**Pods.** Both pods use **the same GPU type** (the contract hash includes the GPU name) and the tagged commit.
+**Pods.** Both pods use **the same GPU type, an A100 80 GB SXM4** (Tom, October 14; the contract hash includes the GPU
+name), and the tagged commit.
 
 | Pod | Credits | Runs | Episodes |
 |---|---|---|---|
@@ -50,8 +51,10 @@ here. The rest is computed by scripts from their outputs, under rules written be
 2. **Select:** `python3 scripts/select_final.py --policies groot groot_u30 pi05 --output configs/final/selection.json`. Log the selection, including
    whether the fallback applies, in `docs/decisions.md`. Before the merge, W2's two tables are only on its branch:
    extract them with `git show origin/w2-policies:<path>` and pass `--ladder` and `--ceiling`.
-3. **Call charge, then story limits.** First write W3's calibrated `call_seconds` into `configs/time_pressure.json`:
-   the story limit adds 3 responses at the slowest calibrated latency, so it must be computed from the frozen values.
+3. **Call charge, then story limits.** First write W3's calibrated `call_seconds` into `configs/time_pressure.json`.
+   Each model's charge is the median over one replayed call per recorded observation of W3's eight-episode pilot,
+   with each observation's own preceding experience (Tom, October 14). The story limit adds 3 responses at the slowest
+   calibrated latency, so it must be computed from the frozen values.
    Then `python3 scripts/set_story_limits.py <runs with trigger logs> --policies groot groot_u30 pi05 --config <that
    file>`. The trigger predicates are logged only in runs after W2's commit `938b7fd`: the ceiling plain arm and π0.5's
    ladder. Those episodes are on W2's machine, so W2 runs the script and W1 writes the printed limits into the config
