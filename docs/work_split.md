@@ -5,7 +5,7 @@ Three people, each with their own agent, GPU credits and API key, work in parall
 
 | Workstream | Owner | Brief | In one line |
 |---|---|---|---|
-| W1 scoring, analysis, write-up | Tom | `docs/briefs/w1_scoring.md` | Define and compute the time-charged score and the best fixed rule; design the final experiment; write the report. CPU only. |
+| W1 scoring, analysis, write-up | Tom | `docs/briefs/w1_scoring.md`, then `docs/briefs/w1_handoff.md` (state and context as of October 13) | Define and compute the time-charged score and the best fixed rule; design the final experiment; write the report. CPU only. |
 | W2 policies and tasks | Ranveer (suggested) | `docs/briefs/w2_policies.md` | Measure the ability ladder (10% and 30% GR00T), run the step-by-step ceiling test, add predicates. GPU. |
 | W3 harness and LLM runs | Third partner (suggested) | `docs/briefs/w3_harness.md` | Build session mode (one supervisor, several policies, past outcomes in context) and the time-aware prompt; run the pilots and the final LLM runs. GPU and API. |
 
