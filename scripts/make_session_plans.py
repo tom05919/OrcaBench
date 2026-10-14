@@ -12,7 +12,7 @@ Everything is fixed by `--seed`, and the same plans serve every model. A plan fi
 always-defer run of the same cell on the same pod. `plans/manifest.json` records the inputs.
 
   python3 scripts/make_session_plans.py --policies groot groot_u10 groot_u30 --tasks A B C \\
-      --scenes 1000 1001 1002 1003 --output runs/final/plans
+      --scenes 1000 1001 1002 1003 --output configs/final/plans
 """
 import argparse
 import json

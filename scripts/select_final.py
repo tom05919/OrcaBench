@@ -21,7 +21,7 @@ Rules:
    because the measured ladder had no three distinct levels. Rules 1 and 3 still apply.
 3. **Leave-alone tasks:** three seen candidates with the highest minimum plain success across the chosen policies.
 
-  python3 scripts/select_final.py [--ladder ...] [--ceiling ...] [--output runs/final/selection.json]
+  python3 scripts/select_final.py [--ladder ...] [--ceiling ...] [--output configs/final/selection.json]
 """
 import argparse
 import itertools
@@ -105,7 +105,7 @@ def main():
     print(json.dumps(choice, indent=2))
     tasks = " ".join(choice["unseen_tasks"] + choice["seen_tasks"])
     print(f"\nnext: python3 scripts/make_session_plans.py --policies {' '.join(choice['policies'])} --tasks {tasks} "
-          "--scenes 1000 1001 1002 1003 --output runs/final/plans")
+          "--scenes 1000 1001 1002 1003 --output configs/final/plans")
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(choice, indent=2) + "\n")

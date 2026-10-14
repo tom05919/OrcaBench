@@ -45,14 +45,17 @@ here. The rest is computed by scripts from their outputs, under rules written be
    - **If π0.5 cannot run cleanly by the freeze,** Tom decides between moving the freeze and proceeding with the two
      GR00T policies. π0.5 is then reported as untested, never as zero.
 1. **W2** pushes the ladder table (`runs/stage6_ladder/analysis.json` via `scripts/analyze_stage5.py`), the ceiling
-   summary (`runs/stage6_ceiling/summary.json`) and the trigger predicates. **W3** pushes session mode, prompt version 6
-   and the latency calibration (median seconds per call per model).
+   table (`runs/stage6_ceiling/ceiling.json`, the name in `docs/work_split.md`) and the trigger predicates. **W3**
+   pushes session mode, prompt version 6 and the latency calibration (median seconds per call per model).
 2. **Select:** `python3 scripts/select_final.py --policies groot groot_u30 pi05 --output configs/final/selection.json`. Log the selection, including
-   whether the fallback applies, in `docs/decisions.md`.
-3. **Story limits:** `python3 scripts/set_story_limits.py <runs with trigger logs> --policies groot groot_u30 pi05`.
-   The trigger predicates are logged only in runs after W2's commit `938b7fd`: the ceiling plain arm and π0.5's ladder.
-   Those episodes are on W2's machine, so W2 runs the script and W1 writes the printed limits into the config. Write
-   W3's calibrated `call_seconds` into `configs/time_pressure.json` and set `status` to frozen.
+   whether the fallback applies, in `docs/decisions.md`. Before the merge, W2's two tables are only on its branch:
+   extract them with `git show origin/w2-policies:<path>` and pass `--ladder` and `--ceiling`.
+3. **Call charge, then story limits.** First write W3's calibrated `call_seconds` into `configs/time_pressure.json`:
+   the story limit adds 3 responses at the slowest calibrated latency, so it must be computed from the frozen values.
+   Then `python3 scripts/set_story_limits.py <runs with trigger logs> --policies groot groot_u30 pi05 --config <that
+   file>`. The trigger predicates are logged only in runs after W2's commit `938b7fd`: the ceiling plain arm and π0.5's
+   ladder. Those episodes are on W2's machine, so W2 runs the script and W1 writes the printed limits into the config
+   and sets `status` to frozen.
 4. **Plans:** `python3 scripts/make_session_plans.py --policies <the three> --tasks <chosen> --scenes 1000 1001 1002
    1003 --output configs/final/plans`.
 5. **Merge and tag:** merge the three workstream branches to `main`, run the full test suite (Python 3.11-3.12), and tag
