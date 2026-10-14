@@ -433,6 +433,22 @@ and the desired billing scope remain open, so step 3 is not yet complete. The
 latest receipt is `runs/stage6_pilot/credentials-20261014T200315Z/readiness.json`;
 it supersedes earlier credential-visibility findings without changing them.
 
+**Paid execution update (October 14):** user totals are $250 Prime compute and
+$100 Claude API. Allocate API $10 preflight / $20 pilot / $10 first calibration /
+$10 mid calibration / $50 final, totaling $100. Personal billing is selected:
+its verified wallet has $250 and no teams were returned; the user permits either
+scope. The actual two-model v6 preflight completed four valid strict responses,
+zero retries/errors, $0.043512 usage-based cost. Synthetic medians are excluded
+from representative calibration. Receipt and complete attempts:
+`runs/stage6_pilot/live-preflight-20261014T200627Z/`.
+The clean-environment operational launcher solves credential/config isolation
+through the existing watchdog executable hook, without tracked tooling edits.
+External watchdog is armed and exact-pod bound; development rental ID
+`433e8c50e3394425b4df2c2c420e2d6d` is within a $10 allocation including setup and
+guard grace. Step 3 now advances through pod-side guard/bootstrap/worker checks;
+step 4 resumes with the eight-episode Opus pilot. Full evidence and quote details
+are in `docs/stage6_pilot.md`. Final GPU agreement/tag are still open.
+
 ### Live execution gates and rationale (October 14, refreshed)
 
 The user reports adding both keys. A fresh presence-only check of the project

@@ -1,8 +1,55 @@
 # W3 pilot status — October 14, 2026
 
-**The real pilot has not run.** There are no measured version-6 latencies or
-robot-policy pilot results from W3. Local test results below are implementation
-evidence only.
+**The real pilot has not run.** Live version-6 synthetic API preflight passed;
+representative RoboCasa latencies and robot-policy pilot results remain absent.
+Local test results below are implementation evidence only.
+
+## Live preflight and pilot setup — October 14
+
+The user authorized **$250 total Prime compute** and **$100 total Claude API**
+for this project. API allocations are $10 preflight, $20 pilot, $10 first-frame
+calibration, $10 mid-frame calibration and $50 final sessions (sum $100).
+They are separate phase ledgers within one total, not additional budgets. The
+authenticated personal wallet holds $250 and the account lists no teams; the
+user permits either billing scope, so W3 uses personal billing.
+
+**Actual prompt-v6 API preflight passed.** At W3 `395940c`, both configured model
+IDs, effort medium, corrected prompt6, first and mid synthetic observations:
+
+| Model | Successful / attempted logical calls | HTTP attempts | Retries | Strict/valid | Synthetic median seconds | Settled API dollars |
+|---|---|---|---|---|---|---|
+| `claude-opus-5-5` | 2 / 2 | 2 | 0 | 2 / 2 | 6.205 | 0.030468 |
+| `claude-sonnet-5-5` | 2 / 2 | 2 | 0 | 2 / 2 | 5.010 | 0.013044 |
+
+Total usage-based cost: **$0.043512**. No request errors, recovered replies or
+invalid decisions. These synthetic access/serialization timings are **excluded
+from representative calibration and benchmark scoring**. Real RoboCasa medians
+and pilot score remain unmeasured. Calls, usage, per-call timing, spend ledger,
+input/source hashes and console log are retained under
+`runs/stage6_pilot/live-preflight-20261014T200627Z/`.
+
+Guard preparation found that launchd does not inherit a sourced project `.env`
+and Prime 0.11.0 eagerly initializes global account config. An ignored operational
+launcher uses the guard's existing executable hook, independently reads the
+designated `.env`, pins personal billing, and initializes CLI config under
+`.cache/prime-w3`. No tracked guard/bootstrap or installed package changed, and
+`HOME` was not overridden. Six launcher tests passed after the expected missing-
+launcher failure. An actual clean-environment pod-list call authenticated;
+the actual watchdog returned `pod_absent` without changing global Prime metadata.
+Evidence: `runs/stage6_pilot/compute-launch-20261014T2012/verification.json`.
+
+The external watchdog is armed for the development pod, exact returned ID
+`433e8c50e3394425b4df2c2c420e2d6d`, name
+`robot-cereal-w3-pilot-20261014-2016`. Rental: RunPod A100 80 GB SXM4, 32 advertised
+vCPUs, 250 GB RAM, 300 GB requested disk, `ubuntu_22_cuda_12`, US-WA-1. Quoted
+offer $1.8068/hr; conservative full-disk bound $1.8488/hr. The $10 pilot compute
+allocation includes setup, the 120-minute watchdog deadline, 45-minute pod-side
+grace and 30-minute termination retries (quoted bound $6.0086 for 3.25 hours).
+This is a quote/allocation, not a billed receipt. The development hardware
+matches W2's measured ladder type; final common-GPU agreement remains pending.
+Pod-side backstop, bootstrap, learned-worker checks and the eight episodes are
+next. Source bundle/dirty-overlay hashes, quote, creation attempt and bound ID
+are retained in `runs/stage6_pilot/compute-launch-20261014T2012/`.
 
 ## Credential access cleared — October 14, 20:03 UTC
 
