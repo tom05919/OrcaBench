@@ -29,16 +29,18 @@ evidence only.
 1. Provision credentials locally and settle API/GPU caps and the Prime billing
    account. No keys should be put in chat, Git, logs or the model payload.
 2. Use merged W1 timing schema and W2's qualified worker backends. Check current
-   model access, prices and GPU offers. Run representative prompt6 probes for
-   both models, retaining every attempt. Give W1 actual medians before W2/W1
-   compute and freeze story limits; historical provisional values are not
-   calibration results.
+   model access, prices and GPU offers. Run a small synthetic API preflight;
+   this checks access/JSON mechanics, not representative robot-call latency.
 3. Arm pod-side termination and an external watchdog. On one pod, run the
    prescribed development pilot: two policies × two tasks × two scenes, eight
    ordered episodes, with one supervisor and anonymous labels. Preserve results
    even when interrupted or unsuccessful.
-4. Run the integrated W1 scorer on that session, inspect its accepted/excluded
-   attempts and report actual usage, latency and artifact paths here.
+4. Replay representative first/mid observations for both models with only earlier
+   projected experience; preserve all attempts and provide measured medians to
+   W1 before story limits/final timing freeze. Run the W1 scorer on the pilot's
+   retained provisional timing inputs and inspect accepted/excluded attempts.
+   Historical provisional charges are not calibration results. Report usage,
+   sample counts, latency and artifact paths here.
 5. After Tom merges, freezes and tags the common release, run pod B's same-pod
    always-defer baselines followed by Sonnet sessions. Copy artifacts after each
    phase and verify pod termination. Move `reissue_200` only if Tom agrees and

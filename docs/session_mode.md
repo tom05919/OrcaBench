@@ -190,6 +190,129 @@ paired plans and worker maps, Opus config, `opus-scene1000`, and its API cap. Bo
 pods use the agreed GPU type and exact tag. Do not include `reissue_200` on pod B
 unless W1/Tom approves the move and logs it.
 
+## Eight-episode development pilot
+
+Use the integrated W1/W2/W3 checkout after W2 qualifies both selected workers.
+This recipe uses `groot` on port 8765 and `groot_u30` on port 8766; do not
+substitute an untested worker. Set approved API caps before live commands and
+arm both pod guards as described in `docs/compute.md`. Copy the current timing
+file for the pilot so later freezing cannot rewrite its scoring inputs:
+
+```bash
+source scripts/project_env.sh
+mkdir -p runs/stage6_pilot/workers
+OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 setsid -f \
+  .venv-groot/bin/python -m robot_benchmark.policy_worker \
+  --backend groot --checkpoint checkpoints/groot/checkpoint-120000 \
+  --port 8765 > runs/stage6_pilot/workers/groot.log 2>&1 < /dev/null
+OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 setsid -f \
+  .venv-groot/bin/python -m robot_benchmark.policy_worker \
+  --backend groot_u30 --checkpoint checkpoints/groot_u30/composite_unseen_30p \
+  --port 8766 > runs/stage6_pilot/workers/groot_u30.log 2>&1 < /dev/null
+
+PYTHONPATH=src .venv-sim/bin/python - <<'PY'
+import json
+from pathlib import Path
+
+root = Path("runs/stage6_pilot/inputs")
+root.mkdir(parents=True, exist_ok=True)
+plan = [{"task": task, "scene_seed": scene, "policy_seed": 0,
+         "policy_label": label, "backend": backend}
+        for scene in (1000, 1001)
+        for task in ("PanTransfer", "CloseFridge")
+        for label, backend in (("K", "groot"), ("R", "groot_u30"))]
+for name, value in (
+    ("plan.json", plan),
+    ("workers.json", {"K": "http://127.0.0.1:8765", "R": "http://127.0.0.1:8766"}),
+    ("time-pressure.json", json.loads(Path("configs/time_pressure.json").read_text())),
+):
+    with (root / name).open("x") as stream:
+        json.dump(value, stream, indent=2)
+        stream.write("\n")
+PY
+
+PYTHONPATH=src .venv-sim/bin/python -m robot_benchmark.cli session \
+  --plan runs/stage6_pilot/inputs/plan.json \
+  --workers runs/stage6_pilot/inputs/workers.json \
+  --time-pressure runs/stage6_pilot/inputs/time-pressure.json \
+  --agent-config configs/model-opus-5-5.dev.json --session-id opus-eight \
+  --development --api-dollar-cap "${W3_API_CAP:?Set the approved API cap}" \
+  --output runs/stage6_pilot/opus-pilot
+
+PYTHONPATH=src .venv-sim/bin/python scripts/score_time.py \
+  runs/stage6_pilot/opus-pilot \
+  --config runs/stage6_pilot/inputs/time-pressure.json \
+  --output runs/stage6_pilot/scoring/score.json
+```
+
+Before live execution, use the session command with `--dry-run`, and do a small
+synthetic API preflight with `probe_model.py` to verify access and strict JSON.
+For example, after setting a separately approved preflight allocation:
+
+```bash
+PYTHONPATH=src .venv-sim/bin/python scripts/probe_model.py \
+  --agent-configs configs/model-opus-5-5.dev.json configs/model-sonnet-5-5.dev.json \
+  --time-pressure runs/stage6_pilot/inputs/time-pressure.json --task CloseFridge \
+  --api-dollar-cap "${W3_PREFLIGHT_API_CAP:?Set the approved preflight cap}" \
+  --output runs/stage6_pilot/preflight/probe.json
+```
+
+The pilot deliberately uses `--development`: its provisional timing cannot be
+presented as a frozen final result. W1's scorer accepts development model episodes
+by their adapter identity. Without baseline roots, regret/learning comparisons
+are null; this check establishes real session/scorer compatibility.
+
+The chosen plan has one context across all eight episodes, with fixed anonymous
+labels throughout. Its third episode (index 2) is CloseFridge. After it finishes,
+derive only preceding terminal experience for representative calibration:
+
+```bash
+PYTHONPATH=src .venv-sim/bin/python - <<'PY'
+import json
+from pathlib import Path
+from robot_benchmark.session import project_experience
+
+root = Path("runs/stage6_pilot/opus-pilot/sessions/opus-eight")
+rows = [json.loads(line) for line in (root / "session.jsonl").read_text().splitlines()]
+assert any(row["index"] == 2 for row in rows), "Pilot stopped before calibration episode"
+records = []
+for row in rows:
+    if row["index"] >= 2:
+        break
+    episode = root / row["episode_dir"]
+    decisions = episode / "decisions.jsonl"
+    record = project_experience(row["policy_label"], json.loads((episode / "result.json").read_text()),
+        [json.loads(line) for line in decisions.read_text().splitlines()] if decisions.exists() else [])
+    if record is not None:
+        records.append(record)
+with Path("runs/stage6_pilot/inputs/experience-before-0002.json").open("x") as stream:
+    json.dump(records, stream, indent=2)
+    stream.write("\n")
+PY
+
+PYTHONPATH=src .venv-sim/bin/python scripts/probe_model.py \
+  --agent-configs configs/model-opus-5-5.dev.json configs/model-sonnet-5-5.dev.json \
+  --episode runs/stage6_pilot/opus-pilot/sessions/opus-eight/episodes/0002 \
+  --observation-indices 0 --repeats 3 \
+  --time-pressure runs/stage6_pilot/inputs/time-pressure.json --task CloseFridge \
+  --policy-label K --experience runs/stage6_pilot/inputs/experience-before-0002.json \
+  --api-dollar-cap "${W3_CALIBRATION_API_CAP:?Set a separate approved calibration cap}" \
+  --output runs/stage6_pilot/calibration-first/probe.json
+```
+
+Inspect the stored observation count before choosing a mid-episode index and
+repeat that probe into a new directory with the corresponding index. A one-call
+episode has no mid-episode observation; select another recorded episode and
+derive its preceding experience instead of inventing frames. Record sample
+counts, context lengths, retries and separate first/mid medians alongside the
+pooled per-model median. W1 must receive actual calibration values before story
+limits/final timing freeze. Each distinct output directory has its own cap ledger;
+the sum of approved pilot and calibration caps must stay inside the total API
+budget, including the preflight allocation. Keep observation PNGs until all
+replay probes finish. Two consecutive infrastructure errors or an API budget
+stop can leave fewer than eight attempts; report the actual retained count and
+do not relabel a partial session as a completed pilot.
+
 ## API cost guard
 
 Live probes and sessions require an explicit API-dollar cap. A shared
