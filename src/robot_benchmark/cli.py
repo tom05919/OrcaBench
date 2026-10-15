@@ -3,18 +3,23 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+from http.client import HTTPException
 import json
+import math
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
+import subprocess
 import sys
 from time import perf_counter, time_ns
 import traceback
 from urllib.parse import urlparse
 
 from . import __version__
-from .adapters.agents import HTTPAgent, MAX_MODEL_TOKENS, SYSTEM_PROMPT
+from .adapters.agents import (ANTHROPIC_MESSAGES_ENDPOINT, AnthropicSpendGuard, BudgetLimitError, HTTPAgent, MAX_MODEL_TOKENS,
+                             SYSTEM_PROMPT, SESSION_SYSTEM_PROMPT)
 from .adapters.policy import RemotePolicy
 from .baselines import (AlwaysDeferAgent, Reissue50Agent, Reissue200Agent, Reissue400Agent, ReissueAgent,
                         ReplayAgent)
@@ -33,6 +38,8 @@ from .runner import Runner
 from .scorecard import load_scored_episodes, scorecard
 from .screening import freeze_release, label_seeds, load_episodes, native_card_performance
 from .tasks.predicates import SEQUENCES
+from .session import (DEFAULT_EXPERIENCE_LIMIT, POLICY_WORKER_UNAVAILABLE, attach_baseline_states,
+                      public_time_context, run_session, validate_plan)
 from .video import encode_episode_videos
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -40,7 +47,14 @@ DEFAULT_TASK = PROJECT_ROOT / "configs" / "cereal_and_bowl.json"
 DEFAULT_SPLITS = PROJECT_ROOT / "configs" / "splits.json"
 TASKS_DIR = PROJECT_ROOT / "configs" / "tasks"
 SOURCE_LOCK = PROJECT_ROOT / "configs" / "sources.lock.json"
+DEFAULT_TIME_PRESSURE = PROJECT_ROOT / "configs" / "time_pressure.json"
+FINAL_PLAN_GLOB = "configs/final/plans/scene*.json"
+FINAL_MODEL_GLOB = "configs/model-*.json"
+FINAL_VIDEO_RECORD_INTERVAL = 10
+WORKER_HEALTH_TIMEOUT_SECONDS = 5
 CONTRACT_FILES = (
+    "src/robot_benchmark/cli.py",
+    "src/robot_benchmark/session.py",
     "src/robot_benchmark/contracts.py",
     "src/robot_benchmark/runner.py",
     "src/robot_benchmark/adapters/robocasa.py",
@@ -121,6 +135,16 @@ def positive_int(value: str) -> int:
     if not value.isdigit() or int(value) < 1:
         raise argparse.ArgumentTypeError("expected a positive integer")
     return int(value)
+
+
+def positive_float(value: str) -> float:
+    try:
+        number = float(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("expected a finite positive number") from error
+    if not math.isfinite(number) or number <= 0:
+        raise argparse.ArgumentTypeError("expected a finite positive number")
+    return number
 
 
 def parse_seeds(value: str) -> list[int]:
@@ -222,6 +246,8 @@ def contract_payload(task_config, policy_identity, splits=None):
         "source_revisions": source_identity,
         "policy_identity": policy_identity,
         "system_prompt": SYSTEM_PROMPT,
+        "session_system_prompt": SESSION_SYSTEM_PROMPT,
+        "time_pressure_config": read_json(DEFAULT_TIME_PRESSURE) if DEFAULT_TIME_PRESSURE.exists() else None,
         "model_call_max_tokens": MAX_MODEL_TOKENS,
         "implementation_sha256": implementation_hashes(),
         "splits": splits,
@@ -295,13 +321,13 @@ def resolve_audit_paths(values, project_root=PROJECT_ROOT):
 
 
 def run_episode(*, seed, policy_seed=None, output, task_config, reference_prompts, limits, policy, agent_factory, kind,
-                contract_hash, expected_start_state=None):
+                contract_hash, expected_start_state=None, episode_dir=None, manifest_extra=None):
     """`seed` is the scene seed; `policy_seed` defaults to it. `expected_start_state` (a step-0 state hash) makes the
     episode end as an infrastructure error if the scene it builds differs."""
     policy_seed = seed if policy_seed is None else policy_seed
     started_at_unix_ns = time_ns()
     started = perf_counter()
-    path = episode_path(output, seed, policy_seed)
+    path = Path(episode_dir) if episode_dir is not None else episode_path(output, seed, policy_seed)
     manifest = {
         "artifact_type": "episode", "schema_version": 1, "created_at": datetime.now(timezone.utc).isoformat(),
         "benchmark_version": __version__, "kind": kind, "seed": seed,
@@ -311,6 +337,10 @@ def run_episode(*, seed, policy_seed=None, output, task_config, reference_prompt
         "task": task_config["task"], "split": task_config["split"],
         "video_record_interval": task_config["video_record_interval"],
     }
+    if manifest_extra:
+        if set(manifest_extra) & set(manifest):
+            raise ValueError("extra manifest fields must not replace episode metadata")
+        manifest.update(manifest_extra)
     records = Records(path, manifest)
     env = None
     try:
@@ -335,6 +365,17 @@ def run_episode(*, seed, policy_seed=None, output, task_config, reference_prompt
         result = infrastructure_result(error, started_at_unix_ns, perf_counter() - started, seed, policy_seed)
         records.append("evaluator/errors.jsonl", {"error": result["infrastructure_error"], "traceback": traceback.format_exc()})
         records.write("result.json", result)
+    except (KeyboardInterrupt, SystemExit) as error:
+        if env is not None:
+            try:
+                env.close()
+            except Exception:
+                pass
+        if not (path / "result.json").exists():
+            result = infrastructure_result(error, started_at_unix_ns, perf_counter() - started, seed, policy_seed)
+            result["interrupted"] = True
+            records.write("result.json", result)
+        raise
     try:
         videos = encode_episode_videos(path)
         records.write("videos/manifest.json", videos)
@@ -343,6 +384,198 @@ def run_episode(*, seed, policy_seed=None, output, task_config, reference_prompt
             "error": f"{type(error).__name__}: {error}"})
     print(json.dumps({"seed": seed, "policy_seed": policy_seed, "episode": str(path), "status": result["status"], "success": result["success"]}))
     return result
+
+
+def check_session_release_tag(tag):
+    """Final sessions execute precisely the clean, tagged release commit."""
+    try:
+        tagged = subprocess.run(["git", "rev-parse", f"refs/tags/{tag}^{{commit}}"], cwd=PROJECT_ROOT,
+                                check=True, capture_output=True, text=True).stdout.strip()
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=PROJECT_ROOT,
+                              check=True, capture_output=True, text=True).stdout.strip()
+        dirty = subprocess.run(["git", "status", "--porcelain"], cwd=PROJECT_ROOT,
+                               check=True, capture_output=True, text=True).stdout.strip()
+    except subprocess.CalledProcessError as error:
+        raise ValueError("release tag must exist in the local checkout") from error
+    if tagged != head or dirty:
+        raise ValueError("final sessions require a clean checkout at the release tag")
+    return tagged
+
+
+def check_session_frozen_inputs(args, plan, model_config, time_config, task_names):
+    """Verify final inputs and re-read the baseline cohort before worker contact.
+
+    The clean matching release tag is checked by the caller. Pod-local paired
+    plans may add only expect_state to a shipped, ordered frozen plan.
+    """
+    if time_config.get("status") != "frozen":
+        raise ValueError("final sessions require frozen time pressure")
+    if not DEFAULT_TIME_PRESSURE.exists() or time_config != read_json(DEFAULT_TIME_PRESSURE):
+        raise ValueError("final time pressure differs from the tagged configuration")
+    if not any(model_config == read_json(path) for path in PROJECT_ROOT.glob(FINAL_MODEL_GLOB)):
+        raise ValueError("final model config differs from the tagged configurations")
+    if args.experience_limit != DEFAULT_EXPERIENCE_LIMIT:
+        raise ValueError("final sessions require the fixed experience limit")
+    if args.video_record_interval != FINAL_VIDEO_RECORD_INTERVAL:
+        raise ValueError("final sessions require the fixed video recording interval")
+    for task in {entry["task"] for entry in plan}:
+        story = time_config["tasks"][task].get("story")
+        if story is not None and story.get("limit_seconds") is None:
+            raise ValueError(f"final story limit is not frozen for {task}")
+    source = [{key: value for key, value in entry.items() if key != "expect_state"} for entry in plan]
+    if not any(source == json.loads(path.read_text()) for path in PROJECT_ROOT.glob(FINAL_PLAN_GLOB)):
+        raise ValueError("final plan differs from the tagged ordered plans")
+    audit_path = args.plan.with_suffix(".pairing.json")
+    if not audit_path.exists():
+        raise ValueError("final plan requires its baseline pairing audit")
+    audit = read_json(audit_path)
+    if audit.get("source_plan_hash") != digest(source) or audit.get("paired_plan_hash") != digest(plan):
+        raise ValueError("final pairing audit plan hashes do not match")
+    if not isinstance(audit.get("reference_root"), str) or not audit["reference_root"]:
+        raise ValueError("final pairing audit requires a reference-root")
+    paired, pairs = attach_baseline_states(source, Path(audit["reference_root"]), task_names)
+    if paired != plan or pairs != audit.get("pairs"):
+        raise ValueError("final pairing audit no longer matches the baseline cohort")
+    return pairs
+
+
+def check_session_baseline_contracts(plan, pairs, contract_hashes):
+    """Refuse baseline twins recorded under a different harness/policy contract."""
+    if len(plan) != len(pairs):
+        raise ValueError("baseline contract audit does not cover the whole plan")
+    for index, (entry, pair) in enumerate(zip(plan, pairs)):
+        expected = contract_hashes[entry["policy_label"]]
+        if pair.get("index") != index or not expected or pair.get("baseline_contract_hash") != expected:
+            raise ValueError(f"baseline contract does not match the current worker/harness at index {index}")
+
+
+def command_pair_session(args):
+    audit_path = args.output.with_suffix(".pairing.json")
+    if args.output.exists() or audit_path.exists():
+        raise ValueError("paired plan or pairing audit already exists; choose a new output")
+    source_plan = json.loads(args.plan.read_text())
+    plan, audit = attach_baseline_states(source_plan, args.reference_root, set(task_pool()))
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with audit_path.open("x") as stream:
+        json.dump({"source_plan_hash": digest(source_plan), "paired_plan_hash": digest(plan),
+                   "reference_root": str(args.reference_root.resolve()), "pairs": audit}, stream, indent=2)
+        stream.write("\n")
+    with args.output.open("x") as stream:
+        json.dump(plan, stream, indent=2)
+        stream.write("\n")
+    print(json.dumps({"paired_episodes": len(plan), "plan": str(args.output), "audit": str(audit_path)}))
+    return 0
+
+
+def command_session(args):
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.session_id) is None:
+        raise ValueError("session-id must be a safe directory name")
+    plan = json.loads(args.plan.read_text())
+    workers, model_config = read_json(args.workers), read_json(args.agent_config)
+    tasks = {config["task"]: (config, prompts, limits) for config, prompts, limits
+             in load_task_configs(args.task_configs or sorted(TASKS_DIR.glob("*.json")))}
+    plan = validate_plan(plan, set(tasks), workers)
+    if args.experience_limit > DEFAULT_EXPERIENCE_LIMIT:
+        raise ValueError(f"experience-limit cannot exceed {DEFAULT_EXPERIENCE_LIMIT}")
+    time_config = read_json(args.time_pressure)
+    contexts = {entry["task"]: public_time_context(time_config, model_config["model"], entry["task"])
+                for entry in plan}
+    release_commit = check_session_release_tag(args.release_tag) if args.release_tag else None
+    if args.release_tag and any("expect_state" not in entry for entry in plan):
+        raise ValueError("final session plans require a same-pod expect_state for every entry")
+    pairs = check_session_frozen_inputs(args, plan, model_config, time_config, set(tasks)) if args.release_tag else None
+    splits = validate_splits(read_json(args.splits))
+    if args.release_tag:
+        if splits != validate_splits(read_json(DEFAULT_SPLITS)):
+            raise ValueError("final splits differ from the tagged configuration")
+        pool = task_pool()
+        for task in contexts:
+            config = tasks[task][0]
+            if config != pool.get(task):
+                raise ValueError("final task settings differ from the tagged configuration")
+    session_contract = {"plan": plan, "model_config": {key: value for key, value in model_config.items()
+                                                       if key != "api_key_env"},
+                        "time_pressure_config": time_config, "time_pressure": contexts,
+                        "experience_limit": args.experience_limit, "workers": workers,
+                        "api_dollar_cap": args.api_dollar_cap,
+                        "release_commit": release_commit, "implementation_sha256": implementation_hashes(),
+                        "kind": "llm" if args.release_tag else "llm_development",
+                        "task_configs": {task: tasks[task][0] for task in contexts}}
+    if args.dry_run:
+        HTTPAgent({key: value for key, value in model_config.items() if key != "api_key_env"}, session_mode=True)
+        print(json.dumps({"status": "validated_offline", "episodes": len(plan),
+                          "policy_labels": sorted(workers), "prompt_version": 6,
+                          "minimum_required_reservation": float(AnthropicSpendGuard.reservation_for_model(model_config["model"])),
+                          "session_contract_hash": digest(session_contract)}))
+        return 0
+    session_dir = args.output / "sessions" / args.session_id
+    if session_dir.exists():
+        raise FileExistsError(f"session already exists: {session_dir}")
+    if args.api_dollar_cap is None:
+        raise ValueError("live sessions require an explicit --api-dollar-cap")
+    if model_config.get("provider") != "anthropic" or model_config.get("endpoint") != ANTHROPIC_MESSAGES_ENDPOINT:
+        raise ValueError("live session spend guards require the official Anthropic Messages endpoint")
+    guard = AnthropicSpendGuard(model_config["model"], args.api_dollar_cap, args.output / "api_spend.jsonl")
+    try:
+        guard.check()
+    except BudgetLimitError as error:
+        raise ValueError(str(error)) from error
+    policies = {label: RemotePolicy(url) for label, url in workers.items()}
+    for entry in plan:
+        identity = policies[entry["policy_label"]].identity
+        if identity.get("backend") != entry["backend"] or not identity.get("checkpoint_manifest_sha256"):
+            raise ValueError(f"worker identity does not match plan for {entry['policy_label']}")
+    session_contract["policy_identities"] = {label: policy.identity for label, policy in policies.items()}
+    contracts = {}
+    for label, policy in policies.items():
+        payload, contract_hash = benchmark_contract([tasks[task][0] for task in contexts], policy.identity, splits)
+        payload["time_pressure_config"] = time_config
+        contracts[label] = payload, digest(payload)
+    session_contract["episode_contract_hashes"] = {label: value[1] for label, value in contracts.items()}
+    if pairs is not None:
+        check_session_baseline_contracts(plan, pairs, session_contract["episode_contract_hashes"])
+        session_contract["baseline_pairing"] = pairs
+    agent = HTTPAgent(model_config, session_mode=True, spend_guard=guard)
+
+    def run_entry(entry, wrapped_agent, episode_output, index):
+        config, prompts, limits = tasks[entry["task"]]
+        if args.video_record_interval:
+            config = {**config, "video_record_interval": args.video_record_interval}
+        payload, contract_hash = contracts[entry["policy_label"]]
+        write_contract(episode_output.parent, payload, contract_hash)
+        result = run_episode(seed=entry["scene_seed"], policy_seed=entry["policy_seed"], output=args.output,
+                             episode_dir=episode_output, task_config=config, reference_prompts=prompts,
+                             limits=limits, policy=policies[entry["policy_label"]],
+                             agent_factory=lambda env: wrapped_agent,
+                             kind="llm" if args.release_tag else "llm_development", contract_hash=contract_hash,
+                             expected_start_state=entry.get("expect_state"),
+                             manifest_extra={"session_id": args.session_id, "session_index": index,
+                                             "policy_label": entry["policy_label"],
+                                             "session_contract_hash": digest(session_contract)})
+        if result.get("status") == "infrastructure_error" or result.get("infrastructure_error"):
+            label = entry["policy_label"]
+            try:
+                health = RemotePolicy(workers[label], timeout=WORKER_HEALTH_TIMEOUT_SECONDS)
+                if health.identity != policies[label].identity:
+                    raise RuntimeError("worker identity changed after the infrastructure failure")
+            except (OSError, RuntimeError, ValueError, HTTPException) as error:
+                result["session_stop"] = POLICY_WORKER_UNAVAILABLE
+                result["session_stop_error"] = f"{type(error).__name__}: {error}"
+                write_json(episode_output / "result.json", result)
+        if guard.exhausted and result.get("session_stop") != POLICY_WORKER_UNAVAILABLE:
+            result["session_stop"] = "api_spend_limit"
+            write_json(episode_output / "result.json", result)
+        decisions_path = episode_output / "decisions.jsonl"
+        decisions = [json.loads(line) for line in decisions_path.read_text().splitlines() if line.strip()] \
+                    if decisions_path.exists() else []
+        return episode_output, result, decisions
+
+    run_session(output=args.output, session_id=args.session_id, plan=plan, workers=workers, task_names=set(tasks),
+                agent=agent, run_entry=run_entry, session_contract=session_contract,
+                experience_limit=args.experience_limit)
+    outcome = read_json(session_dir / "session_result.json")
+    print(json.dumps({"session_id": args.session_id, **outcome}))
+    return 0 if outcome["status"] == "completed" else 1
 
 
 def command_doctor(args):
@@ -757,6 +990,29 @@ def parser():
     root = argparse.ArgumentParser(prog="robot-benchmark", description=__doc__)
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    pairing = commands.add_parser("pair-session", help="attach same-pod always-defer start hashes to a plan")
+    pairing.add_argument("--plan", type=Path, required=True)
+    pairing.add_argument("--reference-root", type=Path, required=True)
+    pairing.add_argument("--output", type=Path, required=True)
+    pairing.set_defaults(function=command_pair_session)
+    session = commands.add_parser("session", help="one supervisor over an ordered multi-policy plan")
+    session.add_argument("--plan", type=Path, required=True)
+    session.add_argument("--workers", type=Path, required=True)
+    session.add_argument("--agent-config", type=Path, required=True)
+    session.add_argument("--time-pressure", type=Path, default=DEFAULT_TIME_PRESSURE)
+    session.add_argument("--task-configs", type=Path, nargs="+")
+    session.add_argument("--splits", type=Path, default=DEFAULT_SPLITS)
+    session.add_argument("--session-id", required=True)
+    session.add_argument("--experience-limit", type=positive_int, default=DEFAULT_EXPERIENCE_LIMIT)
+    session.add_argument("--api-dollar-cap", type=positive_float,
+                         help="required live; shared cap for this output root, with worst-case per-request reserve")
+    session.add_argument("--video-record-interval", type=positive_int, default=10)
+    session.add_argument("--output", type=Path, required=True)
+    session.add_argument("--dry-run", action="store_true", help="validate without API credentials or worker calls")
+    session_mode = session.add_mutually_exclusive_group(required=True)
+    session_mode.add_argument("--development", action="store_true")
+    session_mode.add_argument("--release-tag")
+    session.set_defaults(function=command_session)
     doctor = commands.add_parser("doctor")
     doctor.add_argument("--task-config", type=Path, default=DEFAULT_TASK)
     doctor.add_argument("--policy-url")
