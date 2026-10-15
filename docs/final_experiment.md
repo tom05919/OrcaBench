@@ -103,3 +103,5 @@ episode is kept.
   regret.
 - **Cut-short runs** (fixed October 15): only scenes whose session completed all 21 episodes count, per model; the
   model difference uses the scenes both models completed. Partial sessions are reported separately.
+- **Spend-guard stops** (fixed October 15): a session stopped with status `api_spend_limit` is rerun once from the
+  start with a higher cap; the stopped attempt is kept and reported, and the rerun is scored.
