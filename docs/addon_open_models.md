@@ -66,3 +66,18 @@ timeout keeps its full $2.55 reservation). Local: `runs/time_score/addon-calibra
   session (a timeout keeps a $2.55 reservation, so the cap leaves room; expected usage is a few dollars).
 - **Live latency** is recorded in every session (`model_timings.jsonl`); the report gives each model's live median next
   to its calibrated charge, as a check on the replay, for Opus and Sonnet as well. It never changes the score.
+
+## Spend-guard accounting and the scene 1001 rule (October 15, 18:30, before scene 1001's outcome)
+
+The guard reserves a worst case of a 1M-token context plus 4,096 output tokens per call ($2.55 for Kimi K3), and a call
+that times out keeps that whole reservation as spent, because its usage is unknown. Kimi K3 timed out on about 4% of
+calls (131-133 s against the 120 s limit, then a successful retry), so the ledgers ran far ahead of real usage: at
+18:12, scene 1001 showed $13.80 of its $15 cap (4 timeouts) against about $3.60 of actual usage; scene 1000 showed $8.82
+(2 timeouts). A real Kimi K3 call here is about 5-8K input tokens, under $0.07 even at the worst case.
+
+- **Scenes 1002 and 1003** start with a $60 guard cap per session (the launcher was replaced at 18:13; the two running
+  sessions were not touched). Expected real spend stays a few dollars per session.
+- **Scene 1001 (Tom, fixed before its outcome):** if the guard stops it before all 21 episodes, it is rerun once from
+  the start as a new session (`kimi-k3-scene1001-rerun`, same plan and same twins, $60 cap) on the first free worker set.
+  The stopped attempt is kept and reported. The rerun replaces it in the main add-on result because the stop comes from
+  the guard's accounting of Sail timeouts, not from the supervisor's decisions.
