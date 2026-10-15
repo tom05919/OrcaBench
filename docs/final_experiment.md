@@ -8,9 +8,9 @@ here. The rest is computed by scripts from their outputs, under rules written be
 
 | Element | Value | Source |
 |---|---|---|
-| Policies | **`groot` (multitask), `groot_u30`, `pi05`** (Tom, October 13) | W2's ladder had no three distinct GR00T levels: `groot_u10` and `groot_u30` cannot be told apart, and `groot_pretrain` matches `groot` on trained tasks. Tom chose the two crossing GR00T profiles (`groot` strong on trained tasks and 0/63 on story tasks; `groot_u30` 5/64 on story tasks and 13/40 on trained) and **π0.5 as a second architecture**. `select_final.py --policies` replaces rule 2. π0.5 is untested (null) until W2 measures it. |
-| Unseen tasks | **Fallback (monitoring) mode applies:** no task met the ceiling rule (largest margin 1; 3 sequencer vs 4 plain successes over 76 pairs, `docs/stage6_ceiling.md`). The unseen tasks are therefore those with the most plain successes **pooled over all candidate policies** (original rule, Tom, October 13). Provisional: ArrangeTea, MakeIceLemonade, PanTransfer, WaffleReheat, from `groot`, `groot_u10` and `groot_u30`. **Rerun `select_final.py` once π0.5's ladder cells exist**, since its successes count too. | The benchmark measures monitoring, declaring and restraint, not rescue; the report says so |
-| Leave-alone tasks | 3, the highest minimum plain success across the chosen policies. Provisional, from `groot` and `groot_u30`: OpenCabinet, PickPlaceCounterToStove, CloseFridge (tie with PickPlaceCounterToCabinet broken by name). Recomputed with π0.5. | `configs/final/selection.json` |
+| Policies | **`groot` (multitask), `groot_u30`, `pi05`** (Tom, October 13) | W2's ladder had no three distinct GR00T levels: `groot_u10` and `groot_u30` cannot be told apart, and `groot_pretrain` matches `groot` on trained tasks. Tom chose the two crossing GR00T profiles (`groot` strong on trained tasks and 0/63 on story tasks; `groot_u30` 5/64 on story tasks and 13/40 on trained) and **π0.5 as a second architecture**. `select_final.py --policies` replaces rule 2. **π0.5 measured October 15:** 27/40 on the leave-alone tasks and 0/64 on the story tasks (`docs/stage6_ladder.md`), the same profile as `groot`. |
+| Unseen tasks | **Fallback (monitoring) mode applies:** no task met the ceiling rule (largest margin 1; 3 sequencer vs 4 plain successes over 76 pairs, `docs/stage6_ceiling.md`). The unseen tasks are therefore those with the most plain successes **pooled over all candidate policies** (original rule, Tom, October 13). **Final (October 15, π0.5 included): ArrangeTea, MakeIceLemonade, PanTransfer, WaffleReheat**, unchanged by π0.5's 0 successes. Story tasks among them: PanTransfer (limit 30 s from the pan leaving the stove) and MakeIceLemonade (no qualifying policy, so its story is removed). | The benchmark measures monitoring, declaring and restraint, not rescue; the report says so |
+| Leave-alone tasks | 3, the highest minimum plain success across the chosen policies. **Final (October 15): OpenCabinet, PickPlaceCounterToStove, CloseFridge** (minimum over `groot`, `groot_u30`, `pi05`: 4, 4 and 2 of 8; CloseFridge ties PickPlaceCounterToCabinet at 2 and wins by name). | `configs/final/selection.json` |
 | Scenes, seed | 1000-1003, policy seed 0 | Stage 5 found most unseen-task successes in one scene, so four scenes |
 | Cells | 3 policies × 7 tasks × 4 scenes = 84 | |
 | Supervisors | Opus 5.5 and Sonnet 5.5, effort `medium`, prompt version 6 (W3) | `configs/model-*.json` |
@@ -44,7 +44,7 @@ name), and the tagged commit.
    - **Ladder:** the 8 story tasks and 5 leave-alone tasks × scenes 1000-1003 × policy seeds 0, 1, added to
      `runs/stage6_ladder/analysis.json`.
    - **The freeze waits for π0.5** (Tom, October 14, after two environment failures with no episode run): π0.5 stays a
-     final policy, and the final runs move to after the freeze. Until its ladder exists it is untested, never zero.
+     final policy, and the final runs move to after the freeze. Its ladder ran on October 15 (all 104 episodes).
 1. **W2** pushes the ladder table (`runs/stage6_ladder/analysis.json` via `scripts/analyze_stage5.py`), the ceiling
    table (`runs/stage6_ceiling/ceiling.json`, the name in `docs/work_split.md`) and the trigger predicates. **W3**
    pushes session mode, prompt version 6 and the latency calibration (median seconds per call per model).

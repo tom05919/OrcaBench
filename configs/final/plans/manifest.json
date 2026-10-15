@@ -1,0 +1,30 @@
+{
+  "policies": [
+    "groot",
+    "groot_u30",
+    "pi05"
+  ],
+  "tasks": [
+    "ArrangeTea",
+    "MakeIceLemonade",
+    "PanTransfer",
+    "WaffleReheat",
+    "OpenCabinet",
+    "PickPlaceCounterToStove",
+    "CloseFridge"
+  ],
+  "scenes": [
+    1000,
+    1001,
+    1002,
+    1003
+  ],
+  "policy_seed": 0,
+  "seed": 20261014,
+  "sessions": [
+    "scene1000",
+    "scene1001",
+    "scene1002",
+    "scene1003"
+  ]
+}

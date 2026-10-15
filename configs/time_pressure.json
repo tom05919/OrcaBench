@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "October 14: call_seconds calibrated (W3's replay of all 27 pilot observations once per model under prompt version 6, effort medium; median per model; rule in docs/decisions.md). Deadline = step budget, first response charged (docs/decisions.md, docs/time_score.md). Story limits pending W2's scripts/set_story_limits.py; status becomes \"frozen\" once they are written.",
+  "status": "frozen",
   "call_seconds": {
     "claude-opus-5-5": 4.74,
     "claude-sonnet-5-5": 1.76
@@ -36,7 +36,7 @@
       "story": {
         "text": "The pancake is cooling.",
         "clock_starts": "step0",
-        "limit_seconds": null
+        "limit_seconds": 80
       }
     },
     "GatherTableware": {
@@ -52,12 +52,7 @@
       "deadline_seconds": 90.0
     },
     "MakeIceLemonade": {
-      "deadline_seconds": 150.0,
-      "story": {
-        "text": "The ice starts melting as soon as it leaves the bowl.",
-        "clock_starts": "ice_out_of_bowl",
-        "limit_seconds": null
-      }
+      "deadline_seconds": 150.0
     },
     "OpenCabinet": {
       "deadline_seconds": 52.5
@@ -70,7 +65,7 @@
       "story": {
         "text": "The vegetables cool once the pan leaves the stove.",
         "clock_starts": "pan_off_stove",
-        "limit_seconds": null
+        "limit_seconds": 30
       }
     },
     "PickPlaceCounterToCabinet": {
@@ -80,12 +75,7 @@
       "deadline_seconds": 30.0
     },
     "PortionHotDogs": {
-      "deadline_seconds": 112.5,
-      "story": {
-        "text": "The hot dogs are cooling.",
-        "clock_starts": "step0",
-        "limit_seconds": null
-      }
+      "deadline_seconds": 112.5
     },
     "PrepareCoffee": {
       "deadline_seconds": 90.0
@@ -100,12 +90,7 @@
       "deadline_seconds": 60.0
     },
     "SeparateFreezerRack": {
-      "deadline_seconds": 120.0,
-      "story": {
-        "text": "The frozen food is thawing on the counter.",
-        "clock_starts": "step0",
-        "limit_seconds": null
-      }
+      "deadline_seconds": 120.0
     },
     "TurnOffStove": {
       "deadline_seconds": 37.5
@@ -128,5 +113,6 @@
     "WeighIngredients": {
       "deadline_seconds": 150.0
     }
-  }
+  },
+  "story_limit_rule": "max over policies ['groot', 'groot_u30', 'pi05'] of the median trigger-to-success seconds (policies with >= 2 successes) + 3 x the slowest call_seconds, rounded up to 5 s; a story with no qualifying policy is removed (scripts/set_story_limits.py)"
 }
