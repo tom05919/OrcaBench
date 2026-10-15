@@ -122,7 +122,7 @@ everything from the session that built W1 that is not obvious from the code. Rea
 5. **Integration, October 14, with Tom's approval:**
    - merge `w1-scoring`, `w2-policies` and W3's branch into `main`;
    - `docs/decisions.md` is append-only, so conflicts are row order only;
-   - run the full suite and tag `release-2026-10-14`.
+   - run the full suite and tag `release-2026-10-15`.
 6. **October 15:** W2 runs pod A (always-defer, the Opus sessions, `reissue_50` and `reissue`); W3 runs pod B
    (always-defer, the Sonnet sessions and `reissue_200`). Both use the same GPU type. Score with
    `scripts/score_time.py <pod roots> --output runs/final/score.json`.

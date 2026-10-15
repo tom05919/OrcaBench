@@ -157,7 +157,7 @@ restarts and rewrites. Story outcomes per story task.
 
 ## 7. Reproduction
 
-- **Code and configs:** in this repository at tag `release-2026-10-14` (`docs/final_experiment.md`, "Freeze
+- **Code and configs:** in this repository at tag `release-2026-10-15` (`docs/final_experiment.md`, "Freeze
   checklist").
 - **Contract hash:** covers the task pool, prompt, hashed modules and GPU name.
 - **Commands:** worker setup in `docs/compute.md`; the run in `docs/final_experiment.md`, "Run procedure"; scoring with

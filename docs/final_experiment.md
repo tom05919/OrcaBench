@@ -62,7 +62,7 @@ name), and the tagged commit.
 4. **Plans:** `python3 scripts/make_session_plans.py --policies <the three> --tasks <chosen> --scenes 1000 1001 1002
    1003 --output configs/final/plans`.
 5. **Merge and tag:** merge the three workstream branches to `main`, run the full test suite (Python 3.11-3.12), and tag
-   `release-2026-10-14`. From then on nobody changes hashed files, configs, prompts, budgets or plans.
+   `release-2026-10-15`. From then on nobody changes hashed files, configs, prompts, budgets or plans.
 
 ## Run procedure (October 15, each pod)
 
