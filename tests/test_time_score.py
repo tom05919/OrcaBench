@@ -103,6 +103,20 @@ class TimeScoreTests(unittest.TestCase):
                       truth=[False] * 250 + [True] * 151)  # trigger not logged: no story, as in score_episode
         self.assertAlmostEqual(rule_value([old], CONFIG, "Iced", 320), 1 - 16 / 100)
 
+    def test_fixed_rule_story_cases_from_w3_issue_10(self):
+        from robot_benchmark.time_score import rule_value
+        warm = {**CONFIG, "tasks": {**CONFIG["tasks"], "Warm": {"deadline_seconds": 100.0, "story": {
+            "text": "It cools.", "clock_starts": "step0", "limit_seconds": 10.0}}}}
+        ref = lambda name, task, truth, extra=None: episode(self.root, name, task=task, kind="diagnostic_reference",
+                                                            agent=SCRIPTED, truth=truth, extra=extra)
+        step0 = ref("step0", "Warm", [False] * 150 + [True] * 251)  # the clock starts at step 0
+        self.assertAlmostEqual(rule_value([step0], warm, "Warm", 200), 1 - 10 / 100)  # exactly 10 s: valid
+        self.assertEqual(rule_value([step0], warm, "Warm", 220), 0.0)  # 11 s: expired
+        later = ref("later", "Iced", [False] * 150 + [True] * 251, {"ice_out": [False] * 300 + [True] * 101})
+        self.assertAlmostEqual(rule_value([later], CONFIG, "Iced", 200), 1 - 10 / 100)  # trigger after T: clock not started
+        never = ref("never", "Iced", [False] * 150 + [True] * 251, {"ice_out": [False] * 401})
+        self.assertAlmostEqual(rule_value([never], CONFIG, "Iced", 380), 1 - 19 / 100)  # trigger logged, never true
+
     def test_success_persists_after_a_reference_run_stops_at_success(self):
         stopped = episode(self.root, "stop", kind="diagnostic_reference", agent=SCRIPTED, steps=200,
                           truth=[False] * 150 + [True] * 51)

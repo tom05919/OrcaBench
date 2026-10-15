@@ -51,8 +51,11 @@ settings: `configs/time_pressure.json`; tests: `tests/test_time_score.py`. Tom d
     original instruction every N steps without looking at anything. It is the control for the "when to interrupt"
     half of the skill: the LLM gets credit only for interruptions that are better timed than mechanical ones.
 - **Evaluated offline:** in a run without supervisor-dependent stopping, declaring at T succeeds exactly when the
-  per-step checker log (`evaluator/events.jsonl`) is true at T. A privileged reference run stops at its first
-  success; it is assumed to stay successful afterwards (stage 3 lost success in 1 of 36 no-intervention reruns).
+  per-step checker log (`evaluator/events.jsonl`) is true at T **and** the task's story limit has not passed: a
+  declaration more than `limit_seconds` after the story's trigger fails, as it does for a supervisor (fixed October 15,
+  before any final result; W3, issue #10). A privileged reference run stops at its first success; it is assumed to
+  stay successful afterwards (stage 3 lost success in 1 of 36 no-intervention reruns). The oracle obeys the story
+  limit too.
 - **Three values per (policy, task, schedule):**
   - **hindsight:** the best T on the same runs, which flatters the rule;
   - **held-out:** leave-one-out, with T chosen on the other runs;
