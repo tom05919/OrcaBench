@@ -1,0 +1,8 @@
+# Overrides for configs/requirements-pi05.txt (uv pip install --override). robocasa asserts numpy 2.2.5 and mujoco
+# 3.3.1 at import, and upstream installs openpi into the RoboCasa environment, so robocasa's pins win over openpi's
+# lock (numpy 1.26.4; mujoco 2.3.7 through dm-control, which nothing at inference imports). PyPI has only the source
+# tarball of the locked av 14.4.0, which needs ffmpeg 7 to build; openpi and robocasa import av only to decode
+# training videos.
+numpy==2.2.5
+mujoco==3.3.1
+av==14.2.0
