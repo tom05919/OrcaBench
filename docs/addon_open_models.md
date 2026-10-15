@@ -43,3 +43,26 @@ calls (3 images), so the images reach the models.
 - **Pod:** one A100 80 GB SXM4 pod on Tom's Prime account, run by W1, with its own always-defer twins (84 cells) and
   one session per scene per model from `configs/final/plans`, paired by `pair-session` against that pod's runs.
   Comparison with pods A and B is through paired regret only.
+
+## Calibration (October 15, by the fixed rule)
+
+W3's 27 pilot observations (handoff branch `w3-tom-agent-pilot-handoff`, `62a75d2`, all 343 files checksum-verified),
+replayed once per model with each episode's own earlier experience and the common 4.7 s public charge shown to every
+model, as in Opus's and Sonnet's replay. 54 calls, about $1 of actual usage (the guard recorded $3.81 because one Kimi
+timeout keeps its full $2.55 reservation). Local: `runs/time_score/addon-calibration/`.
+
+| Model | Valid strict replies | Median s/call (the charge) | First calls (n = 8) | Later calls (n = 19) |
+|---|---|---|---|---|
+| `moonshotai/Kimi-K3` | 27/27 (1 retry) | **5.92** | 3.78 | 5.96 |
+| `zai-org/GLM-5.3-Flash` | 18/27 | none | | |
+
+- **Kimi K3:** `call_seconds` = 5.92 s in `configs/addon_time_pressure.json` (the frozen config plus this one value).
+  One call took 137 s (a 120 s timeout, then a successful retry); it is kept and does not move the median.
+- **GLM-5.3-Flash is excluded, untested:** Sail rejected 9 of the 27 requests with HTTP 400, "at most 4 images per
+  request" (mid-episode observations carry 15 images) and "input exceeds the model's maximum context length" on the
+  two episodes with the longest history. The morning format check had passed, so the serving limit changed during the
+  day. Giving it fewer images would break the identical-inputs rule, so it gets no charge and no sessions.
+- **Sessions started 17:30:** Kimi K3, one per scene, two at a time on the two worker sets, `SESSION_CAP` $15 per
+  session (a timeout keeps a $2.55 reservation, so the cap leaves room; expected usage is a few dollars).
+- **Live latency** is recorded in every session (`model_timings.jsonl`); the report gives each model's live median next
+  to its calibrated charge, as a check on the replay, for Opus and Sonnet as well. It never changes the score.
