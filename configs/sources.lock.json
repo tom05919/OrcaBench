@@ -120,6 +120,8 @@
     "revision": "c484448aba1a9b60a04c9b0ca117241518ea69f3",
     "groot_subdir": "gr00t_n1-5/multitask_learning/checkpoint-120000",
     "groot_pretrain_subdir": "gr00t_n1-5/foundation_model_learning/pretraining/checkpoint-80000",
+    "groot_u10_subdir": "gr00t_n1-5/target_fraction/composite_unseen_10p",
+    "groot_u30_subdir": "gr00t_n1-5/target_fraction/composite_unseen_30p",
     "pi05_subdir": "pi05_pretrain_human300/multitask_learning/75000"
   }
 }

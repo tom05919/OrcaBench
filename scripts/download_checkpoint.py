@@ -23,6 +23,8 @@ LOCK_PATH: Final = PROJECT_ROOT / "configs" / "sources.lock.json"
 DEFAULT_OUTPUTS: Final = {
     "groot": PROJECT_ROOT / "checkpoints" / "groot" / "checkpoint-120000",
     "groot_pretrain": PROJECT_ROOT / "checkpoints" / "groot_pretrain" / "checkpoint-80000",
+    "groot_u10": PROJECT_ROOT / "checkpoints" / "groot_u10" / "composite_unseen_10p",
+    "groot_u30": PROJECT_ROOT / "checkpoints" / "groot_u30" / "composite_unseen_30p",
     "pi05": PROJECT_ROOT / "checkpoints" / "pi05" / "75000",
 }
 MIN_HEADROOM_BYTES: Final = 2 * 1024**3
@@ -99,7 +101,49 @@ GROOT_PRETRAIN_FILES: Final = {
     "model.safetensors.index.json": GROOT_FILES["model.safetensors.index.json"],
 }
 
-EXPECTED_BY_BACKEND: Final = {"groot": GROOT_FILES, "groot_pretrain": GROOT_PRETRAIN_FILES, "pi05": PI05_FILES}
+# The pretraining checkpoint above, post-trained on the composite_unseen tasks with 10% (50) or 30% (150) of their
+# human demos (RoboCasa365 "target fraction" setting); same config and shard index as GROOT_FILES. LFS hashes are the
+# object IDs at the pinned revision; the metadata files were hashed from their resolved content.
+GROOT_U10_FILES: Final = {
+    "config.json": GROOT_FILES["config.json"],
+    "experiment_cfg/metadata.json": {
+        "size": 14_127,
+        "sha256": "58a5f3a6c76d06bdce1080ba198a4b7dec8e7359c0b4e739e9c126ecbbc19a20",
+    },
+    "model-00001-of-00002.safetensors": {
+        "size": 4_999_367_032,
+        "sha256": "5d40eae26160cdbaa54a7cbc84b06227273a354d0524e334e4cb268a675e92b3",
+    },
+    "model-00002-of-00002.safetensors": {
+        "size": 2_586_705_312,
+        "sha256": "bcf3c9fa5d01e4dab682f56f82806e27916f5890573b88fc1098c1a34438724c",
+    },
+    "model.safetensors.index.json": GROOT_FILES["model.safetensors.index.json"],
+}
+GROOT_U30_FILES: Final = {
+    "config.json": GROOT_FILES["config.json"],
+    "experiment_cfg/metadata.json": {
+        "size": 14_125,
+        "sha256": "5358c2ee59b2925617590633015982c749d06aca86963722365ccb90e94ab914",
+    },
+    "model-00001-of-00002.safetensors": {
+        "size": 4_999_367_032,
+        "sha256": "53ca73c82c452d9fbb9aa62a2d4a7db47bb7b8dc220f4944aef7af300bd55ebb",
+    },
+    "model-00002-of-00002.safetensors": {
+        "size": 2_586_705_312,
+        "sha256": "e2dfd6c8d41b9fc78fcfad235f436ce03efbecb4abd6a332957e37552702f26f",
+    },
+    "model.safetensors.index.json": GROOT_FILES["model.safetensors.index.json"],
+}
+
+EXPECTED_BY_BACKEND: Final = {
+    "groot": GROOT_FILES,
+    "groot_pretrain": GROOT_PRETRAIN_FILES,
+    "groot_u10": GROOT_U10_FILES,
+    "groot_u30": GROOT_U30_FILES,
+    "pi05": PI05_FILES,
+}
 
 
 def sha256_file(path: Path) -> str:

@@ -1,0 +1,5639 @@
+{
+  "groot": {
+    "tasks": {
+      "ArrangeTea": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "no success (no subgoal data)",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "CloseFridge": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 3,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          275,
+          492,
+          733
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 492,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 275,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 800,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 733,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": 808,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "GarnishPancake": {
+        "attempted": 9,
+        "usable": 7,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "strawberry_on_pancake": 1,
+          "strawberry_reached": 4
+        },
+        "subgoal_first_steps": {
+          "strawberry_on_pancake": [
+            1345
+          ],
+          "strawberry_reached": [
+            705,
+            774,
+            806,
+            831
+          ]
+        },
+        "reading": "re-prompting candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 806,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 1328,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 923,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": true,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 1331,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 705,
+              "strawberry_on_pancake": 1345
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 774,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 831,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          }
+        ]
+      },
+      "HeatKebabSandwich": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "no success (no subgoal data)",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "MakeIceLemonade": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "ice_in_cup": 0,
+          "lemon_in_cup": 2
+        },
+        "subgoal_first_steps": {
+          "ice_in_cup": [],
+          "lemon_in_cup": [
+            1365,
+            1549
+          ]
+        },
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": 1549,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": true,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": 1365,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": true,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          }
+        ]
+      },
+      "OpenCabinet": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 6,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          185,
+          206,
+          250,
+          351,
+          386,
+          446
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "leave-alone candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 351,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 185,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 206,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 386,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 446,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 250,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "OpenDrawer": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 3,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          197,
+          210,
+          213
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 213,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 210,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 197,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PanTransfer": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "vegetables_on_plate": 3
+        },
+        "subgoal_first_steps": {
+          "vegetables_on_plate": [
+            510,
+            617,
+            762
+          ]
+        },
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": true,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": true,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": 762
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": true,
+              "food_untouched": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": 617
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": false,
+              "food_untouched": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": 510
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": true,
+              "food_untouched": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          }
+        ]
+      },
+      "PickPlaceCounterToCabinet": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 6,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          154,
+          166,
+          186,
+          203,
+          223,
+          231
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "leave-alone candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 186,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 231,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 166,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 154,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 203,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 223,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PickPlaceCounterToStove": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 6,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          186,
+          189,
+          198,
+          204,
+          210,
+          312
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "leave-alone candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 198,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 210,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 204,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 312,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 186,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 600,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 600,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 189,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PortionHotDogs": {
+        "attempted": 10,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "any_item_on_plate": 5,
+          "plate1_portioned": 2,
+          "plate2_portioned": 1
+        },
+        "subgoal_first_steps": {
+          "any_item_on_plate": [
+            353,
+            413,
+            421,
+            880,
+            1694
+          ],
+          "plate1_portioned": [
+            535,
+            2029
+          ],
+          "plate2_portioned": [
+            1385
+          ]
+        },
+        "reading": "re-prompting candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 421
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": 2029,
+              "plate2_portioned": null,
+              "any_item_on_plate": 1694
+            },
+            "final": {
+              "plate1_portioned": true,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": 535,
+              "plate2_portioned": null,
+              "any_item_on_plate": 353
+            },
+            "final": {
+              "plate1_portioned": true,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 200,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": 1385,
+              "any_item_on_plate": 413
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": true,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 369,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 880
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          }
+        ]
+      },
+      "SeparateFreezerRack": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "meat_on_freezer_rack": 0,
+          "veg_on_freezer_rack": 0
+        },
+        "subgoal_first_steps": {
+          "meat_on_freezer_rack": [],
+          "veg_on_freezer_rack": []
+        },
+        "reading": "unlikely to be helped by re-prompting",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          }
+        ]
+      },
+      "WaffleReheat": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "no success (no subgoal data)",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      }
+    },
+    "successes": 24,
+    "usable": 103,
+    "wilson_95": [
+      0.162,
+      0.323
+    ],
+    "solved_at_start": 0,
+    "infrastructure_errors": 4
+  },
+  "groot_pretrain": {
+    "tasks": {
+      "CloseFridge": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 6,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          181,
+          188,
+          266,
+          344,
+          560,
+          702
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "leave-alone candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 181,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 188,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 700,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 560,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 344,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": 838,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 266,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": 883,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 800,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 702,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "OpenCabinet": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 3,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          252,
+          293,
+          932
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 1000,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 932,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 293,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 252,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "OpenDrawer": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 3,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          220,
+          239,
+          452
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 452,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 239,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 220,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PickPlaceCounterToCabinet": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 6,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          209,
+          212,
+          215,
+          225,
+          263,
+          263
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "leave-alone candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 212,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 263,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 215,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 225,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 209,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 263,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PickPlaceCounterToStove": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 7,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          200,
+          201,
+          220,
+          227,
+          257,
+          277,
+          466
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "leave-alone candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 200,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 220,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 257,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 277,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 600,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 466,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 201,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 227,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      }
+    },
+    "successes": 25,
+    "usable": 40,
+    "wilson_95": [
+      0.47,
+      0.758
+    ],
+    "solved_at_start": 0,
+    "infrastructure_errors": 0
+  },
+  "groot_u10": {
+    "tasks": {
+      "ArrangeTea": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 1,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          1421
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 1500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 1421,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "CloseFridge": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "no success (no subgoal data)",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "GarnishPancake": {
+        "attempted": 9,
+        "usable": 7,
+        "successes": 1,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          1675
+        ],
+        "subgoal_episodes_reached": {
+          "strawberry_on_pancake": 1,
+          "strawberry_reached": 4
+        },
+        "subgoal_first_steps": {
+          "strawberry_on_pancake": [
+            1620
+          ],
+          "strawberry_reached": [
+            422,
+            577,
+            582,
+            722
+          ]
+        },
+        "reading": "re-prompting candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 582,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 1328,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 1328,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 478,
+              "strawberry_on_pancake": 1097
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 422,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 1700,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 1675,
+            "subgoals": {
+              "strawberry_reached": 722,
+              "strawberry_on_pancake": 1620
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 577,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          }
+        ]
+      },
+      "HeatKebabSandwich": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "no success (no subgoal data)",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "MakeIceLemonade": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 2,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          1152,
+          1205
+        ],
+        "subgoal_episodes_reached": {
+          "ice_in_cup": 4,
+          "lemon_in_cup": 2
+        },
+        "subgoal_first_steps": {
+          "ice_in_cup": [
+            1133,
+            1195,
+            1498,
+            2489
+          ],
+          "lemon_in_cup": [
+            891,
+            912
+          ]
+        },
+        "reading": "re-prompting candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": 2489
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": 1498
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 1200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 1152,
+            "subgoals": {
+              "lemon_in_cup": 891,
+              "ice_in_cup": 1133
+            },
+            "final": {
+              "lemon_in_cup": true,
+              "ice_in_cup": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 1300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 1205,
+            "subgoals": {
+              "lemon_in_cup": 912,
+              "ice_in_cup": 1195
+            },
+            "final": {
+              "lemon_in_cup": true,
+              "ice_in_cup": true
+            }
+          }
+        ]
+      },
+      "OpenCabinet": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 4,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          171,
+          182,
+          378,
+          611
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 171,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 182,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 378,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 700,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 611,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "OpenDrawer": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "no success (no subgoal data)",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PanTransfer": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "vegetables_on_plate": 2
+        },
+        "subgoal_first_steps": {
+          "vegetables_on_plate": [
+            192,
+            215
+          ]
+        },
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": 192
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": 215
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": true,
+              "food_untouched": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": true,
+              "food_untouched": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          }
+        ]
+      },
+      "PickPlaceCounterToCabinet": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "no success (no subgoal data)",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": 736,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PickPlaceCounterToStove": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 8,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          227,
+          228,
+          229,
+          241,
+          283,
+          285,
+          296,
+          353
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "leave-alone candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 283,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 353,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 296,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 285,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 229,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 227,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 241,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 228,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PortionHotDogs": {
+        "attempted": 10,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "any_item_on_plate": 7,
+          "plate1_portioned": 1,
+          "plate2_portioned": 3
+        },
+        "subgoal_first_steps": {
+          "any_item_on_plate": [
+            180,
+            333,
+            363,
+            440,
+            462,
+            635,
+            795
+          ],
+          "plate1_portioned": [
+            642
+          ],
+          "plate2_portioned": [
+            531,
+            853,
+            1854
+          ]
+        },
+        "reading": "re-prompting candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": 531,
+              "any_item_on_plate": 180
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": true,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": 1854,
+              "any_item_on_plate": 333
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": true,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": 853,
+              "any_item_on_plate": 363
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 462
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": 642,
+              "plate2_portioned": null,
+              "any_item_on_plate": 440
+            },
+            "final": {
+              "plate1_portioned": true,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 369,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 635
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 795
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          }
+        ]
+      },
+      "SeparateFreezerRack": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "meat_on_freezer_rack": 1,
+          "veg_on_freezer_rack": 1
+        },
+        "subgoal_first_steps": {
+          "meat_on_freezer_rack": [
+            420
+          ],
+          "veg_on_freezer_rack": [
+            1632
+          ]
+        },
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": 1632
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": true
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": 420,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": true,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          }
+        ]
+      },
+      "WaffleReheat": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 1,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          1212
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 1300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 1212,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      }
+    },
+    "successes": 17,
+    "usable": 103,
+    "wilson_95": [
+      0.106,
+      0.249
+    ],
+    "solved_at_start": 0,
+    "infrastructure_errors": 4
+  },
+  "groot_u30": {
+    "tasks": {
+      "ArrangeTea": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 2,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          1041,
+          1979
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 1100,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 1041,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 1979,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "CloseFridge": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 2,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          365,
+          426
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 426,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 365,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 900,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "GarnishPancake": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "strawberry_on_pancake": 1,
+          "strawberry_reached": 5
+        },
+        "subgoal_first_steps": {
+          "strawberry_on_pancake": [
+            1337
+          ],
+          "strawberry_reached": [
+            448,
+            556,
+            571,
+            1054,
+            1302
+          ]
+        },
+        "reading": "re-prompting candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 448,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 1302,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 556,
+              "strawberry_on_pancake": 1337
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": null,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 1054,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": true,
+              "strawberry_on_pancake": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "strawberry_reached": 571,
+              "strawberry_on_pancake": null
+            },
+            "final": {
+              "strawberry_reached": false,
+              "strawberry_on_pancake": false
+            }
+          }
+        ]
+      },
+      "HeatKebabSandwich": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "no success (no subgoal data)",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2700,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "MakeIceLemonade": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "ice_in_cup": 0,
+          "lemon_in_cup": 1
+        },
+        "subgoal_first_steps": {
+          "ice_in_cup": [],
+          "lemon_in_cup": [
+            1190
+          ]
+        },
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": 1190,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": true,
+              "ice_in_cup": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 3000,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "lemon_in_cup": null,
+              "ice_in_cup": null
+            },
+            "final": {
+              "lemon_in_cup": false,
+              "ice_in_cup": false
+            }
+          }
+        ]
+      },
+      "OpenCabinet": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 4,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          255,
+          328,
+          475,
+          506
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 255,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 600,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 506,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 475,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 1050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 328,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "OpenDrawer": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 1,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          523
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 600,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 523,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PanTransfer": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 2,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          399,
+          802
+        ],
+        "subgoal_episodes_reached": {
+          "vegetables_on_plate": 4
+        },
+        "subgoal_first_steps": {
+          "vegetables_on_plate": [
+            177,
+            217,
+            247,
+            694
+          ]
+        },
+        "reading": "re-prompting candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": 217
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 399,
+            "subgoals": {
+              "vegetables_on_plate": 247
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": true,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": true,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 900,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 802,
+            "subgoals": {
+              "vegetables_on_plate": 694
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": true,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": false,
+              "food_untouched": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": null
+            },
+            "final": {
+              "vegetables_on_plate": false,
+              "pan_on_stove": true,
+              "food_untouched": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 1800,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "vegetables_on_plate": 177
+            },
+            "final": {
+              "vegetables_on_plate": true,
+              "pan_on_stove": false,
+              "food_untouched": false
+            }
+          }
+        ]
+      },
+      "PickPlaceCounterToCabinet": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 2,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          311,
+          369
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 369,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 311,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 750,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PickPlaceCounterToStove": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 4,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          194,
+          233,
+          377,
+          500
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 200,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 194,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 300,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 233,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 400,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 377,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 600,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 600,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": 368,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 600,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 500,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 500,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 600,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      },
+      "PortionHotDogs": {
+        "attempted": 9,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "any_item_on_plate": 7,
+          "plate1_portioned": 2,
+          "plate2_portioned": 1
+        },
+        "subgoal_first_steps": {
+          "any_item_on_plate": [
+            138,
+            138,
+            167,
+            255,
+            292,
+            983,
+            1742
+          ],
+          "plate1_portioned": [
+            277,
+            831
+          ],
+          "plate2_portioned": [
+            606
+          ]
+        },
+        "reading": "re-prompting candidate",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 983
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": 606,
+              "any_item_on_plate": 292
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 255
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 167
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": 831,
+              "plate2_portioned": null,
+              "any_item_on_plate": 138
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 200,
+            "status": "infrastructure_error",
+            "infrastructure_error": true,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": 277,
+              "plate2_portioned": null,
+              "any_item_on_plate": 138
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": null
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2250,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "plate1_portioned": null,
+              "plate2_portioned": null,
+              "any_item_on_plate": 1742
+            },
+            "final": {
+              "plate1_portioned": false,
+              "plate2_portioned": false,
+              "any_item_on_plate": true
+            }
+          }
+        ]
+      },
+      "SeparateFreezerRack": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 0,
+        "solved_at_start": 0,
+        "first_success_steps": [],
+        "subgoal_episodes_reached": {
+          "meat_on_freezer_rack": 1,
+          "veg_on_freezer_rack": 2
+        },
+        "subgoal_first_steps": {
+          "meat_on_freezer_rack": [
+            663
+          ],
+          "veg_on_freezer_rack": [
+            1295,
+            1547
+          ]
+        },
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": 1547
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": true
+            }
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": 663,
+              "veg_on_freezer_rack": 1295
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": true
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 2400,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {
+              "meat_on_freezer_rack": null,
+              "veg_on_freezer_rack": null
+            },
+            "final": {
+              "meat_on_freezer_rack": false,
+              "veg_on_freezer_rack": false
+            }
+          }
+        ]
+      },
+      "WaffleReheat": {
+        "attempted": 8,
+        "usable": 8,
+        "successes": 1,
+        "solved_at_start": 0,
+        "first_success_steps": [
+          3623
+        ],
+        "subgoal_episodes_reached": {},
+        "subgoal_first_steps": {},
+        "reading": "mixed",
+        "episodes": [
+          {
+            "scene": 1000,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1000,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1001,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 0,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1002,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 0,
+            "steps": 3700,
+            "status": "success",
+            "infrastructure_error": false,
+            "success": true,
+            "first_success": 3623,
+            "subgoals": {},
+            "final": {}
+          },
+          {
+            "scene": 1003,
+            "policy_seed": 1,
+            "steps": 4050,
+            "status": "step_budget_exhausted",
+            "infrastructure_error": false,
+            "success": false,
+            "first_success": null,
+            "subgoals": {},
+            "final": {}
+          }
+        ]
+      }
+    },
+    "successes": 18,
+    "usable": 104,
+    "wilson_95": [
+      0.112,
+      0.257
+    ],
+    "solved_at_start": 0,
+    "infrastructure_errors": 1
+  }
+}

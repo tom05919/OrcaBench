@@ -46,7 +46,36 @@ SEQUENCES = {
         ("mug_under_dispenser", "Pick the mug from the cabinet and place it under the coffee machine dispenser."),
         ("machine_on", "Press the start button."),
     ],
+    # Stage 6 ceiling test (docs/stage6_ceiling.md): unseen composites. A prompt never names a scene-specific object
+    # or plate side, because SEQUENCES is fixed per task; the step predicates are symmetric in the two plates.
+    "PortionHotDogs": [
+        ("bun_on_plate", "Pick up a hot dog bun from the bowl and place it on a plate."),
+        ("portion_on_plate", "Pick up a sausage from the bowl and place it on the plate with the bun."),
+        ("bun_on_each_plate", "Pick up the other hot dog bun from the bowl and place it on the empty plate."),
+        ("both_plates_portioned", "Pick up the other sausage from the bowl and place it on the plate with only a bun."),
+    ],
+    "GarnishPancake": [
+        ("strawberry_out_of_fridge", "Pick the strawberry from the fridge."),
+        ("strawberry_on_pancake", "Place the strawberry on top of the pancake on the dining counter."),
+    ],
+    "MakeIceLemonade": [
+        ("lemon_in_cup", "Pick the lemon wedge from the fridge and place it in the glass of lemonade."),
+        ("ice_in_cup", "Pick an ice cube from the ice bowl and place it in the glass of lemonade."),
+    ],
+    "SeparateFreezerRack": [
+        ("meat_on_freezer_rack", "Take the meat container and place it on the second highest rack of the freezer."),
+        ("veg_on_freezer_rack", "Take the vegetable container and place it on the highest rack of the freezer."),
+    ],
+    "PanTransfer": [
+        # pan_on_stove is true at step 0, so the vegetables step must come first.
+        ("vegetables_on_plate", "Pick up the pan and dump the vegetables in it onto the plate."),
+        ("pan_on_stove", "Return the pan to the stove."),
+    ],
 }
+
+# Clock triggers for W1's time-sensitive stories (docs/work_split.md): false at step 0, logged like the other
+# predicates, never subgoals of the task.
+TRIGGERS = ("ice_out_of_bowl", "pan_off_stove")
 
 
 def _scrub_cutting_board(raw):
@@ -95,12 +124,14 @@ def _prepare_coffee(raw):
 
 
 # Subgoal progress for the five time-sensitive candidates among the unseen composites (stage 5). Each mirrors a
-# conjunct of the upstream `_check_success`, except `strawberry_reached`, a gripper-distance progress signal.
+# conjunct of the upstream `_check_success`, except the progress signals `strawberry_reached` (gripper distance),
+# `strawberry_out_of_fridge` and the PortionHotDogs step counts, and the TRIGGERS.
 def _make_ice_lemonade(raw):
     from robocasa.utils import object_utils as OU
+    cubes = ("ice_cube1", "ice_cube2")
     return {"lemon_in_cup": OU.check_obj_in_receptacle(raw, "lemon_wedge", "glass_cup", th=0.5),
-            "ice_in_cup": any(OU.check_obj_in_receptacle(raw, cube, "glass_cup", th=0.5)
-                              for cube in ("ice_cube1", "ice_cube2"))}
+            "ice_in_cup": any(OU.check_obj_in_receptacle(raw, cube, "glass_cup", th=0.5) for cube in cubes),
+            "ice_out_of_bowl": not all(OU.check_obj_in_receptacle(raw, cube, "ice_bowl") for cube in cubes)}
 
 
 def _separate_freezer_rack(raw):
@@ -111,8 +142,9 @@ def _separate_freezer_rack(raw):
 
 def _pan_transfer(raw):
     from robocasa.utils import object_utils as OU
+    on_stove = raw._check_obj_location_on_stove("vegetable_container") is not None
     return {"vegetables_on_plate": OU.check_obj_in_receptacle(raw, "vegetable", "plate"),
-            "pan_on_stove": raw._check_obj_location_on_stove("vegetable_container") is not None,
+            "pan_on_stove": on_stove, "pan_off_stove": not on_stove,
             "food_untouched": not raw._robot_touched_food}
 
 
@@ -120,15 +152,21 @@ def _portion_hot_dogs(raw):
     from robocasa.utils import object_utils as OU
     def count(names, plate):
         return sum(bool(OU.check_obj_in_receptacle(raw, name, plate)) for name in names)
-    buns, sausages = ("hotdog_bun1", "hotdog_bun2"), ("sausage1", "sausage2")
-    return {"plate1_portioned": count(buns, "plate1") == 1 and count(sausages, "plate1") == 1,
-            "plate2_portioned": count(buns, "plate2") == 1 and count(sausages, "plate2") == 1,
-            "any_item_on_plate": any(count(buns + sausages, plate) for plate in ("plate1", "plate2"))}
+    buns, sausages, plates = ("hotdog_bun1", "hotdog_bun2"), ("sausage1", "sausage2"), ("plate1", "plate2")
+    portioned = [count(buns, plate) == 1 and count(sausages, plate) == 1 for plate in plates]
+    return {"plate1_portioned": portioned[0], "plate2_portioned": portioned[1],
+            "any_item_on_plate": any(count(buns + sausages, plate) for plate in plates),
+            "bun_on_plate": any(count(buns, plate) for plate in plates),
+            "portion_on_plate": any(portioned),
+            "bun_on_each_plate": all(count(buns, plate) for plate in plates),
+            "both_plates_portioned": all(portioned)}
 
 
 def _garnish_pancake(raw):
     from robocasa.utils import object_utils as OU
     return {"strawberry_reached": not OU.gripper_obj_far(raw, "strawberry", th=0.1),
+            # Centre point only: a full bounding-box check could call a strawberry at the shelf edge "outside".
+            "strawberry_out_of_fridge": not OU.obj_inside_of(raw, "strawberry", raw.fridge, partial_check=True),
             "strawberry_on_pancake": OU.check_obj_in_receptacle(raw, "strawberry", "pancake")}
 
 

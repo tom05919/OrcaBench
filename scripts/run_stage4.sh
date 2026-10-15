@@ -13,6 +13,10 @@
 # opus      Opus 5.5 on each failure pair: it chooses when to restart and what to say
 # replays   every Opus episode replayed with no model: exact, native_text, no_interruption
 # compare   per-arm tables against the plain reference
+# smoke     one SMOKE_MODE episode (default sequencer; first task, first scene, policy seed 0) in $OUT/smoke; stops the
+#           run if it ends in an infrastructure error (the sequencer and pi05 had never run on a GPU before stage 6)
+# sequencer stage 6 ceiling test (docs/stage6_ceiling.md): the privileged sequencer on every usable plain episode,
+#           same scene and policy seed, with the plain run's step-0 state hash (not part of the default phases)
 #
 # Every phase syncs $OUT to the Hugging Face bucket when HF_DEST is set (scripts/pod_sync.sh), and the script writes
 # $OUT/PIPELINE_DONE on exit so scripts/pod_guard.sh can upload and terminate the pod. Every attempted episode is
@@ -25,6 +29,8 @@ OUT=${OUT:-runs/stage4}
 STREAMS=${STREAMS:-4}
 BASE_PORT=${BASE_PORT:-8765}
 VIDEO=${VIDEO:-5}
+WORKER_THREADS=${WORKER_THREADS:-2}
+SMOKE_MODE=${SMOKE_MODE:-sequencer}  # reference for a plain smoke episode (a backend's first GPU run)
 BUDGET_MINUTES=${BUDGET_MINUTES:-330}
 SCENES=${SCENES:-1000 1001 1002 1003}
 POLICY_SEEDS=${POLICY_SEEDS:-0,1}
@@ -74,15 +80,24 @@ run_parallel() {
 }
 
 start_workers() {
-  local i port
+  local i port python=.venv-groot/bin/python waited=0
+  # pi05 runs in its own JAX environment; without this JAX takes 75% of GPU memory per worker.
+  [[ $BACKEND == pi05 ]] && { python=.venv-pi05/bin/python; export XLA_PYTHON_CLIENT_PREALLOCATE=false; }
   for ((i = 0; i < STREAMS; i++)); do
     port=$((BASE_PORT + i))
     curl -s -m 3 "localhost:$port/health" > /dev/null && continue
-    setsid -f .venv-groot/bin/python -m robot_benchmark.policy_worker --backend "$BACKEND" \
-      --checkpoint "$CHECKPOINT" --port "$port" > "$OUT/worker-$port.log" 2>&1 < /dev/null
+    # Torch and OpenMP size their thread pools to the host's cores, not the container's CPU quota: on a 252-core host
+    # with a 26-CPU quota, eight workers spun through the quota and the simulators ran 20 times slower than usual.
+    OMP_NUM_THREADS=$WORKER_THREADS MKL_NUM_THREADS=$WORKER_THREADS setsid -f $python -m robot_benchmark.policy_worker \
+      --backend "$BACKEND" --checkpoint "$CHECKPOINT" --port "$port" > "$OUT/worker-$port.log" 2>&1 < /dev/null
   done
   for ((i = 0; i < STREAMS; i++)); do
-    until curl -s -m 3 "localhost:$((BASE_PORT + i))/health" > /dev/null; do sleep 5; done
+    until curl -s -m 3 "localhost:$((BASE_PORT + i))/health" > /dev/null; do
+      sleep 5
+      ! grep -q Traceback "$OUT/worker-$((BASE_PORT + i)).log" \
+        || { stamp "worker $((BASE_PORT + i)) died; stopping"; exit 1; }
+      (( (waited += 5) < 1800 )) || { stamp "worker $((BASE_PORT + i)) not healthy after 30 min; stopping"; exit 1; }
+    done
   done
   stamp "$STREAMS policy workers healthy"
 }
@@ -142,6 +157,34 @@ phase_replays() {
     done < "$OUT/replays.tsv"
   done
   run_parallel "$OUT/jobs.replays" 1
+}
+
+phase_smoke() {
+  local task=${TASKS[0]} scene=${SCENES%% *} status
+  $BIN screen --mode "$SMOKE_MODE" --task-configs "configs/tasks/$task.json" --scene-seeds "$scene" --policy-seeds 0 \
+    --video-record-interval "$VIDEO" --policy-url "http://127.0.0.1:$BASE_PORT" --output "$OUT/smoke" < /dev/null
+  status=$($PY -c 'import glob, json, sys; print(*(json.load(open(f))["status"] for f in glob.glob(sys.argv[1] + "/*/*/result.json")))' "$OUT/smoke")
+  stamp "smoke $task $scene: ${status:-no result}"
+  [[ -n $status && $status != *infrastructure_error* ]] || { stamp "smoke failed; stopping"; exit 1; }
+}
+
+phase_sequencer() {
+  # Every usable plain episode (latest per task, scene and policy seed), as task scene policy state.
+  $PY - "$OUT/reference" > "$OUT/pairs.tsv" <<'PY'
+import sys
+sys.path.insert(0, "scripts")
+from select_stage3 import collect
+for (task, scene, policy), episode in sorted(collect([sys.argv[1]]).items()):
+    if episode["state"]:
+        print(task, scene, policy, episode["state"])
+PY
+  stamp "sequencer pairs: $(tsv_lines "$OUT/pairs.tsv")"
+  : > "$OUT/jobs.sequencer"
+  local task scene policy state
+  while read -r task scene policy state; do
+    echo "$BIN screen --mode sequencer --task-configs configs/tasks/$task.json --scene-seeds $scene --policy-seeds $policy --expect-state $state --video-record-interval $VIDEO --skip-existing --policy-url @URL@ --output $OUT/sequencer" >> "$OUT/jobs.sequencer"
+  done < "$OUT/pairs.tsv"
+  run_parallel "$OUT/jobs.sequencer"
 }
 
 phase_compare() {

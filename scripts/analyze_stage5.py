@@ -3,13 +3,20 @@
 subgoal progress from the evaluator's per-step predicates. Reads episode folders only; nothing here calls a model.
 
   python3 scripts/analyze_stage5.py --root runs/stage5 [--output runs/stage5/analysis.json]
+  python3 scripts/analyze_stage5.py --root runs/stage6_ladder [--backends groot groot_u10 groot_u30]
+  python3 scripts/analyze_stage5.py --root runs/stage6_ceiling --ceiling     # plain vs sequencer, paired (stage 6)
 """
 import argparse
 import json
 import math
+import sys
 from pathlib import Path
 
-BACKENDS = ("groot", "groot_pretrain")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from robot_benchmark.tasks.predicates import SEQUENCES  # noqa: E402
+
+TRIGGERS = ("ice_out_of_bowl", "pan_off_stove")  # clock triggers in tasks/predicates.py, not task progress
+BACKENDS = ("groot", "groot_pretrain", "groot_u10", "groot_u30", "pi05")  # skipped without a folder under --root
 
 
 def wilson(k, n, z=1.96):
@@ -25,7 +32,7 @@ def episode(folder):
     result = json.loads((folder / "result.json").read_text())
     row = {"scene": result["scene_seed"], "policy_seed": result["policy_seed"], "steps": result.get("steps"),
            "status": result["status"], "infrastructure_error": bool(result.get("infrastructure_error")),
-           "success": bool(result.get("success")), "first_success": None, "subgoals": {}}
+           "success": bool(result.get("success")), "first_success": None, "subgoals": {}, "final": {}}
     events = folder / "evaluator" / "events.jsonl"
     if events.exists():
         initial = None
@@ -33,7 +40,7 @@ def episode(folder):
             if not line.strip():
                 continue
             state = json.loads(line)
-            names = [k for k, v in state.items() if k not in ("step", "success") and isinstance(v, bool)]
+            names = [k for k, v in state.items() if k not in ("step", "success", *TRIGGERS) and isinstance(v, bool)]
             if initial is None:
                 initial = {name: state[name] for name in names}
                 row["subgoals"] = {name: None for name in names if not initial[name]}
@@ -42,6 +49,7 @@ def episode(folder):
             for name in row["subgoals"]:
                 if state.get(name) and row["subgoals"][name] is None:
                     row["subgoals"][name] = state["step"]
+            row["final"] = {name: state[name] for name in names}
     return row
 
 
@@ -59,10 +67,12 @@ def reading(successes, usable, progress, has_predicates):
     return "mixed"
 
 
-def analyze(root):
+def analyze(root, backends=BACKENDS):
     report = {}
-    for backend in BACKENDS:
+    for backend in backends:
         base = root / backend / "reference"
+        if not base.is_dir():
+            continue
         tasks = {}
         for task_dir in sorted(p for p in base.glob("*") if p.is_dir()):
             rows = [episode(f) for f in sorted(task_dir.glob("seed-*")) if (f / "result.json").exists()]
@@ -92,12 +102,68 @@ def analyze(root):
     return report
 
 
+def ceiling(root, backends=BACKENDS):
+    """Stage 6 ceiling test (docs/stage6_ceiling.md): per task and backend, the pairs (task, scene, policy seed) where
+    both the plain reference and the sequencer are usable, with each arm's successes, rescues and harms, and how many
+    sequence steps were done in the final state of each failed sequencer episode. Rule fixed before the results:
+    re-prompting can help when the sequencer succeeds in at least 2 more paired episodes than plain."""
+    def usable(base):
+        rows = {}
+        for folder in sorted(base.glob("*/seed-*")):
+            if (folder / "result.json").exists():
+                row = episode(folder)
+                if not row["infrastructure_error"] and row["first_success"] != 0:
+                    rows[(folder.parent.name, row["scene"], row["policy_seed"])] = row
+        return rows
+
+    report = {}
+    for backend in backends:
+        if not (root / backend / "sequencer").is_dir():
+            continue
+        plain, sequencer = usable(root / backend / "reference"), usable(root / backend / "sequencer")
+        tasks = {}
+        for task in sorted({key[0] for key in sequencer}):
+            keys = sorted(key for key in sequencer.keys() & plain.keys() if key[0] == task)
+            steps = [name for name, _ in SEQUENCES.get(task, [])]
+            plain_wins = sum(plain[k]["success"] for k in keys)
+            sequencer_wins = sum(sequencer[k]["success"] for k in keys)
+            # Where each failed sequencer episode ended: the leading steps true in its last logged state, which is
+            # the step the sequencer was prompting (a step true from step 0, like pan_on_stove, does not count early).
+            reached = [next((i for i, name in enumerate(steps) if not sequencer[k]["final"].get(name)), len(steps))
+                       for k in keys if not sequencer[k]["success"]]
+            tasks[task] = {
+                "pairs": len(keys), "plain_successes": plain_wins, "sequencer_successes": sequencer_wins,
+                "rescues": sum(sequencer[k]["success"] and not plain[k]["success"] for k in keys),
+                "harms": sum(plain[k]["success"] and not sequencer[k]["success"] for k in keys),
+                "sequence_steps": len(steps), "steps_done_on_sequencer_failures": sorted(reached),
+                "unpaired_sequencer_episodes": sum(key[0] == task for key in sequencer.keys() - plain.keys()),
+                "reading": "re-prompting can help" if sequencer_wins - plain_wins >= 2 else "not shown",
+                "pair_keys": [list(k) for k in keys],
+            }
+        report[backend] = tasks
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("runs/stage5"))
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--backends", nargs="+", default=list(BACKENDS),
+                        help="subfolders of --root, one per checkpoint")
+    parser.add_argument("--ceiling", action="store_true", help="paired plain vs sequencer table (stage 6)")
     args = parser.parse_args()
-    report = analyze(args.root)
+    if args.ceiling:
+        report = ceiling(args.root, args.backends)
+        for backend, tasks in report.items():
+            print(f"\n{backend}: task, pairs, plain, sequencer, rescues, harms, steps done when the sequencer failed")
+            for task, t in tasks.items():
+                print(f"  {task:22s} {t['pairs']}  {t['plain_successes']}/{t['pairs']}  "
+                      f"{t['sequencer_successes']}/{t['pairs']}  +{t['rescues']} -{t['harms']}  "
+                      f"{t['steps_done_on_sequencer_failures']} of {t['sequence_steps']}  {t['reading']}")
+        if args.output:
+            args.output.write_text(json.dumps(report, indent=2) + "\n")
+        return
+    report = analyze(args.root, args.backends)
     for backend, data in report.items():
         print(f"\n{backend}: {data['successes']}/{data['usable']} solved, 95% {data['wilson_95']}, "
               f"{data['infrastructure_errors']} infrastructure errors, {data['solved_at_start']} solved at start")
