@@ -239,6 +239,19 @@ ANTHROPIC_STANDARD_PRICES = {
     "claude-sonnet-5-5": {"input": Decimal("2"), "output": Decimal("10"),
                           "write_5m": Decimal("2.5"), "write_1h": Decimal("4"), "read": Decimal("0.10")},
 }
+# Post-freeze add-on: open models on Sail Research's Anthropic-compatible Messages API (beta), which accepts the same
+# request (images, adaptive thinking, output_config effort and json_schema format; cache_control is accepted and
+# caching is automatic). Default `asap` window, USD per 1M tokens, October 15, 2026:
+# https://docs.sailresearch.com/pricing and https://docs.sailresearch.com/support. Sail never bills cache creation,
+# so the write rates are the uncached input rate.
+SAIL_MESSAGES_ENDPOINT = "https://api.sailresearch.com/v1/messages"
+SAIL_STANDARD_PRICES = {
+    model: {"input": Decimal(i), "output": Decimal(o), "write_5m": Decimal(i), "write_1h": Decimal(i), "read": Decimal(r)}
+    for model, i, o, r in (("moonshotai/Kimi-K3", "2.50", "12.50", "0.25"),
+                           ("google/gemma-4-31B-it", "0.40", "0.60", "0.20"),
+                           ("zai-org/GLM-5.3-Flash", "0.11", "0.35", "0.02"))
+}
+MESSAGES_PRICES = {ANTHROPIC_MESSAGES_ENDPOINT: ANTHROPIC_STANDARD_PRICES, SAIL_MESSAGES_ENDPOINT: SAIL_STANDARD_PRICES}
 
 
 class BudgetLimitError(RuntimeError):
@@ -256,21 +269,24 @@ class AnthropicSpendGuard:
     margins. No estimate-only count_tokens call contaminates latency calibration.
     It assumes the provider honors documented context/output limits and prices.
     """
-    def __init__(self, model, dollar_cap, ledger_path):
-        if not isinstance(model, str) or model not in ANTHROPIC_STANDARD_PRICES:
-            raise ValueError(f"no verified standard prices for model {model!r}")
+    def __init__(self, model, dollar_cap, ledger_path, endpoint=ANTHROPIC_MESSAGES_ENDPOINT):
+        self.prices = self.prices_for(model, endpoint)
         _finite_seconds(dollar_cap, "API dollar cap", positive=True)
-        self.model, self.cap = model, Decimal(str(dollar_cap))
+        self.model, self.cap, self.endpoint = model, Decimal(str(dollar_cap)), endpoint
         self.ledger_path = Path(ledger_path)
-        self.prices = ANTHROPIC_STANDARD_PRICES[model]
-        self.reservation = self.reservation_for_model(model)
+        self.reservation = self.reservation_for_model(model, endpoint)
         self._read_ledger()
 
     @staticmethod
-    def reservation_for_model(model):
-        if not isinstance(model, str) or model not in ANTHROPIC_STANDARD_PRICES:
-            raise ValueError(f"no verified standard prices for model {model!r}")
-        prices = ANTHROPIC_STANDARD_PRICES[model]
+    def prices_for(model, endpoint=ANTHROPIC_MESSAGES_ENDPOINT):
+        prices = MESSAGES_PRICES.get(endpoint, {})
+        if not isinstance(model, str) or model not in prices:
+            raise ValueError(f"no verified standard prices for model {model!r} at {endpoint}")
+        return prices[model]
+
+    @staticmethod
+    def reservation_for_model(model, endpoint=ANTHROPIC_MESSAGES_ENDPOINT):
+        prices = AnthropicSpendGuard.prices_for(model, endpoint)
         return (prices["write_5m"] * ANTHROPIC_CONTEXT_TOKEN_BOUND
                 + prices["output"] * MAX_MODEL_TOKENS) / TOKENS_PER_MILLION
 
@@ -368,9 +384,9 @@ class HTTPAgent:
             raise ValueError("timeout_seconds must be positive")
         if config.get("api_key_env") is not None and not isinstance(config["api_key_env"], str):
             raise ValueError("api_key_env must be a string or null")
-        if spend_guard is not None and (config["provider"] != "anthropic"
-                or config["endpoint"] != ANTHROPIC_MESSAGES_ENDPOINT or spend_guard.model != config["model"]):
-            raise ValueError("spend guard requires its matching model at the official Anthropic Messages endpoint")
+        if spend_guard is not None and (config["provider"] != "anthropic" or config["endpoint"] not in MESSAGES_PRICES
+                or config["endpoint"] != spend_guard.endpoint or spend_guard.model != config["model"]):
+            raise ValueError("spend guard requires its matching model at its priced Messages endpoint")
         self.spend_guard = spend_guard
         self.session_mode = session_mode
         self.config = dict(config)

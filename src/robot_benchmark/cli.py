@@ -18,7 +18,7 @@ import traceback
 from urllib.parse import urlparse
 
 from . import __version__
-from .adapters.agents import (ANTHROPIC_MESSAGES_ENDPOINT, AnthropicSpendGuard, BudgetLimitError, HTTPAgent, MAX_MODEL_TOKENS,
+from .adapters.agents import (MESSAGES_PRICES, AnthropicSpendGuard, BudgetLimitError, HTTPAgent, MAX_MODEL_TOKENS,
                              SYSTEM_PROMPT, SESSION_SYSTEM_PROMPT)
 from .adapters.policy import RemotePolicy
 from .baselines import (AlwaysDeferAgent, Reissue50Agent, Reissue200Agent, Reissue400Agent, ReissueAgent,
@@ -505,7 +505,8 @@ def command_session(args):
         HTTPAgent({key: value for key, value in model_config.items() if key != "api_key_env"}, session_mode=True)
         print(json.dumps({"status": "validated_offline", "episodes": len(plan),
                           "policy_labels": sorted(workers), "prompt_version": 6,
-                          "minimum_required_reservation": float(AnthropicSpendGuard.reservation_for_model(model_config["model"])),
+                          "minimum_required_reservation": float(AnthropicSpendGuard.reservation_for_model(
+                              model_config["model"], model_config.get("endpoint"))),
                           "session_contract_hash": digest(session_contract)}))
         return 0
     session_dir = args.output / "sessions" / args.session_id
@@ -513,9 +514,10 @@ def command_session(args):
         raise FileExistsError(f"session already exists: {session_dir}")
     if args.api_dollar_cap is None:
         raise ValueError("live sessions require an explicit --api-dollar-cap")
-    if model_config.get("provider") != "anthropic" or model_config.get("endpoint") != ANTHROPIC_MESSAGES_ENDPOINT:
-        raise ValueError("live session spend guards require the official Anthropic Messages endpoint")
-    guard = AnthropicSpendGuard(model_config["model"], args.api_dollar_cap, args.output / "api_spend.jsonl")
+    if model_config.get("provider") != "anthropic" or model_config.get("endpoint") not in MESSAGES_PRICES:
+        raise ValueError("live session spend guards require a priced Messages endpoint (Anthropic or Sail)")
+    guard = AnthropicSpendGuard(model_config["model"], args.api_dollar_cap, args.output / "api_spend.jsonl",
+                                endpoint=model_config["endpoint"])
     try:
         guard.check()
     except BudgetLimitError as error:

@@ -263,3 +263,51 @@ class SpendGuardTests(unittest.TestCase):
             for values in ({'provider': 'json_http'}, {'endpoint': 'https://custom.example/v1/messages'}):
                 with self.assertRaises(ValueError):
                     HTTPAgent({**CONFIG, **values}, spend_guard=guard)
+
+
+class SailEndpointTests(unittest.TestCase):
+    """Open models served by Sail Research's Anthropic-compatible Messages API (post-freeze add-on)."""
+    SAIL = {'provider': 'anthropic', 'model': 'moonshotai/Kimi-K3',
+            'endpoint': 'https://api.sailresearch.com/v1/messages'}
+
+    def guard(self, folder, model, endpoint):
+        from pathlib import Path
+        from robot_benchmark.adapters.agents import AnthropicSpendGuard
+        return AnthropicSpendGuard(model, 10, Path(folder) / 'spend.jsonl', endpoint=endpoint)
+
+    def test_sail_model_gets_exactly_the_opus_request_except_the_model_name(self):
+        opus = HTTPAgent(CONFIG, session_mode=True).build_payload(observation())
+        sail = HTTPAgent(self.SAIL, session_mode=True).build_payload(observation())
+        self.assertEqual(sail.pop('model'), 'moonshotai/Kimi-K3')
+        opus.pop('model')
+        self.assertEqual(sail, opus)
+
+    def test_sail_prices_settle_and_reserve(self):
+        import tempfile
+        response = ({'content': [{'type': 'thinking', 'thinking': '...'}, {'type': 'text', 'text': '{"op":"complete"}'}],
+                     'stop_reason': 'end_turn',
+                     'usage': {'input_tokens': 1000, 'output_tokens': 100, 'cache_creation_input_tokens': 0,
+                               'cache_read_input_tokens': 2000}}, {})
+        with tempfile.TemporaryDirectory() as folder:
+            guard = self.guard(folder, 'moonshotai/Kimi-K3', self.SAIL['endpoint'])
+            self.assertAlmostEqual(guard.minimum_required_reservation, 2.5 + 12.5 * 4096 / 1e6)
+            agent = HTTPAgent(self.SAIL, session_mode=True, spend_guard=guard)
+            with patch('robot_benchmark.adapters.agents.request_json', return_value=response) as request:
+                reply = agent.decide(observation())
+            self.assertEqual(request.call_args.args[0], self.SAIL['endpoint'])
+            self.assertEqual(reply.decision, {'op': 'complete'})  # thinking block skipped, text parsed strictly
+            self.assertAlmostEqual(guard.spent_dollars, (1000 * 2.5 + 100 * 12.5 + 2000 * .25) / 1e6)
+
+    def test_prices_belong_to_the_endpoint(self):
+        import tempfile
+        from robot_benchmark.adapters.agents import ANTHROPIC_MESSAGES_ENDPOINT
+        with tempfile.TemporaryDirectory() as folder:
+            with self.assertRaises(ValueError):
+                self.guard(folder, 'moonshotai/Kimi-K3', ANTHROPIC_MESSAGES_ENDPOINT)
+            with self.assertRaises(ValueError):
+                self.guard(folder, 'claude-opus-5-5', self.SAIL['endpoint'])
+            with self.assertRaises(ValueError):
+                self.guard(folder, 'moonshotai/Kimi-K3', 'https://example.com/v1/messages')
+            anthropic_guard = self.guard(folder, 'claude-opus-5-5', ANTHROPIC_MESSAGES_ENDPOINT)
+            with self.assertRaises(ValueError):  # a guard priced for another endpoint cannot meter this one
+                HTTPAgent({**self.SAIL, 'model': 'claude-opus-5-5'}, session_mode=True, spend_guard=anthropic_guard)
