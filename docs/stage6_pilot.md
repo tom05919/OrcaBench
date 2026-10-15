@@ -33,9 +33,10 @@ available by cgroup quota. All three workers passed health/manifest identity and
 CLI doctor checks. All 28 selected task/scene builds passed before execution.
 These readiness checks used no model calls or learned-policy episodes.
 
-At the first completed backend milestone, all **28 GR00T always-defer episodes**
-finished: **11 terminal successes, 17 false completions, zero infrastructure
-errors**. The cohort has moved to GR00T-u30. These are partial raw terminal
+Both **GR00T and GR00T-u30 have finished 28 always-defer episodes apiece**:
+each recorded **11 terminal successes and 17 false completions**. The cohort
+is now **56 of 84 complete, with zero infrastructure errors**, and π0.5 has
+started. These are partial raw terminal
 outcomes, not deadline/story-adjusted final values or supervisor comparisons.
 The sequence remains
 84 always-defer episodes → same-pod pairing/final dry runs → four sequential
@@ -70,6 +71,12 @@ separate clean checkout `runs/final/analysis-18b90ad/` passed **388 tests in
 6.069 s**; its timing config equals the tagged file. Closeout now uses this
 corrected scorer and records its commit. The running harness, frozen inputs and
 all episodes remain at `cf724d9`; no rerun or release change is required.
+
+W1's later `69ac3cc` cutoff decision includes only scenes whose model session
+completed all 21 episodes in primary analysis; retain and report partial sessions
+separately. Cross-model comparisons use the intersection of completed scenes.
+The full-run closeout requires all four complete Sonnet sessions. W1's updated
+14 scoring tests (`6575268`) also passed against the unchanged `18b90ad` source.
 
 ## W1 full-pilot calibration — October 14, rule fixed before replay
 
