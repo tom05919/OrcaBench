@@ -101,3 +101,5 @@ episode is kept.
   - story outcomes per story task.
 - **Not claimed:** per-task or per-policy rates (4 scenes each), and any comparison across pods except through paired
   regret.
+- **Cut-short runs** (fixed October 15): only scenes whose session completed all 21 episodes count, per model; the
+  model difference uses the scenes both models completed. Partial sessions are reported separately.
