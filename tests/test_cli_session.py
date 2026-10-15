@@ -195,6 +195,21 @@ class CliSessionTests(unittest.TestCase):
             self.assertEqual(first_result["session_stop"], "policy_worker_unavailable")
             self.assertIn("identity changed", first_result["session_stop_error"])
 
+    def test_dry_run_prices_a_sail_model_at_its_endpoint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            command = self.inputs(folder)
+            model = {"provider": "anthropic", "model": "moonshotai/Kimi-K3",
+                     "endpoint": "https://api.sailresearch.com/v1/messages", "api_key_env": "SAIL_API_KEY"}
+            (folder / "model.json").write_text(json.dumps(model))
+            timing = json.loads((folder / "time.json").read_text())
+            timing["call_seconds"] = {"moonshotai/Kimi-K3": 4.7}
+            (folder / "time.json").write_text(json.dumps(timing))
+            with mock.patch("builtins.print") as output:
+                self.assertEqual(cli.main(command + ["--dry-run"]), 0)
+            report = json.loads(output.call_args.args[0])
+            self.assertAlmostEqual(report["minimum_required_reservation"], 2.5 + 12.5 * 4096 / 1e6)
+
     def test_time_config_changes_session_identity(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)

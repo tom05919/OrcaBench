@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "status": "add-on (post-freeze, docs/addon_open_models.md): the frozen configs/time_pressure.json of release-2026-10-15 plus Kimi K3's calibrated charge (median of 27 pilot-observation replays, October 15)",
+  "call_seconds": {
+    "claude-opus-5-5": 4.74,
+    "claude-sonnet-5-5": 1.76,
+    "moonshotai/Kimi-K3": 5.92
+  },
+  "value": "success x max(0, 1 - charged_seconds / deadline_seconds); charged = robot seconds + call_seconds[model] per LLM response",
+  "tasks": {
+    "ArrangeBreadBasket": {
+      "deadline_seconds": 217.5
+    },
+    "ArrangeTea": {
+      "deadline_seconds": 112.5
+    },
+    "BreadSelection": {
+      "deadline_seconds": 97.5
+    },
+    "CategorizeCondiments": {
+      "deadline_seconds": 82.5
+    },
+    "CloseFridge": {
+      "deadline_seconds": 45.0
+    },
+    "CloseToasterOvenDoor": {
+      "deadline_seconds": 22.5
+    },
+    "CoffeeSetupMug": {
+      "deadline_seconds": 30.0
+    },
+    "CuttingToolSelection": {
+      "deadline_seconds": 60.0
+    },
+    "GarnishPancake": {
+      "deadline_seconds": 135.0,
+      "story": {
+        "text": "The pancake is cooling.",
+        "clock_starts": "step0",
+        "limit_seconds": 80
+      }
+    },
+    "GatherTableware": {
+      "deadline_seconds": 112.5
+    },
+    "HeatKebabSandwich": {
+      "deadline_seconds": 135.0
+    },
+    "KettleBoiling": {
+      "deadline_seconds": 75.0
+    },
+    "LoadDishwasher": {
+      "deadline_seconds": 90.0
+    },
+    "MakeIceLemonade": {
+      "deadline_seconds": 150.0
+    },
+    "OpenCabinet": {
+      "deadline_seconds": 52.5
+    },
+    "OpenDrawer": {
+      "deadline_seconds": 37.5
+    },
+    "PanTransfer": {
+      "deadline_seconds": 90.0,
+      "story": {
+        "text": "The vegetables cool once the pan leaves the stove.",
+        "clock_starts": "pan_off_stove",
+        "limit_seconds": 30
+      }
+    },
+    "PickPlaceCounterToCabinet": {
+      "deadline_seconds": 37.5
+    },
+    "PickPlaceCounterToStove": {
+      "deadline_seconds": 30.0
+    },
+    "PortionHotDogs": {
+      "deadline_seconds": 112.5
+    },
+    "PrepareCoffee": {
+      "deadline_seconds": 90.0
+    },
+    "RecycleBottlesByType": {
+      "deadline_seconds": 142.5
+    },
+    "RinseSinkBasin": {
+      "deadline_seconds": 67.5
+    },
+    "ScrubCuttingBoard": {
+      "deadline_seconds": 60.0
+    },
+    "SeparateFreezerRack": {
+      "deadline_seconds": 120.0
+    },
+    "TurnOffStove": {
+      "deadline_seconds": 37.5
+    },
+    "TurnOnMicrowave": {
+      "deadline_seconds": 22.5
+    },
+    "TurnOnSinkFaucet": {
+      "deadline_seconds": 30.0
+    },
+    "WaffleReheat": {
+      "deadline_seconds": 202.5
+    },
+    "WashFruitColander": {
+      "deadline_seconds": 157.5
+    },
+    "WashLettuce": {
+      "deadline_seconds": 82.5
+    },
+    "WeighIngredients": {
+      "deadline_seconds": 150.0
+    }
+  },
+  "story_limit_rule": "max over policies ['groot', 'groot_u30', 'pi05'] of the median trigger-to-success seconds (policies with >= 2 successes) + 3 x the slowest call_seconds, rounded up to 5 s; a story with no qualifying policy is removed (scripts/set_story_limits.py)"
+}

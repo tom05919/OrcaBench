@@ -25,7 +25,7 @@ import struct
 from time import perf_counter
 import zlib
 
-from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent, SESSION_POLICY_LABELS, projected_experience, AnthropicSpendGuard, BudgetLimitError, ANTHROPIC_STANDARD_PRICES
+from robot_benchmark.adapters.agents import DECISION_FORMAT, HTTPAgent, SESSION_POLICY_LABELS, projected_experience, AnthropicSpendGuard, BudgetLimitError, MESSAGES_PRICES
 from robot_benchmark.contracts import CAMERAS, PROPRIO, Limits, validate_decision
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -209,7 +209,8 @@ def main(argv=None):
             config = {key: value for key, value in config.items() if key != "api_key_env"}
         guard = None
         if not args.dry_run:
-            guard = AnthropicSpendGuard(config["model"], args.api_dollar_cap, output.parent / "api_spend.jsonl")
+            guard = AnthropicSpendGuard(config["model"], args.api_dollar_cap, output.parent / "api_spend.jsonl",
+                                        endpoint=config["endpoint"])
         for effort in args.efforts:
             agent = HTTPAgent(config, session_mode=bool(args.time_pressure), spend_guard=guard)
             if config["provider"] == "anthropic":
@@ -233,8 +234,9 @@ def main(argv=None):
         report = {"created_at": created_at, "dry_run": True, "requests": [
             {"model": agent.config["model"], "prompt_version": agent.identity["prompt_version"],
              "payload": without_image_data({"request": {"body": payload}})["request"]["body"],
-             "minimum_required_reservation": (float(AnthropicSpendGuard.reservation_for_model(agent.config["model"]))
-                  if agent.config["provider"] == "anthropic" and agent.config["model"] in ANTHROPIC_STANDARD_PRICES else None)}
+             "minimum_required_reservation": (float(AnthropicSpendGuard.reservation_for_model(
+                  agent.config["model"], agent.config["endpoint"])) if agent.config["provider"] == "anthropic"
+                  and agent.config["model"] in MESSAGES_PRICES.get(agent.config["endpoint"], {}) else None)}
             for agent, _, _, payload in requests]}
         with output.open("x") as stream:
             stream.write(json.dumps(report, indent=2) + "\n")
