@@ -33,9 +33,11 @@ available by cgroup quota. All three workers passed health/manifest identity and
 CLI doctor checks. All 28 selected task/scene builds passed before execution.
 These readiness checks used no model calls or learned-policy episodes.
 
-The first two actual always-defer episodes, GR00T/ArrangeTea at scenes 1000 and
-1001, finished with retained `false_completion` results and no infrastructure
-errors. These are partial results, not a final score. The sequence remains
+At the first completed backend milestone, all **28 GR00T always-defer episodes**
+finished: **11 terminal successes, 17 false completions, zero infrastructure
+errors**. The cohort has moved to GR00T-u30. These are partial raw terminal
+outcomes, not deadline/story-adjusted final values or supervisor comparisons.
+The sequence remains
 84 always-defer episodes → same-pod pairing/final dry runs → four sequential
 Sonnet sessions (84 episodes) → 84 `reissue_200` episodes. The operational driver
 stops on the first infrastructure error for investigation, retains every
@@ -44,6 +46,17 @@ phase. JSON/JSONL/MP4/logs are also copied every two minutes. Live artifacts:
 `runs/final/podB/`; execution/copy receipts:
 `runs/final/compute-launch-20261015/`. Final counts, scoring, costs and exact-pod
 termination verification remain pending.
+
+Successful-run contingency closeout is armed locally: after all 252 terminal
+results and phase artifacts copy, it requests exact-pod termination, verifies
+that ID is absent, runs W1's unchanged tagged scorer, creates a compact local
+archive and W1 delivery receipt, and publishes only W3 documentation after the
+required suite and checkout/concurrency checks. It refuses stale score output,
+failed scoring, unexpected session identities, or a changed publication branch.
+The independent deadline guards remain armed. Offline safety checks (10 copy
+gate, 8 report collector and 4 closeout tests) passed; these are operational
+tests, not experimental results. Receipt/scripts:
+`runs/final/compute-launch-20261015/`.
 
 **Scoring caveat for W1:** read-only inspection of the tagged scorer found that
 `time_score.fixed_rule_values()` and `rule_value()` use checker success and task
