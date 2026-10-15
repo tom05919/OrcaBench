@@ -138,7 +138,7 @@ restarts and rewrites. Story outcomes per story task.
 
 ## 6. Limitations
 
-- **Scope:** one simulator, one model family of policies (GR00T N1.5 checkpoints, plus π0.5 if it qualifies) and two
+- **Scope:** one simulator, one model family of policies (two GR00T N1.5 checkpoints and π0.5) and two
   supervisors. Results are conditional on these.
 - **Sample:** four scenes and one policy seed per cell. Per-task and per-policy numbers are descriptive.
 - **Time:** the call charge is a calibrated constant, not live latency. Deadlines equal the task budgets, a stated
@@ -157,7 +157,7 @@ restarts and rewrites. Story outcomes per story task.
 
 ## 7. Reproduction
 
-- **Code and configs:** in this repository at tag `release-2026-10-14` (`docs/final_experiment.md`, "Freeze
+- **Code and configs:** in this repository at tag `release-2026-10-15` (`docs/final_experiment.md`, "Freeze
   checklist").
 - **Contract hash:** covers the task pool, prompt, hashed modules and GPU name.
 - **Commands:** worker setup in `docs/compute.md`; the run in `docs/final_experiment.md`, "Run procedure"; scoring with

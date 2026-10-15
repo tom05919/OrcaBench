@@ -7,7 +7,7 @@
   "policy_unseen_success": {
     "groot": 0.0,
     "groot_u30": 0.15625,
-    "pi05": null
+    "pi05": 0.0
   },
   "unseen_tasks": [
     "ArrangeTea",
@@ -32,7 +32,5 @@
     "MakeIceLemonade",
     "PanTransfer"
   ],
-  "untested_policies": [
-    "pi05"
-  ]
+  "untested_policies": []
 }

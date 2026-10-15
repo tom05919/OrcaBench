@@ -1,0 +1,149 @@
+[
+ {
+  "task": "ArrangeTea",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "R",
+  "backend": "groot_u30"
+ },
+ {
+  "task": "ArrangeTea",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "K",
+  "backend": "pi05"
+ },
+ {
+  "task": "ArrangeTea",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "T",
+  "backend": "groot"
+ },
+ {
+  "task": "WaffleReheat",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "R",
+  "backend": "groot_u30"
+ },
+ {
+  "task": "WaffleReheat",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "K",
+  "backend": "pi05"
+ },
+ {
+  "task": "WaffleReheat",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "T",
+  "backend": "groot"
+ },
+ {
+  "task": "CloseFridge",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "T",
+  "backend": "groot"
+ },
+ {
+  "task": "CloseFridge",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "K",
+  "backend": "pi05"
+ },
+ {
+  "task": "CloseFridge",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "R",
+  "backend": "groot_u30"
+ },
+ {
+  "task": "OpenCabinet",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "R",
+  "backend": "groot_u30"
+ },
+ {
+  "task": "OpenCabinet",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "T",
+  "backend": "groot"
+ },
+ {
+  "task": "OpenCabinet",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "K",
+  "backend": "pi05"
+ },
+ {
+  "task": "PanTransfer",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "K",
+  "backend": "pi05"
+ },
+ {
+  "task": "PanTransfer",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "T",
+  "backend": "groot"
+ },
+ {
+  "task": "PanTransfer",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "R",
+  "backend": "groot_u30"
+ },
+ {
+  "task": "PickPlaceCounterToStove",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "T",
+  "backend": "groot"
+ },
+ {
+  "task": "PickPlaceCounterToStove",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "K",
+  "backend": "pi05"
+ },
+ {
+  "task": "PickPlaceCounterToStove",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "R",
+  "backend": "groot_u30"
+ },
+ {
+  "task": "MakeIceLemonade",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "K",
+  "backend": "pi05"
+ },
+ {
+  "task": "MakeIceLemonade",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "T",
+  "backend": "groot"
+ },
+ {
+  "task": "MakeIceLemonade",
+  "scene_seed": 1001,
+  "policy_seed": 0,
+  "policy_label": "R",
+  "backend": "groot_u30"
+ }
+]
