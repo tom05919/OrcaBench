@@ -45,6 +45,15 @@ phase. JSON/JSONL/MP4/logs are also copied every two minutes. Live artifacts:
 `runs/final/compute-launch-20261015/`. Final counts, scoring, costs and exact-pod
 termination verification remain pending.
 
+**Scoring caveat for W1:** read-only inspection of the tagged scorer found that
+`time_score.fixed_rule_values()` and `rule_value()` use checker success and task
+deadline without applying the story limit; `score_episode()` applies it to the
+model episode. PanTransfer fixed-rule candidates after its trigger plus 30 s
+could therefore receive value when the corresponding model declaration would
+expire. This is a source finding, not yet a measured effect in pod B. Preserve
+the tagged output and check affected candidate steps before interpreting regret.
+W3 has not changed W1 scoring code or the frozen experiment.
+
 ## W1 full-pilot calibration — October 14, rule fixed before replay
 
 W1 `4278ec7deb6a4d04ca604a29224497a351752a0a`, `docs/decisions.md`, fixes each
