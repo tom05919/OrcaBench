@@ -266,5 +266,7 @@ The counted pod (massedcompute A100 80 GB, 16 CPUs) ran 01:38-04:15 UTC, wallet 
 terminated it. All π0.5 attempts together cost about $13 against the $8 cap; Ranveer approved the extra spend on
 October 14.
 
-**`configs/requirements-pi05.txt` and the pi05 step of `scripts/bootstrap_gpu.py` (unowned) still need fix 1 before
-final pod A**, or every pi05 worker there dies at import.
+Fix 1 is ported into the setup for the final pods (Tom, October 15): `configs/requirements-pi05.txt` now pins the
+environment this run used (its 209 packages, from `pi05-freeze.txt`), installed by `scripts/bootstrap_gpu.py
+--include-pi05` with `configs/overrides-pi05.txt` and robosuite and robocasa as editable installs; the driver only
+checks it.

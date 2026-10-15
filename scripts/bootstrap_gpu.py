@@ -267,14 +267,14 @@ def install_environment(
     import_check: str,
     args: argparse.Namespace,
     env: dict[str, str],
+    overrides: Path | None = None,
 ) -> Path:
     python = ensure_venv(venv, args, env)
     if requirements is not None:
-        run(
-            ["uv", "pip", "install", "--python", python, "-r", requirements],
-            dry_run=args.dry_run,
-            env=env,
-        )
+        command: list[object] = ["uv", "pip", "install", "--python", python, "-r", requirements]
+        if overrides is not None:
+            command.extend(["--override", overrides])
+        run(command, dry_run=args.dry_run, env=env)
     editable_command: list[object] = ["uv", "pip", "install", "--python", python, "--no-deps"]
     for path in editables:
         editable_command.extend(["-e", path])
@@ -309,7 +309,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--include-pi05",
         action="store_true",
-        help="prepare the unqualified .venv-pi05 fallback",
+        help="prepare .venv-pi05 (configs/requirements-pi05.txt)",
     )
     parser.add_argument(
         "--download-checkpoint",
@@ -396,10 +396,23 @@ def main(argv: list[str] | None = None) -> int:
                 "pi05",
                 PROJECT_ROOT / ".venv-pi05",
                 PROJECT_ROOT / "configs" / "requirements-pi05.txt",
-                [SOURCE_ROOT / "openpi" / "packages" / "openpi-client", SOURCE_ROOT / "openpi", PROJECT_ROOT],
-                "import openpi, robot_benchmark",
+                # openpi's training config imports robocasa (and so robosuite); see configs/requirements-pi05.txt.
+                [
+                    SOURCE_ROOT / "openpi" / "packages" / "openpi-client",
+                    SOURCE_ROOT / "openpi",
+                    SOURCE_ROOT / "robosuite",
+                    SOURCE_ROOT / "robocasa",
+                    PROJECT_ROOT,
+                ],
+                (
+                    "from openpi.policies import policy_config; "
+                    "from openpi.training import config; "
+                    "config.get_config('pi05_pretrain_human300'); "
+                    "import robot_benchmark.policy_worker"
+                ),
                 args,
                 env,
+                overrides=PROJECT_ROOT / "configs" / "overrides-pi05.txt",
             )
 
         if args.download_checkpoint:
