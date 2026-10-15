@@ -1,3 +1,4 @@
+import copy
 import importlib.util
 import tempfile
 import unittest
@@ -49,6 +50,14 @@ class StoryLimitTests(unittest.TestCase):
         self.assertEqual(self.limits.story_limits(warm, CONFIG, ["a"])["Warm"]["limit_seconds"], 30)  # 15 + 14.1
         unlogged = [self.run_ep(f"u{i}", "Iced", "a", 300, logged=False) for i in range(3)]
         self.assertIsNone(self.limits.story_limits(unlogged, CONFIG, ["a"])["Iced"]["limit_seconds"])
+
+    def test_writing_drops_a_story_with_no_limit(self):
+        raw = copy.deepcopy(CONFIG)
+        dropped = self.limits.apply_limits(raw, {"Iced": {"limit_seconds": None}, "Warm": {"limit_seconds": 30}})
+        self.assertEqual(dropped, ["Iced"])
+        self.assertNotIn("story", raw["tasks"]["Iced"])  # the supervisor is not told of a clock that never counts
+        self.assertEqual(raw["tasks"]["Iced"]["deadline_seconds"], 150.0)
+        self.assertEqual(raw["tasks"]["Warm"]["story"]["limit_seconds"], 30)
 
 
 class SessionPlanTests(unittest.TestCase):

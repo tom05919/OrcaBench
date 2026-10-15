@@ -43,8 +43,8 @@ name), and the tagged commit.
    - **Smoke test:** one plain episode.
    - **Ladder:** the 8 story tasks and 5 leave-alone tasks × scenes 1000-1003 × policy seeds 0, 1, added to
      `runs/stage6_ladder/analysis.json`.
-   - **If π0.5 cannot run cleanly by the freeze,** Tom decides between moving the freeze and proceeding with the two
-     GR00T policies. π0.5 is then reported as untested, never as zero.
+   - **The freeze waits for π0.5** (Tom, October 14, after two environment failures with no episode run): π0.5 stays a
+     final policy, and the final runs move to after the freeze. Until its ladder exists it is untested, never zero.
 1. **W2** pushes the ladder table (`runs/stage6_ladder/analysis.json` via `scripts/analyze_stage5.py`), the ceiling
    table (`runs/stage6_ceiling/ceiling.json`, the name in `docs/work_split.md`) and the trigger predicates. **W3**
    pushes session mode, prompt version 6 and the latency calibration (median seconds per call per model).

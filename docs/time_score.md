@@ -30,7 +30,10 @@ settings: `configs/time_pressure.json`; tests: `tests/test_time_score.py`. Tom d
 - **The first response is charged** (decided). It is a real decision: the first instruction and when to check in.
 - **Stories (five unseen tasks).** `story.limit_seconds` is a hard limit on charged seconds from the trigger
   (`story.clock_starts`: `step0`, `ice_out_of_bowl` or `pan_off_stove`) to the declaration. Past it, the task fails.
-  - The limits are `null` until W2's times to success exist; the rule for setting them comes then.
+  - The limits are `null` until W2's times to success exist; `scripts/set_story_limits.py` sets them by the rule fixed
+    on October 13. A story that gets no limit (no policy has 2 successes that logged its trigger) is **removed** from
+    the config at the freeze, so the supervisor is never told of a clock that does not count; the task keeps its
+    deadline (Tom, October 14).
   - Runs that predate a trigger predicate are reported as "trigger not logged", and the limit is not applied.
 - **Reported with the value:** success rate; on-time success; charged seconds; calls; rewrites and restarts; the
   declaration outcome (correct, false before success, false after success was lost, timeout); and the declaration

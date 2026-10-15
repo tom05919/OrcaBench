@@ -5,7 +5,8 @@ any data existed (docs/time_score.md):
   For each story task and each benchmark policy with at least MIN_SUCCESSES successful no-restart runs that logged the
   trigger, take the median seconds from the trigger to the first success. The limit is the largest of those medians
   plus room for ALLOWANCE_CALLS responses at the slowest calibrated model's latency, rounded up to 5 s. If no policy
-  qualifies, the limit stays null and the story is not applied.
+  qualifies, there is no limit, and `--write` removes the story: the task keeps its deadline, and the supervisor is not
+  told of a clock that never counts (Tom, October 14).
 
 The limit depends on the benchmark's policies, never on any supervisor's results. It leaves each policy's typical
 success achievable, and it binds on supervision delay after the trigger.
@@ -61,6 +62,18 @@ def story_limits(episodes, config, policies):
     return out
 
 
+def apply_limits(raw, limits):
+    """Write each limit into its story, removing the stories that got none. Returns the removed tasks."""
+    dropped = []
+    for task, row in limits.items():
+        if row["limit_seconds"] is None:
+            del raw["tasks"][task]["story"]
+            dropped.append(task)
+        else:
+            raw["tasks"][task]["story"]["limit_seconds"] = row["limit_seconds"]
+    return dropped
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("roots", type=Path, nargs="+")
@@ -77,13 +90,13 @@ def main():
               f"binds {row['binds']}); medians {row['medians']}; successes/runs {row['successes_and_runs']}")
     if args.write:
         raw = json.loads(args.config.read_text())
-        for task, row in limits.items():
-            raw["tasks"][task]["story"]["limit_seconds"] = row["limit_seconds"]
+        dropped = apply_limits(raw, limits)
         raw["story_limit_rule"] = (f"max over policies {args.policies} of the median trigger-to-success seconds "
                                    f"(policies with >= {MIN_SUCCESSES} successes) + {ALLOWANCE_CALLS} x the slowest "
-                                   f"call_seconds, rounded up to 5 s (scripts/set_story_limits.py)")
-        args.config.write_text(json.dumps(raw, indent=2) + "\n")
-        print(f"wrote {args.config}")
+                                   f"call_seconds, rounded up to 5 s; a story with no qualifying policy is removed "
+                                   f"(scripts/set_story_limits.py)")
+        args.config.write_text(json.dumps(raw, indent=2, ensure_ascii=False) + "\n")
+        print(f"wrote {args.config}; stories removed (no limit): {dropped or 'none'}")
 
 
 if __name__ == "__main__":
