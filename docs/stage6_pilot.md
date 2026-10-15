@@ -3,9 +3,10 @@
 **The real eight-episode development pilot, W1 scoring and representative v6
 replay calibration are complete.** The full-pilot replay below supersedes the
 initial six-sample medians. Tom's `release-2026-10-15` now exists at `cf724d9`,
-including W2's qualified π0.5 setup. Final pod B setup has started on A100 80 GB
-SXM4; no final episode or API call has started at this update. Earlier readiness
-and mock evidence below is historical, separate from actual results.
+including W2's qualified π0.5 setup. Final pod B's always-defer cohort began
+October 15 at 19:58 UTC on A100 80 GB SXM4. No final model API call has started
+at this update. Earlier readiness and mock evidence below is historical,
+separate from actual results.
 
 ## Final release readiness — October 15
 
@@ -25,8 +26,24 @@ and pre-armed exact-ID watchdog. Advertised resources: A100 80 GB SXM4, 32 vCPUs
 250 GB RAM, 300 GB disk. Fresh wallet/model GET checks passed; no W3 pod existed
 before creation. One POST received an HTTP 307 before creation; pod absence was
 verified before the successful canonical-endpoint request. Both attempts remain
-in `runs/final/compute-launch-20261015/`. This is provisioning/setup evidence,
-not a final experimental result. API allocation is $50, unchanged.
+in `runs/final/compute-launch-20261015/`. API allocation is $50, unchanged.
+
+Actual hardware verified: NVIDIA A100-SXM4-80GB (81,920 MiB), with 27.2 CPU cores
+available by cgroup quota. All three workers passed health/manifest identity and
+CLI doctor checks. All 28 selected task/scene builds passed before execution.
+These readiness checks used no model calls or learned-policy episodes.
+
+The first two actual always-defer episodes, GR00T/ArrangeTea at scenes 1000 and
+1001, finished with retained `false_completion` results and no infrastructure
+errors. These are partial results, not a final score. The sequence remains
+84 always-defer episodes → same-pod pairing/final dry runs → four sequential
+Sonnet sessions (84 episodes) → 84 `reissue_200` episodes. The operational driver
+stops on the first infrastructure error for investigation, retains every
+attempt, and waits for successful artifact-copy acknowledgement after each
+phase. JSON/JSONL/MP4/logs are also copied every two minutes. Live artifacts:
+`runs/final/podB/`; execution/copy receipts:
+`runs/final/compute-launch-20261015/`. Final counts, scoring, costs and exact-pod
+termination verification remain pending.
 
 ## W1 full-pilot calibration — October 14, rule fixed before replay
 

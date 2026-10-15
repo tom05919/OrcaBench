@@ -7,16 +7,19 @@ episodes, with time charged under W1's scoring contract.
 New W3 sessions should read [w3_handoff.md](w3_handoff.md) for the earlier snapshot,
 then this runbook and [stage6_pilot.md](stage6_pilot.md) for the current live state.
 The development pilot/calibration is complete and its pod is terminated.
-Final pod B setup is now underway at Tom's tagged release, preserving the
-existing integration tree. No final episode has started at this update.
+Final pod B's always-defer cohort is running at Tom's tagged release, preserving
+the existing integration tree. Live episodes began October 15 at 19:58 UTC;
+Sonnet sessions and restart baselines follow this cohort and same-pod pairing.
 
 **October 15 release:** `release-2026-10-15` resolves to `cf724d9` and includes
 W2's qualified π0.5 environment fix (`620a1fb`). The frozen timing config has
 PanTransfer's 30-second story limit and no MakeIceLemonade story. Four frozen
 21-entry plans serve both models, hence eight sessions. Fresh tagged validation:
 387 tests passed and eight CLI source-plan dry runs passed. These are offline
-checks; actual same-pod baseline pairing and live worker checks still precede
-the four final Sonnet sessions. Use `--release-tag release-2026-10-15`.
+checks. All three live workers passed health/identity and CLI doctor checks;
+all 28 task/scene builds passed before the first episode. Actual same-pod
+baseline pairing still precedes the four final Sonnet sessions.
+Use `--release-tag release-2026-10-15`.
 
 Final rental `75b7d452b61f433b86bd3f1e636dc915` uses RunPod A100 80 GB SXM4,
 32 advertised vCPUs and a $30 compute allocation within the authorized $250
@@ -103,8 +106,9 @@ the common GPU type, selected plans, fixed time parameters and release tag.
 
 Current live state: actual eight-episode pilot, W1 scoring and full-pilot v6
 calibration completed; API $1.2148545 and compute $0.939, pod terminated. Details
-are in `docs/stage6_pilot.md` and `runs/stage6_pilot/w1-delivery.json`. Final release
-and policy qualification/selection remain open. Final GPU is A100 80 GB SXM4
+are in `docs/stage6_pilot.md` and `runs/stage6_pilot/w1-delivery.json`. The final
+release and qualification/selection gates are satisfied; actual pod B execution
+is underway, with final scoring and delivery pending. Final GPU is A100 80 GB SXM4
 (W1 `4278ec7`). Earlier implementation/readiness milestones:
 
 - GitHub main pulled at `2663171`; W1 and W2 newer branches inspected read-only.
