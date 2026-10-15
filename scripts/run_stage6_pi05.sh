@@ -13,8 +13,9 @@ cd "$(dirname "$0")/.."
 source scripts/project_env.sh
 
 ROOT=runs/stage6_pi05
-STORY="MakeIceLemonade SeparateFreezerRack PanTransfer PortionHotDogs GarnishPancake HeatKebabSandwich WaffleReheat
-  ArrangeTea"
+# One line: run_stage4.sh reads TASK_LIST with `read -a`, which stops at the first newline (the October 15 run lost
+# ArrangeTea to a wrapped list and ran it separately afterwards).
+STORY="MakeIceLemonade SeparateFreezerRack PanTransfer PortionHotDogs GarnishPancake HeatKebabSandwich WaffleReheat ArrangeTea"
 LEAVE="OpenCabinet PickPlaceCounterToCabinet PickPlaceCounterToStove CloseFridge OpenDrawer"
 BUDGET=${BUDGET_MINUTES:-200}
 mkdir -p "$ROOT"
@@ -31,12 +32,14 @@ stamp() { echo "[$(date -u +%H:%M:%S)] $*" >> "$ROOT/driver.log"; }
 # requirements (configs/requirements-sim.txt, robocasa's pins winning; lerobot stays at openpi's commit; tianshou is
 # left out because nothing on this path imports it and it needs protobuf 3), then the editable installs of
 # scripts/bootstrap_gpu.py plus robosuite and robocasa. Verified on a Mac (CPU jax) on October 14: the imports and
-# config.get_config('pi05_pretrain_human300') load.
+# config.get_config('pi05_pretrain_human300') load. av is overridden to 14.2.0 because PyPI now has only the source
+# tarball of the locked 14.4.0, which fails to build without ffmpeg 7 (October 15); openpi and robocasa import av only
+# to decode training videos.
 OPENPI=vendor/src/openpi
 pi05_env() {
   (cd "$OPENPI" && uv export --frozen --no-dev --no-emit-workspace --no-hashes --no-header) > "$ROOT/openpi-lock.txt" &&
   grep -vE '^(numpy|mujoco|lerobot|tianshou|pytest)\b' configs/requirements-sim.txt > "$ROOT/robocasa-extra.txt" &&
-  printf 'numpy==2.2.5\nmujoco==3.3.1\n' > "$ROOT/overrides.txt" &&
+  printf 'numpy==2.2.5\nmujoco==3.3.1\nav==14.2.0\n' > "$ROOT/overrides.txt" &&
   uv venv --clear --python 3.11 .venv-pi05 &&
   uv pip install --python .venv-pi05/bin/python -r "$ROOT/openpi-lock.txt" -r "$ROOT/robocasa-extra.txt" \
     --override "$ROOT/overrides.txt" pytest==8.3.5 &&
@@ -64,4 +67,6 @@ stamp "driver started"
 OUT=$ROOT/pi05 BACKEND=pi05 CHECKPOINT=checkpoints/pi05/75000 BASE_PORT=8765 STREAMS=4 SMOKE_MODE=reference \
   SCENES="1000 1001 1002 1003" TASK_LIST="$LEAVE $STORY" POLICY_SEEDS=0,1 VIDEO=10 BUDGET_MINUTES=$BUDGET \
   scripts/run_stage4.sh workers smoke plain >> "$ROOT/pi05.log" 2>&1 < /dev/null
-stamp "driver done"
+status=$?
+stamp "driver done ($status)"
+exit $status

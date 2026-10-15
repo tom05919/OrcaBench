@@ -1,6 +1,7 @@
 """Run one frozen VLA in its own environment. No simulator or model orchestrator."""
 import argparse
 import base64
+import dataclasses
 import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
@@ -119,9 +120,13 @@ class LearnedPolicy:
             from openpi.training import config
             if not any(device.platform == "gpu" for device in jax.devices()):
                 raise RuntimeError("pi05 feasibility requires a JAX GPU device")
-            self.policy = policy_config.create_trained_policy(
-                config.get_config("pi05_pretrain_human300"), checkpoint,
-            )
+            # The training config lists the RoboCasa training datasets, and openpi computes norm stats from them
+            # when it builds the data config, before it loads the checkpoint's own assets/norm_stats.json (the
+            # stats of the training run, which openpi then uses). The datasets are not installed, so drop them.
+            train_config = config.get_config("pi05_pretrain_human300")
+            train_config = dataclasses.replace(
+                train_config, data=dataclasses.replace(train_config.data, data_dirs=()))
+            self.policy = policy_config.create_trained_policy(train_config, checkpoint)
             gpu = next(device for device in jax.devices() if device.platform == "gpu")
             self.identity.update({"training_config": "pi05_pretrain_human300", "jax": jax.__version__,
                                   "gpu": str(gpu)})
