@@ -66,4 +66,6 @@ stamp "driver started"
 OUT=$ROOT/pi05 BACKEND=pi05 CHECKPOINT=checkpoints/pi05/75000 BASE_PORT=8765 STREAMS=4 SMOKE_MODE=reference \
   SCENES="1000 1001 1002 1003" TASK_LIST="$LEAVE $STORY" POLICY_SEEDS=0,1 VIDEO=10 BUDGET_MINUTES=$BUDGET \
   scripts/run_stage4.sh workers smoke plain >> "$ROOT/pi05.log" 2>&1 < /dev/null
-stamp "driver done"
+status=$?
+stamp "driver done ($status)"
+exit $status
