@@ -201,3 +201,70 @@ has never run in this project, so it is untested (null) until this run.
   triggers, for `scripts/set_story_limits.py`.
 - **Compute:** one Prime pod on Ranveer's account (80 GB GPU), caps **$8 GPU, pod deadline 4 hours after creation**
   with a 30-minute backstop, `BUDGET_MINUTES=200`; pod guard, backstop and Mac watchdog as before.
+
+## π0.5: results (October 15, 2026)
+
+All 104 grid episodes ran on one pod (`runs/stage6_pi05/pi05`, private bucket `stage6_pi05e`; linked in as
+`runs/stage6_ladder/pi05`). This is the counted π0.5 run: no other π0.5 run produced an episode. One infrastructure
+error (GarnishPancake scene 1001, policy seed 0: a static-noise camera frame at step 1473, as in the ceiling run),
+retried by the driver's second pass; no scene solved at step 0, every task built at the four scenes. The smoke
+episode (OpenCabinet 1000, seed 0) ran its full 1,050 steps without success and is not counted.
+
+| Task | `pi05` | `groot` | `groot_u30` | `groot_u10` |
+|---|---|---|---|---|
+| OpenCabinet | 6/8 | 6/8 | 4/8 | 4/8 |
+| PickPlaceCounterToCabinet | 5/8 | 6/8 | 2/8 | 0/8 |
+| PickPlaceCounterToStove | 7/8 | 6/8 | 4/8 | 8/8 |
+| CloseFridge | 5/8 | 3/8 | 2/8 | 0/8 |
+| OpenDrawer | 4/8 | 3/8 | 1/8 | 0/8 |
+| **Leave-alone tasks** | **27/40** | **24/40** | **13/40** | **12/40** |
+| **Story tasks (8)** | **0/64** | **0/63** | **5/64** | **5/63** |
+
+Story-task progress for `pi05` (evaluator subgoals, never shown to a model): PanTransfer vegetables on the plate 4/8,
+PortionHotDogs any item on a plate 3/8 (bun on a plate 2/8), SeparateFreezerRack meat on the rack 1/8, none on
+GarnishPancake or MakeIceLemonade. The columns come from different pods, so start states are not matched; counts are
+compared per task.
+
+### Reading
+
+- **Leave-alone per the rule:** `pi05` keeps OpenCabinet (6/8) and PickPlaceCounterToStove (7/8); PickPlaceCounterToCabinet
+  and CloseFridge are 5/8, OpenDrawer 4/8.
+- **Same profile as `groot`, different architecture.** On the leave-alone tasks it matches `groot` (27/40 vs 24/40,
+  Fisher p = 0.64) and `groot_pretrain` (25/40, p = 0.81), and beats the post-trained checkpoints (p = 0.003 against
+  `groot_u30`, 0.002 against `groot_u10`). Like `groot`, it solves none of the story tasks.
+- **Story limits** (`scripts/set_story_limits.py runs/stage6_ceiling runs/stage6_pi05/pi05 --policies groot groot_u30
+  pi05 --config configs/time_pressure.json`, from `main` at `18a9d85`): π0.5 qualifies on no story (0 successes), so
+  the limits are unchanged: GarnishPancake 80 s, PanTransfer 30 s; MakeIceLemonade, PortionHotDogs and
+  SeparateFreezerRack have no qualifying policy and are removed.
+
+### What it took to run (October 14-15)
+
+Four fixes, all in W2 files, each found by the run's own checks before an episode was lost:
+
+1. `configs/requirements-pi05.txt` resolves openpi's direct dependencies fresh, which drifts 125 packages from
+   openpi's `uv.lock` and drops 34 (first `pytest`, then `chex`). `run_stage6_pi05.sh` now rebuilds `.venv-pi05` from
+   openpi's lock plus robocasa's requirements (openpi's training config imports robocasa, which asserts numpy 2.2.5 and
+   mujoco 3.3.1), with `av` overridden to 14.2.0 (PyPI no longer has a Linux wheel for the locked 14.4.0). The freeze
+   of the environment is `runs/stage6_pi05/pi05-freeze.txt`.
+2. The worker clears the training config's dataset list, so openpi uses the checkpoint's own
+   `assets/norm_stats.json` instead of recomputing stats from training datasets that are not installed (`policy_worker.py`).
+   On an A100 the policy loads in 7 s, infers in 0.09 s and uses 8.7 GB.
+3. `run_stage6_pi05.sh` now exits with the driver's status, so a stopped driver no longer reads as a finished run.
+4. The story list was wrapped onto two lines and `run_stage4.sh` reads `TASK_LIST` up to the first newline, so the
+   first pass ran 96 episodes without ArrangeTea. ArrangeTea's 8 ran right after on the same pod and settings. A first
+   ArrangeTea launch reused the first pass's still-running workers, which were then stopped: its 7 episodes ended at
+   step 0 on a refused connection, before any policy action. They are kept in `runs/stage6_pi05/pi05-aborted-arrangetea`
+   and not counted.
+
+Earlier attempts are kept: `runs/stage6_pi05_attempt1` (pytest), `_attempt2` (pod idle after a dropped SSH session),
+`_attempt3` (chex), `_attempt4` (a pod with ~0.5 MB/s downloads, stopped during setup), and the in-place failures in
+`runs/stage6_pi05` (`driver-envfail1.log`, `pi05-normfail1/`).
+
+### Cost
+
+The counted pod (massedcompute A100 80 GB, 16 CPUs) ran 01:38-04:15 UTC, wallet change $3.16; the guard synced and
+terminated it. All π0.5 attempts together cost about $13 against the $8 cap; Ranveer approved the extra spend on
+October 14.
+
+**`configs/requirements-pi05.txt` and the pi05 step of `scripts/bootstrap_gpu.py` (unowned) still need fix 1 before
+final pod A**, or every pi05 worker there dies at import.
