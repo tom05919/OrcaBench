@@ -2,9 +2,31 @@
 
 **The real eight-episode development pilot, W1 scoring and representative v6
 replay calibration are complete.** The full-pilot replay below supersedes the
-initial six-sample medians. Final runs await Tom's integrated frozen release and
-qualified selection/plans. Final GPU is A100 80 GB SXM4 (W1 `4278ec7`). Earlier readiness and
-mock evidence below is historical, separate from the actual results here.
+initial six-sample medians. Tom's `release-2026-10-15` now exists at `cf724d9`,
+including W2's qualified π0.5 setup. Final pod B setup has started on A100 80 GB
+SXM4; no final episode or API call has started at this update. Earlier readiness
+and mock evidence below is historical, separate from actual results.
+
+## Final release readiness — October 15
+
+The clean tagged checkout passed **387 tests in 7.418 s** and all eight actual
+CLI source-plan dry runs (four plans for each model). Frozen timing is marked
+`frozen`, PanTransfer's story limit is **30 s**, and MakeIceLemonade has no story.
+The source-plan checks use no API calls, workers or robot episodes; final paired
+checks follow the actual same-pod always-defer cohort. Receipts:
+`runs/final/readiness-20261015/offline/` and
+`runs/final/release-2026-10-15-suite-ready.log`. The first test attempt lacked
+the ignored pinned reference registry in the new checkout; that setup failure
+is retained separately and does not alter tagged source.
+
+Pod `75b7d452b61f433b86bd3f1e636dc915`,
+`robot-cereal-w3-final-20261015-1919`, is provisioned with a $30 compute allocation
+and pre-armed exact-ID watchdog. Advertised resources: A100 80 GB SXM4, 32 vCPUs,
+250 GB RAM, 300 GB disk. Fresh wallet/model GET checks passed; no W3 pod existed
+before creation. One POST received an HTTP 307 before creation; pod absence was
+verified before the successful canonical-endpoint request. Both attempts remain
+in `runs/final/compute-launch-20261015/`. This is provisioning/setup evidence,
+not a final experimental result. API allocation is $50, unchanged.
 
 ## W1 full-pilot calibration — October 14, rule fixed before replay
 

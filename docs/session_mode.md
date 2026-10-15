@@ -6,8 +6,24 @@ episodes, with time charged under W1's scoring contract.
 
 New W3 sessions should read [w3_handoff.md](w3_handoff.md) for the earlier snapshot,
 then this runbook and [stage6_pilot.md](stage6_pilot.md) for the current live state.
-The development pilot/calibration is complete and the pod is terminated; resume
-at Tom's frozen release and final pod B, preserving the existing integration tree.
+The development pilot/calibration is complete and its pod is terminated.
+Final pod B setup is now underway at Tom's tagged release, preserving the
+existing integration tree. No final episode has started at this update.
+
+**October 15 release:** `release-2026-10-15` resolves to `cf724d9` and includes
+W2's qualified π0.5 environment fix (`620a1fb`). The frozen timing config has
+PanTransfer's 30-second story limit and no MakeIceLemonade story. Four frozen
+21-entry plans serve both models, hence eight sessions. Fresh tagged validation:
+387 tests passed and eight CLI source-plan dry runs passed. These are offline
+checks; actual same-pod baseline pairing and live worker checks still precede
+the four final Sonnet sessions. Use `--release-tag release-2026-10-15`.
+
+Final rental `75b7d452b61f433b86bd3f1e636dc915` uses RunPod A100 80 GB SXM4,
+32 advertised vCPUs and a $30 compute allocation within the authorized $250
+project total. Its exact-ID external watchdog was armed before creation; setup
+uses the unmodified tagged bootstrap and separate π0.5 environment. The shared
+final API allocation remains $50 within the authorized $100 total. Operational
+receipts and continuation checkpoint: `runs/final/compute-launch-20261015/`.
 
 **Partner update, October 14 evening (W1 `a9c88e3`):** the calibrated call
 charges are now written in W1's config. Tom explicitly decided that the freeze
@@ -161,7 +177,7 @@ seconds. Output and timing paths must be new.
 
 The live pilot uses `--development` without `--dry-run`, with an explicit
 `--api-dollar-cap`. Final sessions use
-`--release-tag release-2026-10-14` instead of `--development`, at a clean checkout
+`--release-tag release-2026-10-15` instead of `--development`, at a clean checkout
 whose HEAD equals that tag. Every final plan entry must have the same-pod
 baseline's `expect_state`, with the adjacent `.pairing.json` audit. Final mode
 also verifies the inputs above. A final dry run rechecks local baselines and
@@ -205,7 +221,7 @@ At the tagged, integrated release, the Sonnet command on pod B is:
 PYTHONPATH=src .venv-sim/bin/python -m robot_benchmark.cli session \
   --plan runs/final/podB/plans/scene1000.json --workers runs/final/podB/workers-scene1000.json \
   --agent-config configs/model-sonnet-5-5.dev.json --time-pressure configs/time_pressure.json \
-  --session-id sonnet-scene1000 --release-tag release-2026-10-14 \
+  --session-id sonnet-scene1000 --release-tag release-2026-10-15 \
   --api-dollar-cap "${W3_FINAL_API_CAP:?Set the final-session allocation within the total API cap}" --output runs/final/podB
 ```
 
