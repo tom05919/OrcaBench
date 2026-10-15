@@ -9,6 +9,14 @@ then this runbook and [stage6_pilot.md](stage6_pilot.md) for the current live st
 The development pilot/calibration is complete and the pod is terminated; resume
 at Tom's frozen release and final pod B, preserving the existing integration tree.
 
+**Partner update, October 14 evening (W1 `a9c88e3`):** the calibrated call
+charges are now written in W1's config. Tom explicitly decided that the freeze
+waits for π0.5's smoke test and ladder, then selection and story limits; the
+earlier two-policy fallback is superseded. If no qualifying run yields a story
+limit, W1/W2 remove that task's story before freezing, while retaining its task
+deadline. W3's existing refusal of a story with a null limit remains unchanged.
+No final rental or session starts before the clean integrated release tag.
+
 ## Sources and scope
 
 Use `docs/briefs/w3_harness.md` and the fixed ownership/interfaces in
@@ -591,12 +599,13 @@ limits; historical charges and synthetic images cannot establish those costs.
 
 **6. Run final pod B only after Tom's freeze.** Require a clean tagged checkout,
 frozen timing/story configuration, selected task/policy list, ordered plans,
-qualified workers and the common GPU type. If π0.5 remains unavailable, Tom
-chooses whether to delay or use two policies; W3 does not choose a replacement.
+qualified workers and the common GPU type. Tom's W1 `d00cfd1` decision explicitly
+waits for π0.5 and supersedes the earlier two-policy fallback. W3 neither chooses
+a replacement nor runs the final cohort before its qualification and freeze.
 Run always-defer first on every selected cell, then create same-pod paired
 plans/audits, run all four Sonnet sessions in order, then `reissue_200` over the
 same selected cells. With three policies and seven tasks this is 84 + 84 + 84
-= 252 episodes; a formally approved two-policy design would change the count.
+= 252 episodes under the current three-policy design.
 Restart baselines remain unpaired. Keep sessions sequential within each context;
 do not increase concurrency in a way that changes live model latency conditions.
 

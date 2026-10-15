@@ -178,8 +178,13 @@ digest and presentation stash remain unchanged. No W1/W2-owned file was edited.
 Final pod B has **not** started. It still requires Tom's clean tagged release,
 qualified/selected policy set and frozen timing/stories/plans. The shared GPU
 is now fixed as A100 80 GB SXM4 at W1 `4278ec7`.
-W2's π0.5 remains untested in the inspected partner snapshot. Do not
-keep or re-rent development compute while these release inputs are pending.
+W2's π0.5 remains untested in the inspected partner snapshot. W1 `d00cfd1`
+records Tom's decision to wait for its qualification before freezing, replacing
+the two-policy fallback. W1 `1101483` has entered the delivered 4.74/1.76-second
+charges; story limits and the release tag remain pending at `a9c88e3`. A story
+without a qualifying limit will be removed before freeze, retaining its task
+deadline and W3's existing null-limit guard. Do not keep or re-rent development
+compute while these release inputs are pending.
 
 ## Historical live preflight and pilot setup — October 14
 
