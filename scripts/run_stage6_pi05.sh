@@ -13,8 +13,9 @@ cd "$(dirname "$0")/.."
 source scripts/project_env.sh
 
 ROOT=runs/stage6_pi05
-STORY="MakeIceLemonade SeparateFreezerRack PanTransfer PortionHotDogs GarnishPancake HeatKebabSandwich WaffleReheat
-  ArrangeTea"
+# One line: run_stage4.sh reads TASK_LIST with `read -a`, which stops at the first newline (the October 15 run lost
+# ArrangeTea to a wrapped list and ran it separately afterwards).
+STORY="MakeIceLemonade SeparateFreezerRack PanTransfer PortionHotDogs GarnishPancake HeatKebabSandwich WaffleReheat ArrangeTea"
 LEAVE="OpenCabinet PickPlaceCounterToCabinet PickPlaceCounterToStove CloseFridge OpenDrawer"
 BUDGET=${BUDGET_MINUTES:-200}
 mkdir -p "$ROOT"
