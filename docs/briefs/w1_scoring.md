@@ -14,7 +14,7 @@ strategies, fix the final experiment, and write the report. CPU only; no GPU and
    like `scorecard.py`.
    - **Inputs:** an episode folder: `result.json` (`steps`, `success`, `model_calls`, `status`),
      `decisions.jsonl`, `evaluator/events.jsonl` (per-step `success` and predicates) and `model_timings.jsonl`.
-   - **Outputs:** robot seconds (`steps / 20`); charged seconds = robot seconds + `model_calls × call_seconds`;
+   - **Outputs:** robot seconds (`steps / 20`); charged seconds = robot seconds + LLM responses × `call_seconds[model]`;
      success; whether the task finished within its deadline; for a time-sensitive task, seconds from the clock start
      to the declaration.
    - **Clock start:** step 0, or the first step at which the trigger predicate (`ice_out_of_bowl`, `pan_off_stove`,
@@ -22,11 +22,10 @@ strategies, fix the final experiment, and write the report. CPU only; no GPU and
    - **Tests:** `tests/test_time_score.py`, on hand-made episode folders. No simulator is needed.
 2. **Time parameters.** Write `configs/time_pressure.json` in the format fixed in `docs/work_split.md`. Draft values
    by October 13:
-   - `call_seconds`: from measured latency. An Opus call averaged 4.6 s in stage 3; check Sonnet in stage 1 records.
-     Use one value for every model, so a faster model gains only by making fewer calls, and report measured latency
-     separately.
-   - `deadline_seconds` per task: from the plain policy's time to success in stages 3-5 and in W2's ladder run, for
-     example the median successful time plus a margin. Write the rule in `docs/time_score.md`.
+   - `call_seconds`: **per model** (decided October 13): each model's median seconds per call, measured once under
+     prompt version 6 (W3's probe and pilot) and frozen on October 14. Provisional: Opus 4.7 s, Sonnet 2.2 s.
+   - `deadline_seconds` per task: **the step budget in seconds** (decided October 13). The first response is
+     charged (decided). Story `limit_seconds` comes from W2's times to success; propose the rule when they exist.
    - `story`: one sentence per time-sensitive task, from `docs/task_catalog.md`.
 3. **The best fixed rule, offline.** The time score penalizes always-defer heavily, because it declares only at the
    step budget. A fair fixed rule must also be able to stop.

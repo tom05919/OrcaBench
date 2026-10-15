@@ -211,6 +211,7 @@ class Runner:
         self._episode_start = start
         episode_started_at_unix_ns = time_ns()
         infrastructure_error = None
+        interruption = None
         self.status = "running"
         try:
             self.env.reset(seed)
@@ -275,9 +276,11 @@ class Runner:
             # Keep the final state in the replay when it falls between recording steps.
             if self.records and hasattr(self.records, "video_frames") and self.steps % self.recording_interval:
                 self.records.video_frames(self.steps, self.env.recording_frames())
-        except Exception as error:
+        except (Exception, KeyboardInterrupt, SystemExit) as error:
             self.status = "infrastructure_error"
             infrastructure_error = f"{type(error).__name__}: {error}"
+            if not isinstance(error, Exception):
+                interruption = error
             self._record("evaluator/errors.jsonl", {"error": infrastructure_error, "step": self.steps})
         finally:
             try:
@@ -311,5 +314,9 @@ class Runner:
             "infrastructure_error": infrastructure_error,
         }
         if self.records:
+            if interruption is not None:
+                result["interrupted"] = True
             self.records.write("result.json", result)
+        if interruption is not None:
+            raise interruption
         return result
