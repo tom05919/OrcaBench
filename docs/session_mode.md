@@ -28,6 +28,13 @@ uses the unmodified tagged bootstrap and separate π0.5 environment. The shared
 final API allocation remains $50 within the authorized $100 total. Operational
 receipts and continuation checkpoint: `runs/final/compute-launch-20261015/`.
 
+**Analysis-only correction:** W1 `18b90ad` fixes story-limit accounting for fixed
+rules and the oracle. Tom directs final scoring to use that commit and name it;
+it changes no runner, prompt, policy, config, plan or evaluation-contract hash.
+The isolated analysis checkout passed 388 tests. Live execution remains at
+`release-2026-10-15` (`cf724d9`), with no reruns. Closeout scores the single common
+pod B artifact root with W1's corrected source and the frozen timing file.
+
 **Partner update, October 14 evening (W1 `a9c88e3`):** the calibrated call
 charges are now written in W1's config. Tom explicitly decided that the freeze
 waits for π0.5's smoke test and ladder, then selection and story limits; the

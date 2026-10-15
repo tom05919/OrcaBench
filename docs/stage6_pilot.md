@@ -49,7 +49,7 @@ termination verification remain pending.
 
 Successful-run contingency closeout is armed locally: after all 252 terminal
 results and phase artifacts copy, it requests exact-pod termination, verifies
-that ID is absent, runs W1's unchanged tagged scorer, creates a compact local
+that ID is absent, runs W1's corrected analysis scorer (`18b90ad`), creates a compact local
 archive and W1 delivery receipt, and publishes only W3 documentation after the
 required suite and checkout/concurrency checks. It refuses stale score output,
 failed scoring, unexpected session identities, or a changed publication branch.
@@ -58,14 +58,18 @@ gate, 8 report collector and 4 closeout tests) passed; these are operational
 tests, not experimental results. Receipt/scripts:
 `runs/final/compute-launch-20261015/`.
 
-**Scoring caveat for W1:** read-only inspection of the tagged scorer found that
+**Scoring correction, W1 `18b90ad`:** read-only inspection of the tagged scorer found that
 `time_score.fixed_rule_values()` and `rule_value()` use checker success and task
 deadline without applying the story limit; `score_episode()` applies it to the
 model episode. PanTransfer fixed-rule candidates after its trigger plus 30 s
 could therefore receive value when the corresponding model declaration would
-expire. This is a source finding, not yet a measured effect in pod B. Preserve
-the tagged output and check affected candidate steps before interpreting regret.
-W3 has not changed W1 scoring code or the frozen experiment.
+expire. W1 fixed this before final scoring in
+`18b90adbe63c7820ebe65c913e2758eeeaa6179e`, including fixed-rule, held-out and
+oracle values, and explicitly directs final analysis to use that commit. The
+separate clean checkout `runs/final/analysis-18b90ad/` passed **388 tests in
+6.069 s**; its timing config equals the tagged file. Closeout now uses this
+corrected scorer and records its commit. The running harness, frozen inputs and
+all episodes remain at `cf724d9`; no rerun or release change is required.
 
 ## W1 full-pilot calibration — October 14, rule fixed before replay
 
