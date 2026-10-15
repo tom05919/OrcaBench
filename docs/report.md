@@ -143,6 +143,9 @@ restarts and rewrites. Story outcomes per story task.
 - **Sample:** four scenes and one policy seed per cell. Per-task and per-policy numbers are descriptive.
 - **Time:** the call charge is a calibrated constant, not live latency. Deadlines equal the task budgets, a stated
   choice; tighter deadlines would floor every supervisor at 0 (`docs/time_score.md`).
+- **Calibration:** each model's charge is the median of one replay of each of the 27 observations of a single
+  Opus-generated pilot session, with no uncertainty estimate. To keep the inputs identical, both models' replays
+  stated the pilot's provisional 4.7 s charge, so Sonnet was timed while told a larger charge than its own 1.76 s.
 - **Fixed rules:** they are chosen with knowledge of the other runs. The held-out version removes the hindsight on the
   paired scene, but a deployed fixed rule would need its own tuning data.
 - **Pairing:** pairing holds only within one machine. Models on different pods are compared through paired regret,
