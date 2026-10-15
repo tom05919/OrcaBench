@@ -1,0 +1,38 @@
+{
+  "policies": [
+    "groot",
+    "groot_u30",
+    "pi05"
+  ],
+  "policy_unseen_success": {
+    "groot": 0.0,
+    "groot_u30": 0.15625,
+    "pi05": null
+  },
+  "unseen_tasks": [
+    "ArrangeTea",
+    "MakeIceLemonade",
+    "PanTransfer",
+    "WaffleReheat"
+  ],
+  "helpable_margins": {
+    "GarnishPancake": 0,
+    "MakeIceLemonade": 1,
+    "PanTransfer": 0,
+    "PortionHotDogs": 1,
+    "SeparateFreezerRack": 0
+  },
+  "fallback_monitoring": true,
+  "seen_tasks": [
+    "OpenCabinet",
+    "PickPlaceCounterToStove",
+    "CloseFridge"
+  ],
+  "story_tasks": [
+    "MakeIceLemonade",
+    "PanTransfer"
+  ],
+  "untested_policies": [
+    "pi05"
+  ]
+}

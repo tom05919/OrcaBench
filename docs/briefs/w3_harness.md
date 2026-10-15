@@ -5,6 +5,19 @@ interfaces), `docs/protocol.md` ("Model-visible information" and "Decision seman
 `docs/decisions.md`. The simulator already does what you are building: see `src/robot_benchmark/sim/agent.py`
 (`build_content`) and `docs/env_design.md` (blocks B7 and B8).
 
+## Update from W1, October 13 (read first)
+
+- **Final policies (Tom):** `groot`, `groot_u30` and `pi05` (π0.5, a different architecture with a 5-step action
+  chunk). Every final session has three policy workers: two GR00T and one π0.5.
+  - **GPU memory:** the π0.5 worker needs `XLA_PYTHON_CLIENT_PREALLOCATE=false` (or a memory fraction) next to the
+    GR00T workers.
+  - **Plans:** session plans come from `scripts/make_session_plans.py --policies groot groot_u30 pi05`.
+- **Monitoring mode:** W2's ceiling test found no unseen task that correct step-by-step instructions can rescue, so
+  the benchmark measures monitoring, declaring and restraint. The prompt must not suggest that re-prompting fixes
+  failures; describe the decisions neutrally.
+- **Call charge:** each model's calibrated `call_seconds[model]` (format in `docs/work_split.md`). Your probe and pilot
+  provide the medians that W1 freezes.
+
 ## Goal
 
 The benchmark needs **one supervisor, in one context, supervising several policies, and learning from how earlier
@@ -45,9 +58,10 @@ episodes. Build that session mode and a prompt that states the time cost, then r
    - **Size limit:** cap the experience at the last N records.
    - **Unchanged:** keep `DECISION_FORMAT`, effort `medium` and the retry logic.
 4. **Time-aware system prompt (version 6, a contract change).** It must state:
-   - that each response is charged `call_seconds` on the task clock, read from `configs/time_pressure.json` (W1's
-     file; the format is in `docs/work_split.md`) and not hard-coded;
-   - the task's deadline and story when present;
+   - that each response is charged the supervisor's own `call_seconds[<model id>]` on the task clock, read from
+     `configs/time_pressure.json` (W1's file; the format is in `docs/work_split.md`) and not hard-coded;
+   - the task's deadline (`deadline_seconds`, from step 0) and, when the task has a `story`, its `text` and, if
+     `limit_seconds` is not null, the limit;
    - that several policies of different ability take turns and that records of earlier episodes come first;
    - the score, using W1's wording in `docs/time_score.md`.
 
@@ -67,6 +81,9 @@ episodes. Build that session mode and a prompt that states the time cost, then r
    - **Session:** one short Opus session, 2 policies × 2 tasks × 2 scenes = 8 episodes, on one pod with one worker per
      backend.
    - **Check:** records, cost per call, latency, and that W1's `scripts/score_time.py` reads the session.
+   - **Latency calibration for W1:** report each model's median wall-clock seconds per call (`model_timings.jsonl`)
+     under prompt version 6 and effort `medium`, from the probe or pilot, for both Opus and Sonnet. W1 freezes these as
+     `call_seconds` on October 14.
    - **Cost guide:** in stage 3, Opus cost $0.019 per call and about 4.7 calls per episode, without experience.
 8. **Final runs, October 15.** Pod B on your credits, same GPU type as W2's pod A, at the tagged commit:
    - the baselines and the Sonnet sessions, following `docs/final_experiment.md`;
@@ -77,7 +94,8 @@ episodes. Build that session mode and a prompt that states the time cost, then r
 
 ## Interfaces
 
-- **You provide:** the `session` command; `session.jsonl` records; the prompt; `docs/session_mode.md`.
+- **You provide:** the `session` command; `session.jsonl` records; the prompt; `docs/session_mode.md`; the latency
+  calibration (median seconds per call per model, prompt version 6).
 - **You consume:** `configs/time_pressure.json` (W1); the policy backends and worker setup (W2);
   `docs/final_experiment.md` (W1).
 

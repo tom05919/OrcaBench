@@ -4,6 +4,25 @@
 `docs/work_split.md` (ownership and interfaces), `docs/stage5_plan.md`, `docs/stage5_results.md`, and the unseen-task
 section of `docs/task_catalog.md`.
 
+## Update from W1, October 13 (read first)
+
+- **Your results decided two things.**
+  - **Fallback (monitoring) mode applies:** no unseen task met the ceiling rule.
+  - **Final policies (Tom):** `groot`, `groot_u30` and **`pi05`**. π0.5 is now **required**, not optional.
+- **Measure π0.5 before the October 14 freeze:**
+  1. **Install:** `bootstrap_gpu.py --include-pi05 --download-pi05-checkpoint`.
+  2. **GPU memory:** set `XLA_PYTHON_CLIENT_PREALLOCATE=false` (or `XLA_PYTHON_CLIENT_MEM_FRACTION`) whenever a π0.5
+     worker shares a GPU with GR00T workers; JAX otherwise takes 75% of GPU memory.
+  3. **Smoke test:** one plain episode first. The `pi05` backend in `policy_worker.py` has never run.
+  4. **Ladder:** the same grid as yours (8 story tasks and 5 leave-alone tasks × scenes 1000-1003 × policy seeds 0,
+     1). Add it to `runs/stage6_ladder/analysis.json`.
+  5. **Story limits:** run `scripts/set_story_limits.py <ceiling plain runs> <π0.5 ladder runs> --policies groot
+     groot_u30 pi05`. It is on branch `w1-scoring`. Do not pass `--write`; post the output in
+     `docs/stage6_ladder.md`, and W1 writes the config.
+- **If π0.5 cannot run cleanly by the freeze, tell Tom.** He decides between moving the freeze and proceeding with the
+  two GR00T policies.
+- **Final pod A** (October 15) runs a π0.5 worker as well (`docs/final_experiment.md`).
+
 ## Goal
 
 Decide **which policies and which tasks** the benchmark uses, with measurements:
@@ -70,6 +89,8 @@ GPU work on your own credits, plus file changes in the files you own.
      1000-1003 × policy seeds 0-1.
    - **Reading rule, fixed before results:** if the sequencer succeeds in at least 2 more of 8 paired episodes than
      plain, re-prompting can help on that task.
+   - **Summary for W1:** write `runs/stage6_ceiling/summary.json` in the format fixed in `docs/work_split.md`.
+     `scripts/select_final.py` applies the selection rules to it and to the ladder table.
    - **Test update:** `tests/test_task_catalog.py` currently requires `SEQUENCES` to cover exactly the
      `composite_seen` tasks; update it.
 4. **Trigger predicates for W1**, with the names fixed in `docs/work_split.md`:
