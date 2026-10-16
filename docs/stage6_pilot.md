@@ -1,4 +1,4 @@
-# W3 pilot status — October 14, 2026
+# W3 pilot and final-run status — October 16, 2026
 
 ## Actual final Sonnet delivery — October 16
 
@@ -71,17 +71,55 @@ Scorer output, termination/billing receipts and archive index are under
 `runs/final/compute-launch-20261015/partial-closeout/`. Per-step PNG frames were
 not copied from the remote final pod; attempt JSON/JSONL/logs and videos were.
 
-The native Google Slides research draft has been updated to the October 15
-freeze with measured π0.5 qualification, frozen story limits and analysis
-provenance. Its 17 slides, seven editable tables and two development videos were
-preserved; all 17 rendered slides passed visual review and the structural issue
-checker reported zero issues. The October 16 refresh now includes the actual Sonnet result on slide 13,
-with the Opus comparison still pending and restart comparison unavailable.
-Written first runthrough targets 630 seconds; a human-narrated recording is
-still needed. Native deck:
+The native Google Slides deck has been rebuilt after independent narrative,
+visual-design and evidence reviews. The main talk now introduces the robot
+policy and LLM supervisor before showing videos, explains the monitoring pivot,
+then teaches sessions, scoring and the held-out comparator before the result.
+It contains **11 main slides and six appendix slides**, with consistent margins,
+Arial typography and restrained color use. Native editable evidence includes the
+time-value curve, Sonnet confidence interval and terminal-outcome bars; five
+native tables support the comparison and appendix. Both original square pilot
+videos remain native media and visibly labeled development examples.
+
+The primary result is now slide 8; slide 10 establishes the common-scene model
+comparison and explicitly awaits W1's combined effect size. Historical studies,
+policy qualification, latency calibration and information boundaries support the
+appendix. Three subagents reviewed the full redesign in two rounds. One
+consolidated repair clarified policy names, the definition of a scene, the
+zero-call fixed rule and a chart caption. All 17 draft renders and all six changed
+final renders were inspected; the other 11 final renders are pixel-identical.
+The draft structural checker found zero issues. These are presentation checks,
+not new experimental results. No model call or GPU rental occurred for this work.
+
+Written runthrough target: **560 seconds (9 min 20 s)**, including planned clip
+playback, not a measured or recorded oral rehearsal. Human narration still needs
+recording. Native deck:
 https://docs.google.com/presentation/d/1x6NDYAKVPzyD__nDM2waLyBLCSeyF_JuH5vYCGCHptM/edit
-Refresh receipts and written rehearsal:
-`runs/presentation-draft/freeze-refresh-20261015/`.
+Sources, review reports, final PDF/PNGs, speaker script and final-information
+handoff: `runs/presentation-redesign-20261016/`. This supersedes the earlier
+14-main-slide structure and 630-second script below.
+
+**W1 artifact transfer is now uploaded.** The full raw archive, scorer JSON,
+delivery JSON, latency CSV and checksum are in a restricted **draft** release
+for the existing tag, alongside the redesigned presentation PDF and its source/
+review bundle. It remains a draft because raw final inputs are for private
+collaborator sharing. All five experimental asset SHA256 digests matched local
+files; the raw asset returned HTTP 404 without authentication. The approved
+annotated tag object remains `5da361fda852d81af1d1d7c8a051eaccda86cebe`.
+No source/tag, billing settings or repository visibility changed. W1, as repository
+owner, can download with authenticated GitHub CLI:
+
+```sh
+gh release download release-2026-10-15 --repo tom05919/OrcaBench --dir runs/final/w3-incoming
+```
+
+Restricted draft:
+https://github.com/tom05919/OrcaBench/releases/tag/untagged-31208f4260f3d733675d
+
+Presentation source/review bundle:
+`runs/presentation-redesign-20261016/w3-presentation-redesign-20261016.tar.gz`
+(3,934,784 bytes), SHA256
+`9384b925e11ffa3b4813c9acc88320cc377d5f2bacb7533d3cedaacb0feff224`.
 
 Compact main-cohort archive: `runs/final/w3-podB-main-release-2026-10-15.tar.gz`
 (1,261,516,518 bytes), SHA256
