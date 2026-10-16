@@ -33,9 +33,15 @@ the camera guard detected eye-in-hand frame noise 27.0 at step 951, retaining
 indices 1–20. The operational wrapper stopped afterward at 03:27:52 UTC because
 its post-session check required zero infrastructure errors anywhere; this
 prevented the secondary restart phase. No dead-worker or API-spend stop occurred.
-**The restart comparison is unavailable, not zero.** A separate guarded A100
-run is being prepared for the already-authorized secondary, unpaired baseline;
-it will retain new pod/state provenance and use the unchanged frozen runtime.
+**The restart comparison is unavailable, not zero.** The already-authorized secondary,
+unpaired restart-200 run is blocked by provider capacity: both same-GPU,
+one-GPU offers (US-WA-1 and US-KS-2, $1.8068 GPU/hour) returned explicit
+HTTP 503 Insufficient Capacity. Fresh authenticated checks verified zero pods
+before retry and after both failures. No replacement rental, episode or model
+call occurred; its unused watchdog was removed. Requests/errors and prepared
+operational recipes are retained under `runs/final/reissue-launch-20261016/`.
+Resume only after fresh capacity and re-arming both exact-ID guards, preserving
+the original frozen runtime and unpaired new-pod provenance.
 
 API accounting includes **750 successful strict-JSON responses**, **zero transport
 retries**, zero recovered JSON replies, zero rejected decision attempts and no
@@ -69,8 +75,18 @@ The native Google Slides research draft has been updated to the October 15
 freeze with measured π0.5 qualification, frozen story limits and analysis
 provenance. Its 17 slides, seven editable tables and two development videos were
 preserved; all 17 rendered slides passed visual review and the structural issue
-checker reported zero issues. This refresh does not yet insert the new final
-Sonnet result. Refresh receipts: `runs/presentation-draft/freeze-refresh-20261015/`.
+checker reported zero issues. The October 16 refresh now includes the actual Sonnet result on slide 13,
+with the Opus comparison still pending and restart comparison unavailable.
+Written first runthrough targets 630 seconds; a human-narrated recording is
+still needed. Native deck:
+https://docs.google.com/presentation/d/1x6NDYAKVPzyD__nDM2waLyBLCSeyF_JuH5vYCGCHptM/edit
+Refresh receipts and written rehearsal:
+`runs/presentation-draft/freeze-refresh-20261015/`.
+
+Compact main-cohort archive: `runs/final/w3-podB-main-release-2026-10-15.tar.gz`
+(1,261,516,518 bytes), SHA256
+`eb5254c73c4ebd556586e6375d7b711622df1394ba8a9ccea52f760ceb74f65c`.
+No final artifacts were uploaded publicly.
 
 ## Earlier execution and development record
 
