@@ -1,5 +1,80 @@
 # W3 pilot status — October 14, 2026
 
+## Actual final Sonnet delivery — October 16
+
+All four frozen Sonnet sessions completed their 21 attempted episodes. The
+retained pod B cohort has **84 always-defer episodes and 84 Sonnet attempts**;
+**83 Sonnet episodes are usable and one is an infrastructure exclusion**.
+There are no cut-short model sessions. We interpret W1's completed-session rule
+as completion of all 21 attempts, consistent with the tagged session's handling
+of isolated infrastructure errors; this interpretation is explicit for W1.
+All 84 baseline/episode state hashes, policy identities and contracts match.
+Every attempted episode is retained; no episode was rerun.
+
+W1's corrected scorer `18b90adbe63c7820ebe65c913e2758eeeaa6179e` reports Sonnet
+**paired held-out regret 0.071, 95% clustered interval [0.028, 0.119]**, over
+83 episodes and 28 task/scene clusters. Positive regret favors the no-restart
+fixed declaration rule. The scoring charge remains **1.76 s**, not the observed
+latency. Pod B alone provides no Opus–Sonnet comparison. Runtime, prompt, plans,
+policies and timing configuration remain frozen at `release-2026-10-15`
+(`cf724d9`). These are actual experiment results, separate from offline checks.
+
+| Retained phase | Attempts | Raw terminal successes | Infrastructure exclusions |
+|---|---:|---:|---:|
+| always_defer | 84 | 31 | 0 |
+| Sonnet | 84 | 2 | 1 |
+| reissue_200 on original pod | 0 | unavailable | unavailable |
+
+Raw terminal success is distinct from deadline/story-adjusted value. Sonnet's
+other statuses are 42 step-budget exhaustions and 39 false completions.
+The infrastructure attempt is scene 1003 / OpenCabinet / GR00T / session index 0:
+the camera guard detected eye-in-hand frame noise 27.0 at step 951, retaining
+950 executed steps. Its nine HTTP responses succeeded. The session then finished
+indices 1–20. The operational wrapper stopped afterward at 03:27:52 UTC because
+its post-session check required zero infrastructure errors anywhere; this
+prevented the secondary restart phase. No dead-worker or API-spend stop occurred.
+**The restart comparison is unavailable, not zero.** A separate guarded A100
+run is being prepared for the already-authorized secondary, unpaired baseline;
+it will retain new pod/state provenance and use the unchanged frozen runtime.
+
+API accounting includes **750 successful strict-JSON responses**, **zero transport
+retries**, zero recovered JSON replies, zero rejected decision attempts and no
+unsettled reservations. There are 750 accepted attempts but 749 completed
+`decisions.jsonl` records: the camera failure interrupted execution of one
+accepted action before its completed record could be written. All 750 calls,
+including the excluded episode's nine, remain in latency and cost accounting.
+Observed decision-wall medians (including retry/backoff if present):
+**1.977428486 s overall (n=750)**, **1.776215625 s first calls (n=84)** and
+**2.008183008 s later calls (n=666)**. Completed accepted-decision median is
+1.979411247 s (n=749). These observations do not replace the frozen charge.
+
+Known actual and budget-accounted final API cost are both **$6.8086692**;
+project API spend including development/calibration is **$8.0235237 of $100**.
+Observed provider billing for the original final pod is **$23.548**, last billed
+October 16 at 08:01:19 UTC; project observed compute including the pilot is
+**$24.487 of $250**. This is a billing snapshot, not a guaranteed final invoice.
+The exact pod `75b7d452b61f433b86bd3f1e636dc915` was freshly verified absent
+from the authenticated personal-account pod list. Its local copy process and
+owned launchd watchdog were then stopped; no other pod was touched.
+
+Artifacts: `runs/final/podB/` (168 retained attempts, session ledgers, plans,
+pairing audits, model traces and MP4s); `runs/final/podB-score.json`;
+`runs/final/w1-delivery-podB.json` (raw latency samples, usage and exclusions);
+`runs/final/compute-launch-20261015/partial-closeout/latency-samples.csv`.
+Scorer output, termination/billing receipts and archive index are under
+`runs/final/compute-launch-20261015/partial-closeout/`. Per-step PNG frames were
+not copied from the remote final pod; attempt JSON/JSONL/logs and videos were.
+
+The native Google Slides research draft has been updated to the October 15
+freeze with measured π0.5 qualification, frozen story limits and analysis
+provenance. Its 17 slides, seven editable tables and two development videos were
+preserved; all 17 rendered slides passed visual review and the structural issue
+checker reported zero issues. This refresh does not yet insert the new final
+Sonnet result. Refresh receipts: `runs/presentation-draft/freeze-refresh-20261015/`.
+
+## Earlier execution and development record
+
+
 **The real eight-episode development pilot, W1 scoring and representative v6
 replay calibration are complete.** The full-pilot replay below supersedes the
 initial six-sample medians. Tom's `release-2026-10-15` now exists at `cf724d9`,
