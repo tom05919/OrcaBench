@@ -1,0 +1,845 @@
+{
+  "roots": [
+    "runs/time_score/addon-final"
+  ],
+  "call_seconds": {
+    "claude-opus-5-5": 4.74,
+    "claude-sonnet-5-5": 1.76,
+    "moonshotai/Kimi-K3": 5.92
+  },
+  "episodes": 105,
+  "fixed_rules": [
+    {
+      "backend": "groot",
+      "task": "ArrangeTea",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "groot",
+      "task": "CloseFridge",
+      "source": "no_restart",
+      "step": 640,
+      "value": 0.19259259259259257,
+      "n": 3,
+      "loo_value": 0.05925925925925927,
+      "oracle": 0.2992592592592593,
+      "reached": 1.0
+    },
+    {
+      "backend": "groot",
+      "task": "MakeIceLemonade",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "groot",
+      "task": "OpenCabinet",
+      "source": "no_restart",
+      "step": 400,
+      "value": 0.6190476190476191,
+      "n": 3,
+      "loo_value": 0.41269841269841273,
+      "oracle": 0.6980952380952381,
+      "reached": 1.0
+    },
+    {
+      "backend": "groot",
+      "task": "PanTransfer",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "groot",
+      "task": "PickPlaceCounterToStove",
+      "source": "no_restart",
+      "step": 220,
+      "value": 0.6333333333333333,
+      "n": 3,
+      "loo_value": 0.4222222222222222,
+      "oracle": 0.6749999999999999,
+      "reached": 1.0
+    },
+    {
+      "backend": "groot",
+      "task": "WaffleReheat",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "groot_u30",
+      "task": "ArrangeTea",
+      "source": "no_restart",
+      "step": 1740,
+      "value": 0.07555555555555556,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.07807407407407407,
+      "reached": 0.3333333333333333
+    },
+    {
+      "backend": "groot_u30",
+      "task": "CloseFridge",
+      "source": "no_restart",
+      "step": 260,
+      "value": 0.23703703703703705,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.23703703703703705,
+      "reached": 0.3333333333333333
+    },
+    {
+      "backend": "groot_u30",
+      "task": "MakeIceLemonade",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "groot_u30",
+      "task": "OpenCabinet",
+      "source": "no_restart",
+      "step": 480,
+      "value": 0.18095238095238098,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.18095238095238098,
+      "reached": 0.3333333333333333
+    },
+    {
+      "backend": "groot_u30",
+      "task": "PanTransfer",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "groot_u30",
+      "task": "PickPlaceCounterToStove",
+      "source": "no_restart",
+      "step": 200,
+      "value": 0.22222222222222224,
+      "n": 3,
+      "loo_value": 0.11111111111111112,
+      "oracle": 0.34722222222222227,
+      "reached": 0.6666666666666666
+    },
+    {
+      "backend": "groot_u30",
+      "task": "WaffleReheat",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "pi05",
+      "task": "ArrangeTea",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "pi05",
+      "task": "CloseFridge",
+      "source": "no_restart",
+      "step": 500,
+      "value": 0.2962962962962963,
+      "n": 3,
+      "loo_value": 0.14814814814814814,
+      "oracle": 0.33592592592592596,
+      "reached": 1.0
+    },
+    {
+      "backend": "pi05",
+      "task": "MakeIceLemonade",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "pi05",
+      "task": "OpenCabinet",
+      "source": "no_restart",
+      "step": 780,
+      "value": 0.2571428571428571,
+      "n": 3,
+      "loo_value": 0.0857142857142857,
+      "oracle": 0.445079365079365,
+      "reached": 1.0
+    },
+    {
+      "backend": "pi05",
+      "task": "PanTransfer",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    },
+    {
+      "backend": "pi05",
+      "task": "PickPlaceCounterToStove",
+      "source": "no_restart",
+      "step": 340,
+      "value": 0.2888888888888889,
+      "n": 3,
+      "loo_value": 0.14444444444444446,
+      "oracle": 0.315,
+      "reached": 0.6666666666666666
+    },
+    {
+      "backend": "pi05",
+      "task": "WaffleReheat",
+      "source": "no_restart",
+      "step": null,
+      "value": 0.0,
+      "n": 3,
+      "loo_value": 0.0,
+      "oracle": 0.0,
+      "reached": 0.0
+    }
+  ],
+  "supervisors": [
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot",
+      "task": "ArrangeTea",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 183.49,
+      "calls": 12,
+      "restarts": 0.5,
+      "prompt_changes": 7,
+      "declarations": {
+        "false: not reached yet": 1,
+        "timeout, never reached": 1
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot",
+      "task": "CloseFridge",
+      "n": 2,
+      "success": 0.5,
+      "value": 0.0,
+      "regret": 0.193,
+      "paired_regret": 0.289,
+      "paired_regret_heldout": 0.089,
+      "paired_n": 2,
+      "charged_seconds": 67.39,
+      "calls": 4.5,
+      "restarts": 0,
+      "prompt_changes": 1.5,
+      "declarations": {
+        "correct": 1,
+        "false: not reached yet": 1
+      },
+      "lag_seconds": 1.9
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot",
+      "task": "MakeIceLemonade",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 235.84,
+      "calls": 14.5,
+      "restarts": 0,
+      "prompt_changes": 7,
+      "declarations": {
+        "timeout, never reached": 2
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot",
+      "task": "OpenCabinet",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.619,
+      "paired_regret": 0.619,
+      "paired_regret_heldout": 0.619,
+      "paired_n": 2,
+      "charged_seconds": 102.32,
+      "calls": 8.5,
+      "restarts": 0,
+      "prompt_changes": 3.5,
+      "declarations": {
+        "timeout, never reached": 1,
+        "false: not reached yet": 1
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot",
+      "task": "PanTransfer",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 120.07,
+      "calls": 11,
+      "restarts": 0,
+      "prompt_changes": 5.5,
+      "declarations": {
+        "false: not reached yet": 2
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot",
+      "task": "PickPlaceCounterToStove",
+      "n": 2,
+      "success": 1.0,
+      "value": 0.0,
+      "regret": 0.633,
+      "paired_regret": 0.633,
+      "paired_regret_heldout": 0.317,
+      "paired_n": 2,
+      "charged_seconds": 40.72,
+      "calls": 3.5,
+      "restarts": 0,
+      "prompt_changes": 0,
+      "declarations": {
+        "correct": 2
+      },
+      "lag_seconds": 4.95
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot",
+      "task": "WaffleReheat",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 285.52,
+      "calls": 18.5,
+      "restarts": 0,
+      "prompt_changes": 11,
+      "declarations": {
+        "false: not reached yet": 1,
+        "timeout, never reached": 1
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot_u30",
+      "task": "ArrangeTea",
+      "n": 2,
+      "success": 0.5,
+      "value": 0.067,
+      "regret": 0.009,
+      "paired_regret": 0.047,
+      "paired_regret_heldout": -0.067,
+      "paired_n": 2,
+      "charged_seconds": 95.27,
+      "calls": 6,
+      "restarts": 0,
+      "prompt_changes": 2.5,
+      "declarations": {
+        "correct": 1,
+        "false: not reached yet": 1
+      },
+      "lag_seconds": 12.05
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot_u30",
+      "task": "CloseFridge",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.237,
+      "paired_regret": 0.356,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 49.22,
+      "calls": 3.5,
+      "restarts": 0,
+      "prompt_changes": 1.5,
+      "declarations": {
+        "false: reached, then lost": 1,
+        "timeout, never reached": 1
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot_u30",
+      "task": "MakeIceLemonade",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 224.0,
+      "calls": 12.5,
+      "restarts": 0,
+      "prompt_changes": 7,
+      "declarations": {
+        "timeout, never reached": 2
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot_u30",
+      "task": "OpenCabinet",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.181,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 56.1,
+      "calls": 5,
+      "restarts": 0,
+      "prompt_changes": 0.5,
+      "declarations": {
+        "false: not reached yet": 2
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot_u30",
+      "task": "PanTransfer",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 88.56,
+      "calls": 5.5,
+      "restarts": 0,
+      "prompt_changes": 2.5,
+      "declarations": {
+        "correct": 1,
+        "false: not reached yet": 1
+      },
+      "lag_seconds": 5.3
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot_u30",
+      "task": "PickPlaceCounterToStove",
+      "n": 2,
+      "success": 0.5,
+      "value": 0.0,
+      "regret": 0.222,
+      "paired_regret": 0.333,
+      "paired_regret_heldout": 0.167,
+      "paired_n": 2,
+      "charged_seconds": 51.18,
+      "calls": 4,
+      "restarts": 0,
+      "prompt_changes": 1,
+      "declarations": {
+        "correct": 1,
+        "timeout, never reached": 1
+      },
+      "lag_seconds": 1.35
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "groot_u30",
+      "task": "WaffleReheat",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 302.64,
+      "calls": 17,
+      "restarts": 0,
+      "prompt_changes": 14,
+      "declarations": {
+        "false: not reached yet": 1,
+        "timeout, never reached": 1
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "pi05",
+      "task": "ArrangeTea",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 165.78,
+      "calls": 9,
+      "restarts": 0,
+      "prompt_changes": 3.5,
+      "declarations": {
+        "timeout, never reached": 2
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "pi05",
+      "task": "CloseFridge",
+      "n": 2,
+      "success": 0.5,
+      "value": 0.0,
+      "regret": 0.296,
+      "paired_regret": 0.222,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 65.18,
+      "calls": 4,
+      "restarts": 0,
+      "prompt_changes": 2.5,
+      "declarations": {
+        "correct": 1,
+        "timeout, never reached": 1
+      },
+      "lag_seconds": 6.7
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "pi05",
+      "task": "MakeIceLemonade",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 212.16,
+      "calls": 10.5,
+      "restarts": 0,
+      "prompt_changes": 6,
+      "declarations": {
+        "timeout, never reached": 2
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "pi05",
+      "task": "OpenCabinet",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.257,
+      "paired_regret": 0.257,
+      "paired_regret_heldout": 0.129,
+      "paired_n": 2,
+      "charged_seconds": 77.1,
+      "calls": 5,
+      "restarts": 0,
+      "prompt_changes": 2.5,
+      "declarations": {
+        "timeout, never reached": 1,
+        "false: not reached yet": 1
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "pi05",
+      "task": "PanTransfer",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 75.64,
+      "calls": 4.5,
+      "restarts": 0,
+      "prompt_changes": 1,
+      "declarations": {
+        "false: not reached yet": 2
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "pi05",
+      "task": "PickPlaceCounterToStove",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.289,
+      "paired_regret": 0.433,
+      "paired_regret_heldout": 0.217,
+      "paired_n": 2,
+      "charged_seconds": 47.76,
+      "calls": 3,
+      "restarts": 0,
+      "prompt_changes": 0.5,
+      "declarations": {
+        "timeout, never reached": 2
+      },
+      "lag_seconds": null
+    },
+    {
+      "agent": "moonshotai/Kimi-K3",
+      "backend": "pi05",
+      "task": "WaffleReheat",
+      "n": 2,
+      "success": 0.0,
+      "value": 0.0,
+      "regret": 0.0,
+      "paired_regret": 0.0,
+      "paired_regret_heldout": 0.0,
+      "paired_n": 2,
+      "charged_seconds": 288.34,
+      "calls": 14.5,
+      "restarts": 0,
+      "prompt_changes": 11.5,
+      "declarations": {
+        "timeout, never reached": 2
+      },
+      "lag_seconds": null
+    }
+  ],
+  "primary": {
+    "per_model": {
+      "moonshotai/Kimi-K3": {
+        "mean": 0.07,
+        "ci95": [
+          0.014,
+          0.134
+        ],
+        "episodes": 42,
+        "clusters": 14
+      }
+    },
+    "differences": {}
+  },
+  "sessions": [
+    {
+      "path": "runs/time_score/addon-final/kimi-k3/scene1000/sessions/kimi-k3-scene1000/session.jsonl",
+      "model": "moonshotai/Kimi-K3",
+      "policies": {
+        "R": {
+          "backend": "pi05",
+          "n": 7,
+          "value": 0.0,
+          "regret": 0.12033257747543462,
+          "pooled_rule_value": 0.10521541950113379,
+          "learning": -0.11225749559082891,
+          "calls": 6.857142857142857,
+          "restarts": 0.0,
+          "rewrites": 4.142857142857143,
+          "median_interval": 300,
+          "declarations": {
+            "correct": 1,
+            "timeout, never reached": 5,
+            "false: not reached yet": 1
+          }
+        },
+        "K": {
+          "backend": "groot_u30",
+          "n": 7,
+          "value": 0.019022222222222225,
+          "regret": 0.0832302343159486,
+          "pooled_rule_value": 0.07632653061224491,
+          "learning": -0.09817425044091713,
+          "calls": 7.571428571428571,
+          "restarts": 0.0,
+          "rewrites": 3.5714285714285716,
+          "median_interval": 300,
+          "declarations": {
+            "false: reached, then lost": 1,
+            "false: not reached yet": 2,
+            "correct": 3,
+            "timeout, never reached": 1
+          }
+        },
+        "T": {
+          "backend": "groot",
+          "n": 7,
+          "value": 0.0,
+          "regret": 0.20642479213907786,
+          "pooled_rule_value": 0.15850340136054422,
+          "learning": -0.11221340388007056,
+          "calls": 10.285714285714286,
+          "restarts": 0.0,
+          "rewrites": 5.285714285714286,
+          "median_interval": 240,
+          "declarations": {
+            "correct": 2,
+            "false: not reached yet": 3,
+            "timeout, never reached": 2
+          }
+        }
+      },
+      "infrastructure_errors": 0
+    },
+    {
+      "path": "runs/time_score/addon-final/kimi-k3/scene1001/sessions/kimi-k3-scene1001/session.jsonl",
+      "model": "moonshotai/Kimi-K3",
+      "policies": {
+        "R": {
+          "backend": "groot_u30",
+          "n": 7,
+          "value": 0.0,
+          "regret": 0.10225245653817083,
+          "pooled_rule_value": 0.07632653061224491,
+          "learning": -0.003403880070546733,
+          "calls": 7.714285714285714,
+          "restarts": 0.0,
+          "rewrites": 4.714285714285714,
+          "median_interval": 250,
+          "declarations": {
+            "false: not reached yet": 3,
+            "timeout, never reached": 4
+          }
+        },
+        "K": {
+          "backend": "pi05",
+          "n": 7,
+          "value": 0.0,
+          "regret": 0.12033257747543462,
+          "pooled_rule_value": 0.10521541950113379,
+          "learning": 0.037742504409171096,
+          "calls": 7.571428571428571,
+          "restarts": 0.0,
+          "rewrites": 3.7142857142857144,
+          "median_interval": 300,
+          "declarations": {
+            "timeout, never reached": 5,
+            "false: not reached yet": 2
+          }
+        },
+        "T": {
+          "backend": "groot",
+          "n": 7,
+          "value": 0.0,
+          "regret": 0.20642479213907786,
+          "pooled_rule_value": 0.15850340136054422,
+          "learning": 0.24889770723104057,
+          "calls": 10.428571428571429,
+          "restarts": 0.14285714285714285,
+          "rewrites": 4.857142857142857,
+          "median_interval": 300,
+          "declarations": {
+            "timeout, never reached": 3,
+            "false: not reached yet": 3,
+            "correct": 1
+          }
+        }
+      },
+      "infrastructure_errors": 0
+    }
+  ],
+  "session_totals": [
+    {
+      "model": "moonshotai/Kimi-K3",
+      "backend": "groot",
+      "episodes": 14,
+      "value": 0.0,
+      "regret": 0.206,
+      "pooled_rule_value": 0.159,
+      "learning": 0.068
+    },
+    {
+      "model": "moonshotai/Kimi-K3",
+      "backend": "groot_u30",
+      "episodes": 14,
+      "value": 0.01,
+      "regret": 0.093,
+      "pooled_rule_value": 0.076,
+      "learning": -0.051
+    },
+    {
+      "model": "moonshotai/Kimi-K3",
+      "backend": "pi05",
+      "episodes": 14,
+      "value": 0.0,
+      "regret": 0.12,
+      "pooled_rule_value": 0.105,
+      "learning": -0.037
+    }
+  ],
+  "sensitivity": {
+    "4.74": {
+      "value": 0.019,
+      "regret": 0.124,
+      "paired_regret": 0.136,
+      "paired_regret_heldout": 0.054
+    }
+  }
+}

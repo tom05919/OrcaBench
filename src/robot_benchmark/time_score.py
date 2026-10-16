@@ -121,6 +121,21 @@ def success_at(episode, step):
     return bool(by_step) and by_step[-1]
 
 
+def declared_success(episode, step, spec):
+    """Success of a scripted "declare at `step`" (no LLM calls), with the task's story limit applied as in
+    `score_episode`: the declaration fails once more than `limit_seconds` have passed since the story's trigger."""
+    if not success_at(episode, step):
+        return False
+    story = spec.get("story")
+    if not story or story.get("limit_seconds") is None:
+        return True
+    start = story["clock_starts"]
+    if start != "step0" and start not in episode["logged"]:
+        return True  # older runs predate the trigger predicate, as in `score_episode`
+    trigger = 0 if start == "step0" else episode["first_true"].get(start)
+    return trigger is None or trigger > step or (step - trigger) / STEPS_PER_SECOND <= story["limit_seconds"]
+
+
 def rule_source(episode):
     """The fixed-rule family a scripted run belongs to, or None. The privileged reference and always-defer both run the
     plain policy without interruption, so they pool as "no_restart"; each reissue period is its own family."""
@@ -134,10 +149,11 @@ def rule_source(episode):
 def fixed_rule_values(episodes, config, task, horizon, grid_steps=20):
     """Mean value of "declare at step T" over the given runs, for T on a grid up to the horizon. Scripted rules make
     no LLM calls, so their charged time is T / 20."""
-    deadline = config["tasks"][task]["deadline_seconds"]
+    spec = config["tasks"][task]
     table = {}
     for step in range(grid_steps, horizon + 1, grid_steps):
-        values = [value(success_at(e, step), step / STEPS_PER_SECOND, deadline) for e in episodes]
+        values = [value(declared_success(e, step, spec), step / STEPS_PER_SECOND, spec["deadline_seconds"])
+                  for e in episodes]
         table[step] = sum(values) / len(values)
     return table
 
@@ -154,8 +170,9 @@ def rule_value(runs, config, task, step):
     """Mean value of declaring at `step` (None: never succeeds) over `runs`."""
     if step is None:
         return 0.0
-    deadline = config["tasks"][task]["deadline_seconds"]
-    return sum(value(success_at(e, step), step / STEPS_PER_SECOND, deadline) for e in runs) / len(runs)
+    spec = config["tasks"][task]
+    return sum(value(declared_success(e, step, spec), step / STEPS_PER_SECOND, spec["deadline_seconds"])
+               for e in runs) / len(runs)
 
 
 def loo_value(runs, config, task, horizon):
@@ -169,11 +186,12 @@ def loo_value(runs, config, task, horizon):
 
 def oracle_value(episodes, config, task):
     """Mean value of declaring at each run's first success: a privileged upper bound, not a rule."""
-    deadline = config["tasks"][task]["deadline_seconds"]
+    spec = config["tasks"][task]
     values = []
     for e in episodes:
         first = next((i for i, ok in enumerate(e["success_by_step"]) if ok), None)
-        values.append(0.0 if first is None else value(True, first / STEPS_PER_SECOND, deadline))
+        values.append(0.0 if first is None else
+                      value(declared_success(e, first, spec), first / STEPS_PER_SECOND, spec["deadline_seconds"]))
     return sum(values) / len(values)
 
 

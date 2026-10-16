@@ -1,0 +1,43 @@
+session,index,scene,task,policy_label,backend,status,success,steps,calls,charged_seconds,value_own_charge_5.92s,value_at_opus_charge_4.74s,declaration,rewrites,restarts
+kimi-k3-scene1000,0,1000,CloseFridge,R,pi05,success,True,760,5,67.6,0.0,0.0,correct,3,0
+kimi-k3-scene1000,1,1000,CloseFridge,K,groot_u30,false_completion,False,240,2,23.84,0.0,0.0,"false: reached, then lost",0,0
+kimi-k3-scene1000,2,1000,CloseFridge,T,groot,success,True,770,5,68.1,0.0,0.0,correct,2,0
+kimi-k3-scene1000,3,1000,WaffleReheat,R,pi05,step_budget_exhausted,False,4050,14,285.38,0.0,0.0,"timeout, never reached",11,0
+kimi-k3-scene1000,4,1000,WaffleReheat,K,groot_u30,false_completion,False,4030,19,313.98,0.0,0.0,false: not reached yet,16,0
+kimi-k3-scene1000,5,1000,WaffleReheat,T,groot,false_completion,False,2990,18,256.06,0.0,0.0,false: not reached yet,7,0
+kimi-k3-scene1000,6,1000,OpenCabinet,K,groot_u30,false_completion,False,510,6,61.02,0.0,0.0,false: not reached yet,0,0
+kimi-k3-scene1000,7,1000,OpenCabinet,R,pi05,step_budget_exhausted,False,1050,4,76.18,0.0,0.0,"timeout, never reached",3,0
+kimi-k3-scene1000,8,1000,OpenCabinet,T,groot,step_budget_exhausted,False,1050,6,88.02,0.0,0.0,"timeout, never reached",2,0
+kimi-k3-scene1000,9,1000,PanTransfer,T,groot,false_completion,False,1798,18,196.46,0.0,0.0,false: not reached yet,11,0
+kimi-k3-scene1000,10,1000,PanTransfer,R,pi05,false_completion,False,360,2,29.84,0.0,0.0,false: not reached yet,0,0
+kimi-k3-scene1000,11,1000,PanTransfer,K,groot_u30,success,False,450,3,40.26,0.0,0.592,correct,1,0
+kimi-k3-scene1000,12,1000,PickPlaceCounterToStove,R,pi05,step_budget_exhausted,False,600,2,41.84,0.0,0.0,"timeout, never reached",1,0
+kimi-k3-scene1000,13,1000,PickPlaceCounterToStove,K,groot_u30,success,True,500,3,42.76,0.0,0.0,correct,0,0
+kimi-k3-scene1000,14,1000,PickPlaceCounterToStove,T,groot,success,True,400,4,43.68,0.0,0.0,correct,0,0
+kimi-k3-scene1000,15,1000,MakeIceLemonade,K,groot_u30,step_budget_exhausted,False,3000,14,232.88,0.0,0.0,"timeout, never reached",7,0
+kimi-k3-scene1000,16,1000,MakeIceLemonade,R,pi05,step_budget_exhausted,False,3000,11,215.12,0.0,0.0,"timeout, never reached",7,0
+kimi-k3-scene1000,17,1000,MakeIceLemonade,T,groot,step_budget_exhausted,False,3000,12,221.04,0.0,0.0,"timeout, never reached",8,0
+kimi-k3-scene1000,18,1000,ArrangeTea,R,pi05,step_budget_exhausted,False,2250,10,171.7,0.0,0.0,"timeout, never reached",4,0
+kimi-k3-scene1000,19,1000,ArrangeTea,T,groot,false_completion,False,2248,9,165.68,0.0,0.0,false: not reached yet,7,0
+kimi-k3-scene1000,20,1000,ArrangeTea,K,groot_u30,success,True,1240,6,97.52,0.1332,0.1961,correct,1,0
+kimi-k3-scene1001,0,1001,ArrangeTea,R,groot_u30,false_completion,False,1150,6,93.02,0.0,0.0,false: not reached yet,4,0
+kimi-k3-scene1001,1,1001,ArrangeTea,K,pi05,step_budget_exhausted,False,2250,8,159.86,0.0,0.0,"timeout, never reached",3,0
+kimi-k3-scene1001,2,1001,ArrangeTea,T,groot,step_budget_exhausted,False,2250,15,201.3,0.0,0.0,"timeout, never reached",7,1
+kimi-k3-scene1001,3,1001,WaffleReheat,R,groot_u30,step_budget_exhausted,False,4050,15,291.3,0.0,0.0,"timeout, never reached",12,0
+kimi-k3-scene1001,4,1001,WaffleReheat,K,pi05,step_budget_exhausted,False,4050,15,291.3,0.0,0.0,"timeout, never reached",12,0
+kimi-k3-scene1001,5,1001,WaffleReheat,T,groot,step_budget_exhausted,False,4050,19,314.98,0.0,0.0,"timeout, never reached",15,0
+kimi-k3-scene1001,6,1001,CloseFridge,T,groot,false_completion,False,860,4,66.68,0.0,0.0,false: not reached yet,1,0
+kimi-k3-scene1001,7,1001,CloseFridge,K,pi05,step_budget_exhausted,False,900,3,62.76,0.0,0.0,"timeout, never reached",2,0
+kimi-k3-scene1001,8,1001,CloseFridge,R,groot_u30,step_budget_exhausted,False,900,5,74.6,0.0,0.0,"timeout, never reached",3,0
+kimi-k3-scene1001,9,1001,OpenCabinet,R,groot_u30,false_completion,False,550,4,51.18,0.0,0.0,false: not reached yet,1,0
+kimi-k3-scene1001,10,1001,OpenCabinet,T,groot,false_completion,False,1030,11,116.62,0.0,0.0,false: not reached yet,5,0
+kimi-k3-scene1001,11,1001,OpenCabinet,K,pi05,false_completion,False,850,6,78.02,0.0,0.0,false: not reached yet,2,0
+kimi-k3-scene1001,12,1001,PanTransfer,K,pi05,false_completion,False,1600,7,121.44,0.0,0.0,false: not reached yet,2,0
+kimi-k3-scene1001,13,1001,PanTransfer,T,groot,false_completion,False,400,4,43.68,0.0,0.0,false: not reached yet,0,0
+kimi-k3-scene1001,14,1001,PanTransfer,R,groot_u30,false_completion,False,1790,8,136.86,0.0,0.0,false: not reached yet,4,0
+kimi-k3-scene1001,15,1001,PickPlaceCounterToStove,T,groot,success,True,400,3,37.76,0.0,0.0,correct,0,0
+kimi-k3-scene1001,16,1001,PickPlaceCounterToStove,K,pi05,step_budget_exhausted,False,600,4,53.68,0.0,0.0,"timeout, never reached",0,0
+kimi-k3-scene1001,17,1001,PickPlaceCounterToStove,R,groot_u30,step_budget_exhausted,False,600,5,59.6,0.0,0.0,"timeout, never reached",2,0
+kimi-k3-scene1001,18,1001,MakeIceLemonade,K,pi05,step_budget_exhausted,False,3000,10,209.2,0.0,0.0,"timeout, never reached",5,0
+kimi-k3-scene1001,19,1001,MakeIceLemonade,T,groot,step_budget_exhausted,False,3000,17,250.64,0.0,0.0,"timeout, never reached",6,0
+kimi-k3-scene1001,20,1001,MakeIceLemonade,R,groot_u30,step_budget_exhausted,False,3000,11,215.12,0.0,0.0,"timeout, never reached",7,0

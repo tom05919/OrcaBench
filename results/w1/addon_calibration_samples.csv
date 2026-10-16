@@ -1,0 +1,55 @@
+run,observation,model,ok,parse,seconds,error
+episode-0000,0000#0,moonshotai/Kimi-K3,True,strict,137.12,
+episode-0000,0000#1,moonshotai/Kimi-K3,True,strict,22.02,
+episode-0000,0000#2,moonshotai/Kimi-K3,True,strict,11.9,
+episode-0000,0000#3,moonshotai/Kimi-K3,True,strict,11.98,
+episode-0000,0000#4,moonshotai/Kimi-K3,True,strict,3.9,
+episode-0000,0000#0,zai-org/GLM-5.3-Flash,True,strict,15.68,
+episode-0000,0000#1,zai-org/GLM-5.3-Flash,True,strict,9.96,
+episode-0000,0000#2,zai-org/GLM-5.3-Flash,True,strict,8.07,
+episode-0000,0000#3,zai-org/GLM-5.3-Flash,False,,4.18,"HTTPStatusError: HTTP 400: {""error"":{""message"":""This model currently accepts at most 4 images per request, including images in earlier conversation turns."",""typ"
+episode-0000,0000#4,zai-org/GLM-5.3-Flash,True,strict,17.91,
+episode-0001,0001#0,moonshotai/Kimi-K3,True,strict,3.76,
+episode-0001,0001#1,moonshotai/Kimi-K3,True,strict,25.93,
+episode-0001,0001#0,zai-org/GLM-5.3-Flash,True,strict,15.61,
+episode-0001,0001#1,zai-org/GLM-5.3-Flash,False,,3.89,"HTTPStatusError: HTTP 400: {""error"":{""message"":""This model currently accepts at most 4 images per request, including images in earlier conversation turns."",""typ"
+episode-0002,0002#0,moonshotai/Kimi-K3,True,strict,3.69,
+episode-0002,0002#1,moonshotai/Kimi-K3,True,strict,3.89,
+episode-0002,0002#2,moonshotai/Kimi-K3,True,strict,5.99,
+episode-0002,0002#0,zai-org/GLM-5.3-Flash,True,strict,5.66,
+episode-0002,0002#1,zai-org/GLM-5.3-Flash,False,,3.97,"HTTPStatusError: HTTP 400: {""error"":{""message"":""This model currently accepts at most 4 images per request, including images in earlier conversation turns."",""typ"
+episode-0002,0002#2,zai-org/GLM-5.3-Flash,True,strict,10.05,
+episode-0003,0003#0,moonshotai/Kimi-K3,True,strict,5.7,
+episode-0003,0003#1,moonshotai/Kimi-K3,True,strict,5.9,
+episode-0003,0003#2,moonshotai/Kimi-K3,True,strict,5.87,
+episode-0003,0003#0,zai-org/GLM-5.3-Flash,True,strict,31.71,
+episode-0003,0003#1,zai-org/GLM-5.3-Flash,True,strict,5.9,
+episode-0003,0003#2,zai-org/GLM-5.3-Flash,True,strict,17.9,
+episode-0004,0004#0,moonshotai/Kimi-K3,True,strict,3.69,
+episode-0004,0004#1,moonshotai/Kimi-K3,True,strict,3.91,
+episode-0004,0004#2,moonshotai/Kimi-K3,True,strict,5.98,
+episode-0004,0004#3,moonshotai/Kimi-K3,True,strict,5.92,
+episode-0004,0004#0,zai-org/GLM-5.3-Flash,True,strict,17.69,
+episode-0004,0004#1,zai-org/GLM-5.3-Flash,True,strict,36.0,
+episode-0004,0004#2,zai-org/GLM-5.3-Flash,True,strict,15.99,
+episode-0004,0004#3,zai-org/GLM-5.3-Flash,True,strict,17.95,
+episode-0005,0005#0,moonshotai/Kimi-K3,True,strict,15.72,
+episode-0005,0005#1,moonshotai/Kimi-K3,True,strict,5.9,
+episode-0005,0005#2,moonshotai/Kimi-K3,True,strict,8.0,
+episode-0005,0005#3,moonshotai/Kimi-K3,True,strict,5.96,
+episode-0005,0005#0,zai-org/GLM-5.3-Flash,True,strict,23.72,
+episode-0005,0005#1,zai-org/GLM-5.3-Flash,True,strict,27.99,
+episode-0005,0005#2,zai-org/GLM-5.3-Flash,True,strict,9.95,
+episode-0005,0005#3,zai-org/GLM-5.3-Flash,True,strict,32.03,
+episode-0006,0006#0,moonshotai/Kimi-K3,True,strict,3.79,
+episode-0006,0006#1,moonshotai/Kimi-K3,True,strict,6.04,
+episode-0006,0006#2,moonshotai/Kimi-K3,True,strict,5.92,
+episode-0006,0006#0,zai-org/GLM-5.3-Flash,False,,3.67,"HTTPStatusError: HTTP 400: {""error"":{""message"":""The request was rejected. Possible causes: input exceeds the model's maximum context length, or the request cont"
+episode-0006,0006#1,zai-org/GLM-5.3-Flash,False,,3.91,"HTTPStatusError: HTTP 400: {""error"":{""message"":""The request was rejected. Possible causes: input exceeds the model's maximum context length, or the request cont"
+episode-0006,0006#2,zai-org/GLM-5.3-Flash,False,,3.91,"HTTPStatusError: HTTP 400: {""error"":{""message"":""This model currently accepts at most 4 images per request, including images in earlier conversation turns."",""typ"
+episode-0007,0007#0,moonshotai/Kimi-K3,True,strict,3.69,
+episode-0007,0007#1,moonshotai/Kimi-K3,True,strict,3.98,
+episode-0007,0007#2,moonshotai/Kimi-K3,True,strict,6.01,
+episode-0007,0007#0,zai-org/GLM-5.3-Flash,False,,3.66,"HTTPStatusError: HTTP 400: {""error"":{""message"":""The request was rejected. Possible causes: input exceeds the model's maximum context length, or the request cont"
+episode-0007,0007#1,zai-org/GLM-5.3-Flash,False,,3.97,"HTTPStatusError: HTTP 400: {""error"":{""message"":""The request was rejected. Possible causes: input exceeds the model's maximum context length, or the request cont"
+episode-0007,0007#2,zai-org/GLM-5.3-Flash,False,,3.98,"HTTPStatusError: HTTP 400: {""error"":{""message"":""The request was rejected. Possible causes: input exceeds the model's maximum context length, or the request cont"
