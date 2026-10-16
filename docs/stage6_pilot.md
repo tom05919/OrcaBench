@@ -114,7 +114,7 @@ gh release download release-2026-10-15 --repo tom05919/OrcaBench --dir runs/fina
 ```
 
 Restricted draft:
-https://github.com/tom05919/OrcaBench/releases/tag/untagged-31208f4260f3d733675d
+https://github.com/tom05919/OrcaBench/releases/tag/untagged-4cce0a405e007a44a2eb
 
 Presentation source/review bundle:
 `runs/presentation-redesign-20261016/w3-presentation-redesign-20261016.tar.gz`
