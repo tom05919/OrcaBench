@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from test_time_score import COMPLETE, SCRIPTED, episode
+from test_time_score import COMPLETE, SCRIPTED, episode, run
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 
@@ -174,10 +174,12 @@ class PrimaryResultTests(unittest.TestCase):
         for scene, first in ((1000, 200), (1001, 300), (1002, 400)):
             episode(pod, f"twin{scene}", kind="baseline_always_defer", agent=SCRIPTED, steps=999,
                     truth=[False] * first + [True] * (1000 - first), scene_seed=scene)
-        episode(pod, "llm1000", steps=300, model_calls=2, decisions=[COMPLETE(300)], scene_seed=1000)
+        episode(pod, "llm1000", steps=300, model_calls=2, decisions=[run(0, 300, "go"), COMPLETE(300)],
+                scene_seed=1000)
         episode(pod, "llm1001", steps=100, success=False, false_completion=True, model_calls=2, prompt_changes=1,
-                decisions=[COMPLETE(100)], scene_seed=1001)
-        episode(pod, "llm1002", steps=500, model_calls=3, decisions=[COMPLETE(500)], scene_seed=1002)
+                decisions=[run(0, 100, "go"), COMPLETE(100)], scene_seed=1001)
+        episode(pod, "llm1002", steps=500, model_calls=3,
+                decisions=[run(0, 300, "go"), run(300, 200), COMPLETE(500)], scene_seed=1002)
         selection = {"seen_tasks": ["Plain"], "unseen_tasks": ["Warm"]}
         cell = breakdown(load("score_time").load([pod]), CONFIG, selection, {"Plain": 1000})[
             ("claude-opus-5-5", "leave-alone")]
@@ -186,6 +188,10 @@ class PrimaryResultTests(unittest.TestCase):
         self.assertEqual((cell["no_rewrite"], cell["rewrote"]), ([2, 2], [0, 1]))
         self.assertAlmostEqual(cell["timer_value"], 0.4)  # held-out twin values 0.6, 0.6 and 0
         self.assertEqual(cell["declarations"], {"correct": 2, "false: not reached yet": 1})
+        # The false "done" at step 100 of scene 1001 came 200 steps before its twin's first success at 300.
+        self.assertEqual((cell["early_declarations"], cell["early_median_seconds"]), (1, 10.0))
+        self.assertEqual(cell["twin_done_before_false_declaration"], 0)
+        self.assertEqual(cell["first_interval"], {300: 2, 100: 1})
 
 
 if __name__ == "__main__":

@@ -22,7 +22,20 @@
       2,
       12
     ],
-    "timer_value": 0.171
+    "twin_done_before_false_declaration": 3,
+    "first_interval": {
+      "120": 1,
+      "240": 2,
+      "320": 2,
+      "300": 3,
+      "400": 4,
+      "350": 2,
+      "250": 3,
+      "200": 1
+    },
+    "timer_value": 0.171,
+    "early_declarations": 0,
+    "early_median_seconds": null
   },
   {
     "model": "moonshotai/Kimi-K3",
@@ -46,6 +59,19 @@
       2,
       22
     ],
-    "timer_value": 0.0
+    "twin_done_before_false_declaration": 0,
+    "first_interval": {
+      "300": 4,
+      "150": 1,
+      "200": 2,
+      "340": 1,
+      "360": 1,
+      "400": 10,
+      "350": 4,
+      "320": 1
+    },
+    "timer_value": 0.0,
+    "early_declarations": 1,
+    "early_median_seconds": 28.65
   }
 ]
