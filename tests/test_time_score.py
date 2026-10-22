@@ -216,6 +216,20 @@ class PooledAndSessionTests(unittest.TestCase):
         self.assertAlmostEqual(k["learning"], (0.95 - 0.84) - (0.95 - 0.75))  # negative: it improved
         self.assertAlmostEqual(k["pooled_rule_value"], 0.80)
 
+    def test_an_episode_the_session_never_finished_is_counted_not_scored(self):
+        session = self.root / "sessions" / "s2"
+        episode(session / "episodes", "ep0", backend="fast", steps=120, model_calls=2, decisions=[COMPLETE(120)])
+        (session / "episodes" / "ep1").mkdir()  # the pod stopped before this episode wrote result.json
+        (session / "session.jsonl").write_text("".join(
+            json.dumps({"session_id": "s2", "index": i, "policy_label": "K", "backend": "fast", "task": "Plain",
+                        "scene_seed": 1000, "policy_seed": 0, "episode_dir": f"episodes/ep{i}"}) + "\n"
+            for i in range(2)))
+        entries = read_session(session / "session.jsonl")
+        self.assertIsNone(entries[1]["episode"])
+        rules = best_fixed_rules(self.runs, CONFIG, {"Plain": 1000})
+        summary = session_summary(entries, CONFIG, rules, pooled_rules(self.runs, CONFIG, {"Plain": 1000})[1])
+        self.assertEqual((summary["unfinished"], summary["policies"]["K"]["n"]), (1, 1))
+
 
 if __name__ == "__main__":
     unittest.main()

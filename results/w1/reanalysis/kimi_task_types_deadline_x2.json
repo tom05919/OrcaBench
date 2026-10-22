@@ -1,0 +1,51 @@
+[
+  {
+    "model": "moonshotai/Kimi-K3",
+    "task_type": "leave-alone",
+    "episodes": 18,
+    "successes": 5,
+    "successes_with_value": 5,
+    "value": 0.079,
+    "twins": 18,
+    "twin_successes": 14,
+    "declarations": {
+      "correct": 5,
+      "false: reached, then lost": 1,
+      "false: not reached yet": 5,
+      "timeout, never reached": 7
+    },
+    "no_rewrite": [
+      3,
+      6
+    ],
+    "rewrote": [
+      2,
+      12
+    ],
+    "timer_value": 0.342
+  },
+  {
+    "model": "moonshotai/Kimi-K3",
+    "task_type": "unseen",
+    "episodes": 24,
+    "successes": 1,
+    "successes_with_value": 1,
+    "value": 0.024,
+    "twins": 24,
+    "twin_successes": 1,
+    "declarations": {
+      "timeout, never reached": 13,
+      "false: not reached yet": 9,
+      "correct": 2
+    },
+    "no_rewrite": [
+      0,
+      2
+    ],
+    "rewrote": [
+      1,
+      22
+    ],
+    "timer_value": 0.0
+  }
+]

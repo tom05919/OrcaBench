@@ -12,7 +12,9 @@ policies and harness. Preserve that distinction in code, experiments, and claims
 - A diagnostic hand-authored supervisor can read simulator predicates, but its
   results must never be mixed with model benchmark scores.
 - Never expose reward, task success, object coordinates, subtask annotations,
-  evaluator artifacts, or corrective advice to a model adapter.
+  evaluator artifacts, or corrective advice to a model adapter. One logged
+  exception: session mode shows each finished episode's outcome in later
+  episodes' context (`docs/decisions.md`, 2026-10-13).
 - Unknown skill performance is null / untested, never zero or an invented estimate.
 - Source inspection and mock tests do not qualify an actual robot policy.
 - Preserve every attempted episode, including failures and infrastructure errors.

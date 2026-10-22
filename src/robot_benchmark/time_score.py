@@ -252,7 +252,8 @@ def best_rule_value(rules, backend, task):
 
 def read_session(path):
     """A W3 session: the entries of `session.jsonl` in order, each with its episode loaded. `episode_dir` may be
-    absolute, relative to the session folder, or relative to the run root (`<root>/sessions/<id>/session.jsonl`)."""
+    absolute, relative to the session folder, or relative to the run root (`<root>/sessions/<id>/session.jsonl`).
+    An episode that never wrote `result.json` (the session was cut off during it) has `episode` None."""
     path = Path(path)
     entries = []
     for entry in _jsonl(path):
@@ -260,7 +261,7 @@ def read_session(path):
         if not folder.is_absolute():
             candidates = [path.parent / folder, path.parent.parent.parent / folder]
             folder = next((c for c in candidates if (c / "result.json").exists()), candidates[0])
-        entries.append({**entry, "episode": read_episode(folder)})
+        entries.append({**entry, "episode": read_episode(folder) if (folder / "result.json").exists() else None})
     return entries
 
 
@@ -268,9 +269,12 @@ def session_summary(entries, config, rules, pooled_values):
     """Per anonymous policy label in one session: value, regret against the best fixed rule for that policy, the
     pooled rule's value on the same cells, behaviour, and learning (second-half minus first-half regret; negative
     means the supervisor improved on that policy as the session went on)."""
-    by_label, skipped = {}, 0
+    by_label, skipped, unfinished = {}, 0, 0
     for order, entry in enumerate(entries):
         e = entry["episode"]
+        if e is None:
+            unfinished += 1
+            continue
         if e["infrastructure_error"]:
             skipped += 1
             continue
@@ -299,7 +303,7 @@ def session_summary(entries, config, rules, pooled_values):
             "rewrites": mean([r["rewrites"] for r in rows]),
             "median_interval": _median([r["interval"] for r in rows if r["interval"]]),
             "declarations": declarations}
-    return {"policies": summary, "infrastructure_errors": skipped}
+    return {"policies": summary, "infrastructure_errors": skipped, "unfinished": unfinished}
 
 
 def supervisor_measures(episode):

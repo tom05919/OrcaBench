@@ -10,6 +10,9 @@ rule: declare at step T, chosen in hindsight. It then scores every LLM episode:
   for the held-out version, without that scene.
 
   python3 scripts/score_time.py runs/stage3_remote [more roots] [--call-seconds 0 2.5 5 10] [--output out.json]
+
+`--scenes 1000 1001 1002` drops every episode and session entry of other scenes (twins and baselines included), as
+in the final comparison, which excludes scene 1003 for every model (Tom, October 16).
 """
 import argparse
 import json
@@ -29,14 +32,15 @@ def horizons():
     return {p.stem: json.loads(p.read_text())["max_steps"] for p in (ROOT / "configs" / "tasks").glob("*.json")}
 
 
-def load(roots):
+def load(roots, scenes=None):
     episodes = []
     for root in roots:
         for result in sorted(Path(root).rglob("result.json")):
             if (result.parent / "manifest.json").exists():
                 episode = read_episode(result.parent)
                 episode["root"] = str(root)
-                episodes.append(episode)
+                if not scenes or episode["scene_seed"] in scenes:
+                    episodes.append(episode)
     return episodes
 
 
@@ -158,11 +162,13 @@ def main():
     parser.add_argument("--config", type=Path, default=ROOT / "configs" / "time_pressure.json")
     parser.add_argument("--call-seconds", type=float, nargs="*",
                         help="sensitivity: rescore with this charge for every model")
+    parser.add_argument("--scenes", type=int, nargs="+", help="score only these scene seeds")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     config, limits = load_config(args.config), horizons()
-    episodes = load(args.roots)
-    report = {"roots": [str(r) for r in args.roots], "call_seconds": config["call_seconds"], "episodes": len(episodes)}
+    episodes = load(args.roots, args.scenes)
+    report = {"roots": [str(r) for r in args.roots], "scenes": args.scenes, "call_seconds": config["call_seconds"],
+              "episodes": len(episodes)}
     rules, cells = score(episodes, config, limits)
     report.update(summarize(rules, cells))
     report["primary"] = primary(cells)
@@ -190,8 +196,10 @@ def main():
         report["sessions"], totals = [], {}
         print("\nSessions (per anonymous policy label; learning < 0 means regret fell in the second half):")
         for path in sessions:
-            entries = read_session(path)
-            model = next((e["episode"]["agent"] for e in entries if e["episode"]["llm"]), None)
+            entries = [e for e in read_session(path) if not args.scenes or e["scene_seed"] in args.scenes]
+            if not entries:
+                continue
+            model = next((e["episode"]["agent"] for e in entries if e["episode"] and e["episode"]["llm"]), None)
             summary = session_summary(entries, config, rules, pooled)
             report["sessions"].append({"path": str(path), "model": model, **summary})
             for label, p in summary["policies"].items():
@@ -199,6 +207,8 @@ def main():
                       f"regret {p['regret']} pooled-rule value {p['pooled_rule_value']} learning {p['learning']} "
                       f"calls {p['calls']} interval {p['median_interval']} restarts {p['restarts']}")
                 totals.setdefault((model, p["backend"]), []).append(p)
+            if summary["unfinished"]:
+                print(f"  {path.parent.name:14s} {summary['unfinished']} episode(s) never finished (no result.json)")
         report["session_totals"] = []
         print("\nAcross sessions, per model and policy:")
         for (model, backend), rows in sorted(totals.items(), key=lambda item: tuple(map(str, item[0]))):

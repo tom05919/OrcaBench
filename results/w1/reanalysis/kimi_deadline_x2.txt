@@ -1,0 +1,64 @@
+105 episodes; seconds per call {'claude-opus-5-5': 4.74, 'claude-sonnet-5-5': 1.76, 'moonshotai/Kimi-K3': 5.92}
+
+Best fixed rule (declare at step T, in hindsight) per backend and task:
+  groot           ArrangeTea                 no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           CloseFridge                no_restart             n=  3  T=  740  value 0.589  held-out 0.393  oracle 0.650  reached success 1.00
+  groot           MakeIceLemonade            no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           OpenCabinet                no_restart             n=  3  T=  400  value 0.810  held-out 0.54  oracle 0.849  reached success 1.00
+  groot           PanTransfer                no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           PickPlaceCounterToStove    no_restart             n=  3  T=  220  value 0.817  held-out 0.544  oracle 0.838  reached success 1.00
+  groot           WaffleReheat               no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       ArrangeTea                 no_restart             n=  3  T= 1740  value 0.204  held-out 0.0  oracle 0.206  reached success 0.33
+  groot_u30       CloseFridge                no_restart             n=  3  T=  260  value 0.285  held-out 0.0  oracle 0.285  reached success 0.33
+  groot_u30       MakeIceLemonade            no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       OpenCabinet                no_restart             n=  3  T=  480  value 0.257  held-out 0.0  oracle 0.257  reached success 0.33
+  groot_u30       PanTransfer                no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       PickPlaceCounterToStove    no_restart             n=  3  T=  400  value 0.444  held-out 0.222  oracle 0.507  reached success 0.67
+  groot_u30       WaffleReheat               no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            ArrangeTea                 no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            CloseFridge                no_restart             n=  3  T=  840  value 0.533  held-out 0.356  oracle 0.668  reached success 1.00
+  pi05            MakeIceLemonade            no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            OpenCabinet                no_restart             n=  3  T=  780  value 0.629  held-out 0.419  oracle 0.723  reached success 1.00
+  pi05            PanTransfer                no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            PickPlaceCounterToStove    no_restart             n=  3  T=  340  value 0.478  held-out 0.239  oracle 0.491  reached success 0.67
+  pi05            WaffleReheat               no_restart             n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+
+LLM supervisors (regret = best fixed rule's value minus the supervisor's; positive is worse):
+  moonshotai/Kimi-K3 groot    ArrangeTea                 n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 12 rewrites 7 restarts 0.5 {'false: not reached yet': 1, 'timeout, never reached': 1}
+  moonshotai/Kimi-K3 groot    CloseFridge                n= 2 success 0.50 value 0.122 regret 0.467 paired 0.467 held-out 0.467 (n=2) calls 4.5 rewrites 1.5 restarts 0 {'correct': 1, 'false: not reached yet': 1}
+  moonshotai/Kimi-K3 groot    MakeIceLemonade            n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 14.5 rewrites 7 restarts 0 {'timeout, never reached': 2}
+  moonshotai/Kimi-K3 groot    OpenCabinet                n= 2 success 0.00 value 0.000 regret 0.81 paired 0.81 held-out 0.81 (n=2) calls 8.5 rewrites 3.5 restarts 0 {'timeout, never reached': 1, 'false: not reached yet': 1}
+  moonshotai/Kimi-K3 groot    PanTransfer                n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 11 rewrites 5.5 restarts 0 {'false: not reached yet': 2}
+  moonshotai/Kimi-K3 groot    PickPlaceCounterToStove    n= 2 success 1.00 value 0.321 regret 0.495 paired 0.495 held-out 0.087 (n=2) calls 3.5 rewrites 0 restarts 0 {'correct': 2}
+  moonshotai/Kimi-K3 groot    WaffleReheat               n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 18.5 rewrites 11 restarts 0 {'false: not reached yet': 1, 'timeout, never reached': 1}
+  moonshotai/Kimi-K3 groot_u30 ArrangeTea                 n= 2 success 0.50 value 0.283 regret -0.079 paired 0.023 held-out -0.283 (n=2) calls 6 rewrites 2.5 restarts 0 {'correct': 1, 'false: not reached yet': 1}
+  moonshotai/Kimi-K3 groot_u30 CloseFridge                n= 2 success 0.00 value 0.000 regret 0.285 paired 0.428 held-out 0.0 (n=2) calls 3.5 rewrites 1.5 restarts 0 {'false: reached, then lost': 1, 'timeout, never reached': 1}
+  moonshotai/Kimi-K3 groot_u30 MakeIceLemonade            n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 12.5 rewrites 7 restarts 0 {'timeout, never reached': 2}
+  moonshotai/Kimi-K3 groot_u30 OpenCabinet                n= 2 success 0.00 value 0.000 regret 0.257 paired 0.0 held-out 0.0 (n=2) calls 5 rewrites 0.5 restarts 0 {'false: not reached yet': 2}
+  moonshotai/Kimi-K3 groot_u30 PanTransfer                n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 5.5 rewrites 2.5 restarts 0 {'correct': 1, 'false: not reached yet': 1}
+  moonshotai/Kimi-K3 groot_u30 PickPlaceCounterToStove    n= 2 success 0.50 value 0.144 regret 0.301 paired 0.19 held-out 0.19 (n=2) calls 4 rewrites 1 restarts 0 {'correct': 1, 'timeout, never reached': 1}
+  moonshotai/Kimi-K3 groot_u30 WaffleReheat               n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 17 rewrites 14 restarts 0 {'false: not reached yet': 1, 'timeout, never reached': 1}
+  moonshotai/Kimi-K3 pi05     ArrangeTea                 n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 9 rewrites 3.5 restarts 0 {'timeout, never reached': 2}
+  moonshotai/Kimi-K3 pi05     CloseFridge                n= 2 success 0.50 value 0.124 regret 0.409 paired 0.409 held-out 0.142 (n=2) calls 4 rewrites 2.5 restarts 0 {'correct': 1, 'timeout, never reached': 1}
+  moonshotai/Kimi-K3 pi05     MakeIceLemonade            n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 10.5 rewrites 6 restarts 0 {'timeout, never reached': 2}
+  moonshotai/Kimi-K3 pi05     OpenCabinet                n= 2 success 0.00 value 0.000 regret 0.629 paired 0.629 held-out 0.314 (n=2) calls 5 rewrites 2.5 restarts 0 {'timeout, never reached': 1, 'false: not reached yet': 1}
+  moonshotai/Kimi-K3 pi05     PanTransfer                n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 4.5 rewrites 1 restarts 0 {'false: not reached yet': 2}
+  moonshotai/Kimi-K3 pi05     PickPlaceCounterToStove    n= 2 success 0.00 value 0.000 regret 0.478 paired 0.717 held-out 0.358 (n=2) calls 3 rewrites 0.5 restarts 0 {'timeout, never reached': 2}
+  moonshotai/Kimi-K3 pi05     WaffleReheat               n= 2 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=2) calls 14.5 rewrites 11.5 restarts 0 {'timeout, never reached': 2}
+
+Primary (paired held-out regret; positive means the fixed rule did better):
+  moonshotai/Kimi-K3: {'mean': 0.099, 'ci95': [0.013, 0.187], 'episodes': 42, 'clusters': 14}
+
+Sessions (per anonymous policy label; learning < 0 means regret fell in the second half):
+  kimi-k3-scene1000 moonshotai/Kimi-K3 R (pi05) n=7 value 0.036 regret 0.1986848072562358 pooled-rule value 0.22947845804988662 learning -0.18489417989417983 calls 6.857142857142857 interval 300 restarts 0.0
+  kimi-k3-scene1000 moonshotai/Kimi-K3 K (groot_u30) n=7 value 0.122 regret 0.048186545729402876 pooled-rule value 0.14802721088435375 learning -0.23203156966490301 calls 7.571428571428571 interval 300 restarts 0.0
+  kimi-k3-scene1000 moonshotai/Kimi-K3 T (groot) n=7 value 0.074 regret 0.24282086167800454 pooled-rule value 0.26122448979591834 learning -0.24885978835978836 calls 10.285714285714286 interval 240 restarts 0.0
+  kimi-k3-scene1001 moonshotai/Kimi-K3 R (groot_u30) n=7 value 0.000 regret 0.17017384731670449 pooled-rule value 0.14802721088435375 learning 0.012186948853615542 calls 7.714285714285714 interval 250 restarts 0.0
+  kimi-k3-scene1001 moonshotai/Kimi-K3 K (pi05) n=7 value 0.000 regret 0.23424036281179136 pooled-rule value 0.22947845804988662 learning 0.09880952380952382 calls 7.571428571428571 interval 300 restarts 0.0
+  kimi-k3-scene1001 moonshotai/Kimi-K3 T (groot) n=7 value 0.053 regret 0.2634875283446712 pooled-rule value 0.26122448979591834 learning 0.11758465608465613 calls 10.428571428571429 interval 300 restarts 0.14285714285714285
+  kimi-k3-scene1002 2 episode(s) never finished (no result.json)
+
+Across sessions, per model and policy:
+  moonshotai/Kimi-K3 groot: {'model': 'moonshotai/Kimi-K3', 'backend': 'groot', 'episodes': 14, 'value': 0.063, 'regret': 0.253, 'pooled_rule_value': 0.261, 'learning': -0.066}
+  moonshotai/Kimi-K3 groot_u30: {'model': 'moonshotai/Kimi-K3', 'backend': 'groot_u30', 'episodes': 14, 'value': 0.061, 'regret': 0.109, 'pooled_rule_value': 0.148, 'learning': -0.11}
+  moonshotai/Kimi-K3 pi05: {'model': 'moonshotai/Kimi-K3', 'backend': 'pi05', 'episodes': 14, 'value': 0.018, 'regret': 0.216, 'pooled_rule_value': 0.229, 'learning': -0.043}
