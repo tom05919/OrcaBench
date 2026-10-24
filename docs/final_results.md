@@ -24,6 +24,9 @@ and #11), applied to frozen runs of `release-2026-10-15`. Every number is from t
 - **Not yet on the same scenes:** Sonnet's number includes scene 1003; its scenes 1000-1002 number was requested (#8).
   No Opus − Sonnet difference with an interval exists yet (it needs both pods' data in one run). Do not rank the models:
   the intervals overlap.
+- **Update, October 23 (`docs/reanalysis.md`):** both pods scored together on scenes 1000-1002, as the analysis plan
+  specifies: Opus 0.049 [0.004, 0.100], Sonnet 0.066 [0.016, 0.126], Opus − Sonnet -0.016 [-0.058, 0.028]. Both still
+  lose to the fixed rule, and there is no detectable difference between them.
 - **Kimi K3 is an add-on**, run after the freeze on its own pod (A100 PCIe) with its own twins and only 2 complete
   scenes; compare it only through paired regret, and descriptively.
 
