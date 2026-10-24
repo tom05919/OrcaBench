@@ -112,6 +112,23 @@ class ReplayBenchTests(unittest.TestCase):
             self.assertEqual([r["outcome"] for r in records], ["success", "false_done"])
             self.assertIn("Episode 1: policy K", client.calls[0][0]["text"])
             self.assertIn("success: declared done at 20.0 s after 2 looks", client.calls[0][0]["text"])
+            looks = [json.loads(l) for l in (Path(d) / "s.looks.jsonl").read_text().splitlines()]
+            self.assertEqual([(l["index"], l["decision"]) for l in looks], [(0, "wait 400"), (0, "done"), (1, "done")])
+
+    def test_looks_are_saved_when_an_episode_is_interrupted(self):
+        class Stops(Client):
+            def call(self, *a, **k):
+                if not self.replies:
+                    raise SpendCapReached("stop")
+                return super().call(*a, **k)
+        plan = [{"task": "Plain", "scene_seed": 1000, "policy_label": "K", "backend": "groot"}]
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "s.jsonl"
+            with self.assertRaises(SpendCapReached):
+                run_session(Stops(['{"op":"wait","steps":100}']), "m", Frames(), plan,
+                            {("groot", "Plain", 1000): traj()}, CONFIG, 2.0, out)
+            self.assertFalse(out.exists())  # the episode never finished
+            self.assertEqual(json.loads((Path(d) / "s.looks.jsonl").read_text())["decision"], "wait 100")
 
 
 if __name__ == "__main__":

@@ -323,8 +323,9 @@ def task_text(traj, config, cost_per_look):
     return "\n".join(lines)
 
 
-def run_episode(client, model, frames, traj, label, experience, config, cost_per_look, tag=""):
-    """One supervised replay of a recorded run. Returns the episode record (looks, outcome, value)."""
+def run_episode(client, model, frames, traj, label, experience, config, cost_per_look, tag="", on_look=None):
+    """One supervised replay of a recorded run. Returns the episode record (looks, outcome, value). `on_look` is called
+    with every look as soon as the reply arrives, so a run stopped mid-episode keeps the replies it paid for."""
     step, previous, looks, invalid, note = 0, 0, [], 0, ""
     header = [{"type": "text", "text": "Records of finished episodes in this session:\n" +
                ("\n".join(experience) if experience else "(none yet)")},
@@ -347,6 +348,8 @@ def run_episode(client, model, frames, traj, label, experience, config, cost_per
         op, arg = parse_decision(reply["text"])
         looks.append({"step": step, "decision": {"done": "done", "wait": f"wait {arg}"}.get(op, "invalid"), "raw": reply["text"][-500:],
                       "usage": reply["usage"], "seconds": reply["seconds"], "dollars": reply["dollars"]})
+        if on_look:
+            on_look(looks[-1])
         if op is None:
             invalid += 1
             note = f"\nYour previous reply was invalid ({arg}). Reply with one JSON object."
@@ -376,8 +379,11 @@ def run_episode(client, model, frames, traj, label, experience, config, cost_per
 
 
 def run_session(client, model, frames, plan, trajectories, config, cost_per_look, out_path, tag=""):
-    """Episodes of one plan in order, appending each record to `out_path` (JSONL); resumes after the last record."""
+    """Episodes of one plan in order, appending each record to `out_path` (JSONL); resumes after the last record.
+    Every look is also appended to `<out_path stem>.looks.jsonl` when it happens, including looks of an episode that
+    a stop interrupts (that episode is replayed from its start on resume; its interrupted attempt stays in the file)."""
     out_path = Path(out_path)
+    looks_path = out_path.with_name(out_path.stem + ".looks.jsonl")
     done = [json.loads(l) for l in out_path.read_text().splitlines() if l.strip()] if out_path.exists() else []
     experience = [experience_line(i, r) for i, r in enumerate(done)]
     for index, entry in enumerate(plan):
@@ -387,8 +393,15 @@ def run_session(client, model, frames, plan, trajectories, config, cost_per_look
         if traj is None:
             record = {"index": index, "skipped": "no usable recorded run", **entry}
         else:
-            record = {"index": index, **run_episode(client, model, frames, traj, entry["policy_label"], experience,
-                                                    config, cost_per_look, tag=f"{tag}#{index}")}
+            attempt = time.time()
+
+            def save(look, index=index, attempt=attempt):
+                with looks_path.open("a") as f:
+                    f.write(json.dumps({"index": index, "attempt": attempt, **look}) + "\n")
+
+            record = {"index": index, "attempt": attempt,
+                      **run_episode(client, model, frames, traj, entry["policy_label"], experience, config,
+                                    cost_per_look, tag=f"{tag}#{index}", on_look=save)}
             experience.append(experience_line(len(experience), record))
         with out_path.open("a") as f:
             f.write(json.dumps(record) + "\n")
