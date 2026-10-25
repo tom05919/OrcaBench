@@ -183,3 +183,16 @@ Every pilot reply ended normally (`stop_reason` `end_turn`); none was cut off at
   DeepSeek `off` and `low`; Gemma `low` (its `off` behaves exactly like its default, which already has two session
   passes); Kimi `off`. *Projected cost:* probe about $8, sessions about $10, for a ledger total of about $81 of the
   $100 cap.
+
+### Third reasoning level for Kimi and Gemma (Tom, October 25, before any result at these levels)
+
+- **Kimi K3 sessions at `low`,** added to `off` and `default`. *Reason:* three levels per model, as for DeepSeek.
+  Kimi's `default` already reasons about as much as `high` (pilot: median 394 output tokens at default, 324 at
+  `high`), so `off` / `low` / `default` spans none, little and much. An explicit `high` session pass (about $20) does
+  not fit the $100 cap; `low` costs about $10. Caveat for the report: the `default` runs used the 6,144-token reply
+  limit (2% of Kimi's session replies cut off), the level runs 32,768.
+- **Gemma 4 31B at `high`,** probe and sessions, added to `off`/`default` and `low`. *Reason:* the pilot gate dropped
+  `high` because 10 probes showed similar thinking lengths at `low` (859 characters), `medium` (568) and `high` (893).
+  Ten probes is a small sample, so a full `high` pass tests that finding (about $1.50); if the levels really do not
+  differ, that is reported as a property of how Sail serves Gemma's levels.
+- **Projected ledger** with these: about $94 of the $100 cap.
