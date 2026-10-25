@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+import urllib.error
 from pathlib import Path
 
 from robot_benchmark.replay_bench import (Ledger, SailClient, SpendCapReached, frame_index, parse_decision,
@@ -141,6 +142,31 @@ class ReplayBenchTests(unittest.TestCase):
             reply = SailClient("k", Ledger(Path(d) / "s.jsonl", cap=1)).call("zai-org/GLM-5.3-Flash", "s",
                                                                              [{"type": "text", "text": "hi"}])
         self.assertEqual((reply["attempts"], len(keys), len(set(keys))), (2, 2, 1))
+
+    def test_a_lost_idempotent_request_is_resubmitted_under_a_new_key(self):
+        import io
+        from unittest import mock
+        keys = []
+
+        class Reply:
+            def read(self):
+                return json.dumps({"content": [{"type": "text", "text": "{}"}], "stop_reason": "end_turn",
+                                   "usage": {"input_tokens": 1, "output_tokens": 2}}).encode()
+
+        def fake_urlopen(request, timeout):
+            keys.append(request.headers["Anthropic-idempotency-key"])
+            if len(keys) == 1:
+                raise TimeoutError("slow")
+            if len(keys) == 2:
+                raise urllib.error.HTTPError("u", 404, "Not Found", {}, io.BytesIO(
+                    b'{"error":{"message":"response \\"resp_1\\" not found","type":"not_found_error"}}'))
+            return Reply()
+
+        with tempfile.TemporaryDirectory() as d, mock.patch("urllib.request.urlopen", fake_urlopen), \
+                mock.patch("time.sleep"):
+            SailClient("k", Ledger(Path(d) / "s.jsonl", cap=1)).call("zai-org/GLM-5.3-Flash", "s",
+                                                                    [{"type": "text", "text": "hi"}])
+        self.assertEqual((len(keys), keys[0] == keys[1], keys[1] == keys[2]), (3, True, False))
 
     def test_timeouts_are_counted_at_the_99th_percentile_reply_cost(self):
         with tempfile.TemporaryDirectory() as d:

@@ -324,7 +324,11 @@ class SailClient:
                     waits += 1
                     time.sleep(float(e.headers.get("Retry-After") or 30) if e.headers else 30)
                     continue
-                if e.code in (401, 403, 404) or attempt == 3:
+                if e.code == 404 and attempt > 0 and "not_found" in message and attempt < 3:
+                    # Sail sometimes loses the request behind an idempotency key after a timeout ("response ... not
+                    # found", October 25): submit afresh under a new key.
+                    key = str(uuid.uuid4())
+                elif e.code in (401, 403, 404) or attempt == 3:
                     raise
             except (urllib.error.URLError, TimeoutError, ConnectionError):
                 self.ledger.settle(model, worst, None, tag + ":timeout")
