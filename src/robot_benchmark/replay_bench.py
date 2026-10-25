@@ -290,8 +290,12 @@ class SailClient:
                         "thinking_chars": sum(len(c.get("thinking", "")) for c in blocks if c.get("type") == "thinking"),
                         "dollars": self.ledger.settle(model, worst, usage, tag)}
             except urllib.error.HTTPError as e:
-                self.ledger.settle(model, worst, {"input_tokens": 0, "output_tokens": 0}, tag + ":http")
-                if e.code not in (408, 429, 500, 502, 503, 504, 529) or attempt == 3:
+                # Sail has returned transient 400s that succeed when re-sent (October 25), so every status except an
+                # authentication or not-found error is retried; the error text is kept in the ledger.
+                message = e.read()[:300].decode(errors="replace")
+                self.ledger.settle(model, worst, {"input_tokens": 0, "output_tokens": 0},
+                                   f"{tag}:http:{e.code}:{message}")
+                if e.code in (401, 403, 404) or attempt == 3:
                     raise
             except (urllib.error.URLError, TimeoutError, ConnectionError):
                 self.ledger.settle(model, worst, None, tag + ":timeout")

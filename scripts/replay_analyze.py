@@ -387,7 +387,7 @@ def reliability(probe, sessions):
     for line in (OUT / "api_spend.jsonl").read_text().splitlines():
         r = json.loads(line)
         tag = r["tag"]
-        if tag.endswith(":http"):
+        if ":http" in tag:
             continue
         part = "probe" if tag.startswith("probe") else "session"
         if part == "probe":
