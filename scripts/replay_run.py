@@ -113,7 +113,7 @@ def main():
     args = parser.parse_args()
     ledger = Ledger(OUT / "api_spend.jsonl", args.cap)
     client = SailClient(env_key(), ledger, max_tokens=args.max_tokens, timeout=args.timeout, effort=args.effort)
-    trajectories, frames = load_trajectories(POD_ROOTS), FrameSource(keep=4 * args.workers)
+    trajectories, frames = load_trajectories(POD_ROOTS), FrameSource()
     config = load_config(ROOT / "configs" / "time_pressure.json")
     print(f"{len(trajectories)} recorded runs; spent so far ${ledger.spent:.2f} of ${args.cap:.2f}")
     for model in args.models:

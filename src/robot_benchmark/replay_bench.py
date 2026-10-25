@@ -9,6 +9,7 @@ robot's trajectory, so a recorded always-defer run of the plain policy stands in
 Analysis and development only: nothing here is in the contract hash, and records are kind `replay_development`,
 never mixed with the October 15-16 benchmark scores. Models never see checker values of the current episode."""
 import base64
+from collections import OrderedDict
 import io
 import json
 from pathlib import Path
@@ -95,42 +96,57 @@ def frame_index(step, steps):
     return step // FRAME_STEP
 
 
-def decode_video(path):
-    """All frames of a 256 x 256 RGB video as raw bytes per frame (ffmpeg)."""
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+def decode_frame(path, index):
+    """One 256 x 256 RGB frame of a video, by frame number (ffmpeg). Pixel-identical to decoding the whole video and
+    taking frame `index` (checked on 71 frames of 6 recorded runs, October 25)."""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"select=eq(n\\,{index})",
+                          "-fps_mode", "passthrough", "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                          check=True, capture_output=True).stdout
-    size = 256 * 256 * 3
-    return [raw[i:i + size] for i in range(0, len(raw), size)]
+    if len(raw) != 256 * 256 * 3:
+        raise ValueError(f"{path}: frame {index} not found")
+    return raw
 
 
 class FrameSource:
-    """Tiled PNGs (three cameras side by side) at any recorded step, decoding each run's videos once."""
+    """Tiled PNGs (three cameras side by side) at any recorded step. Each frame is decoded from its video when first
+    needed and only finished PNGs are kept (at most `keep`, least recently used dropped first). The earlier version
+    kept whole decoded runs in memory (about 240 MB each, up to 32 per process); with 15 processes in parallel that
+    exhausted the Mac's memory, the likely cause of the October 24 and 25 shutdowns."""
 
-    def __init__(self, keep=8):
-        self.cache, self.keep, self.lock = {}, keep, threading.Lock()
+    def __init__(self, keep=64):
+        self.cache, self.keep, self.checked, self.lock = OrderedDict(), keep, set(), threading.Lock()
 
-    def frames(self, traj):
-        with self.lock:
-            if traj["id"] not in self.cache:
-                if len(self.cache) >= self.keep:
-                    self.cache.pop(next(iter(self.cache)))
-                videos = {c: decode_video(Path(traj["folder"]) / "videos" / f"{c}.mp4") for c in CAMERAS}
-                expected = frame_index(traj["steps"], traj["steps"]) + 1
-                if any(len(v) != expected for v in videos.values()):
-                    raise ValueError(f"{traj['id']}: expected {expected} frames, got "
-                                     f"{ {c: len(v) for c, v in videos.items()} }")
-                self.cache[traj["id"]] = videos
-            return self.cache[traj["id"]]
+    def check(self, traj):
+        """Each camera video must hold one frame per recorded step (videos/manifest.json, written by the recorder)."""
+        if traj["id"] in self.checked:
+            return
+        manifest = json.loads((Path(traj["folder"]) / "videos" / "manifest.json").read_text())
+        expected = frame_index(traj["steps"], traj["steps"]) + 1
+        counts = {c: manifest[f"video.{c}"]["frames"] for c in CAMERAS}
+        if any(n != expected for n in counts.values()):
+            raise ValueError(f"{traj['id']}: expected {expected} frames, got {counts}")
+        self.checked.add(traj["id"])
 
     def png(self, traj, step):
         from PIL import Image
-        videos, index = self.frames(traj), frame_index(step, traj["steps"])
+        key = (traj["id"], step)
+        with self.lock:
+            if key in self.cache:
+                self.cache.move_to_end(key)
+                return self.cache[key]
+        self.check(traj)
+        index = frame_index(step, traj["steps"])
         tiled = Image.new("RGB", (256 * len(CAMERAS), 256))
         for i, camera in enumerate(CAMERAS):
-            tiled.paste(Image.frombytes("RGB", (256, 256), videos[camera][index]), (256 * i, 0))
+            raw = decode_frame(Path(traj["folder"]) / "videos" / f"{camera}.mp4", index)
+            tiled.paste(Image.frombytes("RGB", (256, 256), raw), (256 * i, 0))
         buffer = io.BytesIO()
         tiled.save(buffer, format="PNG")
-        return buffer.getvalue()
+        with self.lock:
+            self.cache[key] = buffer.getvalue()
+            while len(self.cache) > self.keep:
+                self.cache.popitem(last=False)
+        return self.cache.get(key, buffer.getvalue())
 
 
 def snap(step):
