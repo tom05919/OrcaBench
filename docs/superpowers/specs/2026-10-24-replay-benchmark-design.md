@@ -158,3 +158,28 @@ DeepSeek V4.1 Flash return a thinking block by default. Consequences for the mai
 10. **Budget:** ledger cap $100 (Tom, October 25). The running default-condition GLM and DeepSeek runs are restarted
     with the same cap so that they do not stop when the ledger passes their old $70 cap. Restarting loses nothing,
     since every look is saved when it arrives.
+
+### Pilot gate outcome (October 25, before any scored reasoning-level run)
+
+Median thinking length per call on the same 10 probes (characters of the thinking block; `off` returns none):
+
+| Model | off / minimal | low | medium | high | default (main runs; output tokens) |
+|---|---|---|---|---|---|
+| Kimi K3 | 0 | 361 | 361 | 1,445 | 394 tokens |
+| GLM-5.3-Flash | 19 (minimal) | 0 | 136 | 172 | 714 tokens |
+| Gemma 4 31B | 0 | 859 | 568 | 893 | 6 tokens (no reasoning) |
+| DeepSeek V4.1 Flash | 0 | 2,621 | 1,568 | 1,511 | 266 tokens |
+
+Every pilot reply ended normally (`stop_reason` `end_turn`); none was cut off at 32,768 tokens.
+
+- **"Same thinking length", made operational now (the pre-run plan did not define it):** going up from the lowest
+  level, a level is kept only if its median thinking length is at least 1.5 times that of the last level kept;
+  anything under 50 characters counts as no reasoning. *Reason:* the pilot has 10 probes per cell, so small
+  differences are noise; 1.5 times is a clear change.
+- **Levels kept:** Kimi `off`, `low`, `high`; GLM `minimal`, `medium`; Gemma `off`, `low`; DeepSeek `off`, `low`. For
+  GLM and Kimi, Sail's default reasons as much as or more than any explicit level (GLM's default produced a median 714
+  output tokens against 46 at `high`), so the main runs are their highest-reasoning condition.
+- **Sessions (decision 8) use `off` and the highest level kept,** since `high` was dropped for DeepSeek and Gemma:
+  DeepSeek `off` and `low`; Gemma `low` (its `off` behaves exactly like its default, which already has two session
+  passes); Kimi `off`. *Projected cost:* probe about $8, sessions about $10, for a ledger total of about $81 of the
+  $100 cap.
