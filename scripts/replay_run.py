@@ -17,8 +17,9 @@ import traceback
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from robot_benchmark.replay_bench import (PROBE_SYSTEM, FrameSource, Ledger, SailClient, SpendCapReached,  # noqa: E402
-                                          load_trajectories, parse_probe, probe_content, run_session, sample_probes)
+from robot_benchmark.replay_bench import (EFFORTS, PROBE_SYSTEM, FrameSource, Ledger, SailClient,  # noqa: E402
+                                          SpendCapReached, load_trajectories, parse_probe, probe_content,
+                                          run_session, sample_probes)
 from robot_benchmark.time_score import load_config  # noqa: E402
 
 POD_ROOTS = {"podC": ROOT / "runs/addon/podC/always_defer", "podB": ROOT / "runs/final/podB/always_defer"}
@@ -37,8 +38,13 @@ def env_key():
     return os.environ["SAIL_API_KEY"]
 
 
+def effort_dir(client):
+    """The main runs (no reasoning level sent) keep their paths; any explicit level gets its own folder."""
+    return "" if client.effort == "default" else f"effort-{client.effort}"
+
+
 def run_probe(client, frames, trajectories, model, pass_no, limit, workers):
-    out = OUT / "probe" / f"pass{pass_no}" / f"{slug(model)}.jsonl"
+    out = OUT / "probe" / effort_dir(client) / f"pass{pass_no}" / f"{slug(model)}.jsonl"
     out.parent.mkdir(parents=True, exist_ok=True)
     done = {json.loads(l)["probe"] for l in out.read_text().splitlines() if l.strip()} if out.exists() else set()
     by_id = {t["id"]: t for t in trajectories}
@@ -46,9 +52,11 @@ def run_probe(client, frames, trajectories, model, pass_no, limit, workers):
 
     def one(p):
         reply = client.call(model, PROBE_SYSTEM, probe_content(frames, by_id[p["traj"]], p["step"]),
-                            tag=f"probe:{p['probe']}")
+                            tag=f"probe:{client.effort}:{p['probe']}")
         return {**p, "model": model, "answer": parse_probe(reply["text"]), "raw": reply["text"][-300:],
-                "usage": reply["usage"], "seconds": reply["seconds"], "dollars": reply["dollars"]}
+                "usage": reply["usage"], "seconds": reply["seconds"], "dollars": reply["dollars"],
+                "effort": client.effort, "stop_reason": reply.get("stop_reason"),
+                "thinking_chars": reply.get("thinking_chars"), "attempts": reply.get("attempts")}
 
     with ThreadPoolExecutor(workers) as pool, out.open("a") as f:
         for future in as_completed([pool.submit(one, p) for p in todo]):
@@ -68,14 +76,16 @@ def run_sessions(client, frames, trajectories, model, cost, pass_no, limit, work
         trajs = {(t["backend"], t["task"], t["scene"]): t for t in trajectories if t["pod"] == pod}
         for plan_path in sorted((ROOT / "configs/final/plans").glob("scene*.json")):
             plan = json.loads(plan_path.read_text())
-            out = OUT / "sessions" / f"c{cost:g}" / f"pass{pass_no}" / slug(model) / f"{pod}-{plan_path.stem}.jsonl"
+            out = (OUT / "sessions" / f"c{cost:g}" / effort_dir(client) / f"pass{pass_no}" / slug(model)
+                   / f"{pod}-{plan_path.stem}.jsonl")
             out.parent.mkdir(parents=True, exist_ok=True)
             jobs.append((plan[:limit] if limit else plan, trajs, out))
 
     def one(job):
         plan, trajs, out = job
         return run_session(client, model, frames, plan, trajs, config, cost, out,
-                           tag=f"session:{slug(model)}:c{cost:g}:p{pass_no}:{out.stem}")
+                           tag=f"session:{slug(model)}:c{cost:g}:p{pass_no}:{out.stem}"
+                           + ("" if client.effort == "default" else f"@{client.effort}"))
 
     with ThreadPoolExecutor(workers) as pool:
         for future in as_completed([pool.submit(one, j) for j in jobs]):
@@ -98,9 +108,11 @@ def main():
     parser.add_argument("--cap", type=float, default=45.0)
     parser.add_argument("--max-tokens", type=int, default=6144)
     parser.add_argument("--timeout", type=int, default=600, help="seconds per model call")
+    parser.add_argument("--effort", default="default", choices=sorted(EFFORTS),
+                        help="requested reasoning level; 'default' sends none (the main runs)")
     args = parser.parse_args()
     ledger = Ledger(OUT / "api_spend.jsonl", args.cap)
-    client = SailClient(env_key(), ledger, max_tokens=args.max_tokens, timeout=args.timeout)
+    client = SailClient(env_key(), ledger, max_tokens=args.max_tokens, timeout=args.timeout, effort=args.effort)
     trajectories, frames = load_trajectories(POD_ROOTS), FrameSource(keep=4 * args.workers)
     config = load_config(ROOT / "configs" / "time_pressure.json")
     print(f"{len(trajectories)} recorded runs; spent so far ${ledger.spent:.2f} of ${args.cap:.2f}")

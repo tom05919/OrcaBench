@@ -237,18 +237,27 @@ class Ledger:
         return dollars
 
 
+EFFORTS = {  # requested reasoning level -> request fields (Sail Messages API: `thinking`, `output_config.effort`)
+    "default": {},  # nothing sent: the model's own default, which differs by model (the October 24-25 main runs)
+    "off": {"thinking": {"type": "disabled"}},
+    **{level: {"output_config": {"effort": level}} for level in ("minimal", "low", "medium", "high", "xhigh")},
+}
+
+
 class SailClient:
-    """Anthropic-compatible Messages API (Sail Research) with retries and the shared ledger."""
+    """Anthropic-compatible Messages API (Sail Research) with retries and the shared ledger. `effort` selects the
+    requested reasoning level (EFFORTS); every reply records why it stopped and whether it returned a thinking block."""
 
     def __init__(self, key, ledger, endpoint="https://api.sailresearch.com/v1/messages", max_tokens=2048,
-                 timeout=180):
+                 timeout=180, effort="default"):
         self.key, self.ledger, self.endpoint, self.max_tokens, self.timeout = key, ledger, endpoint, max_tokens, timeout
+        self.effort = effort
 
     def call(self, model, system, content, tag=""):
         images = sum(1 for c in content if c["type"] == "image")
         text = sum(len(c.get("text", "")) for c in content) + len(system)
         body = json.dumps({"model": model, "max_tokens": self.max_tokens, "system": system,
-                           "messages": [{"role": "user", "content": content}]}).encode()
+                           "messages": [{"role": "user", "content": content}], **EFFORTS[self.effort]}).encode()
         for attempt in range(4):
             worst = self.ledger.reserve(model, 3000 * images + text // 2 + 1000, self.max_tokens)
             started, usage = time.time(), None
@@ -258,8 +267,11 @@ class SailClient:
                     "anthropic-version": "2023-06-01"})
                 reply = json.loads(urllib.request.urlopen(request, timeout=self.timeout).read())
                 usage = reply.get("usage")
-                text_out = "".join(c.get("text", "") for c in reply.get("content", []) if c.get("type") == "text")
+                blocks = reply.get("content", [])
+                text_out = "".join(c.get("text", "") for c in blocks if c.get("type") == "text")
                 return {"text": text_out, "usage": usage, "seconds": time.time() - started, "attempts": attempt + 1,
+                        "stop_reason": reply.get("stop_reason"), "effort": self.effort,
+                        "thinking_chars": sum(len(c.get("thinking", "")) for c in blocks if c.get("type") == "thinking"),
                         "dollars": self.ledger.settle(model, worst, usage, tag)}
             except urllib.error.HTTPError as e:
                 self.ledger.settle(model, worst, {"input_tokens": 0, "output_tokens": 0}, tag + ":http")
@@ -349,7 +361,9 @@ def run_episode(client, model, frames, traj, label, experience, config, cost_per
         reply = client.call(model, SESSION_SYSTEM, content, tag=tag)
         op, arg = parse_decision(reply["text"])
         looks.append({"step": step, "decision": {"done": "done", "wait": f"wait {arg}"}.get(op, "invalid"), "raw": reply["text"][-500:],
-                      "usage": reply["usage"], "seconds": reply["seconds"], "dollars": reply["dollars"]})
+                      "usage": reply["usage"], "seconds": reply["seconds"], "dollars": reply["dollars"],
+                      "stop_reason": reply.get("stop_reason"), "thinking_chars": reply.get("thinking_chars"),
+                      "attempts": reply.get("attempts")})
         if on_look:
             on_look(looks[-1])
         if op is None:
@@ -377,7 +391,8 @@ def run_episode(client, model, frames, traj, label, experience, config, cost_per
                                                      if l["decision"].startswith("wait")), None),
             "first_success": traj["first_success"], "scored_success": scored["success"], "value": scored["value"],
             "charged_seconds": scored["charged_seconds"], "story": scored["story"], "cost_per_look": cost_per_look,
-            "model": model, "dollars": sum(l["dollars"] for l in looks), "decisions": looks}
+            "model": model, "effort": getattr(client, "effort", "default"), "dollars": sum(l["dollars"] for l in looks),
+            "decisions": looks}
 
 
 def run_session(client, model, frames, plan, trajectories, config, cost_per_look, out_path, tag=""):

@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from robot_benchmark.replay_bench import (Ledger, SpendCapReached, frame_index, parse_decision, parse_probe,
-                                          run_episode, run_session, sample_probes)
+from robot_benchmark.replay_bench import (Ledger, SailClient, SpendCapReached, frame_index, parse_decision,
+                                          parse_probe, run_episode, run_session, sample_probes)
 
 CONFIG = {"call_seconds": {}, "tasks": {
     "Plain": {"deadline_seconds": 50.0},
@@ -97,6 +97,29 @@ class ReplayBenchTests(unittest.TestCase):
             with self.assertRaises(SpendCapReached):
                 ledger.reserve("moonshotai/Kimi-K3", 1000, 1000)
             self.assertAlmostEqual(Ledger(Path(d) / "spend.jsonl", cap=1).spent, ledger.spent)  # reloads the file
+
+    def test_requested_reasoning_level_is_sent_and_what_came_back_is_recorded(self):
+        from unittest import mock
+        sent = []
+
+        class Reply:
+            def read(self):
+                return json.dumps({"content": [{"type": "thinking", "thinking": "abc"}, {"type": "text", "text": "{}"}],
+                                   "stop_reason": "end_turn", "usage": {"input_tokens": 1, "output_tokens": 2}}).encode()
+
+        def fake_urlopen(request, timeout):
+            sent.append(json.loads(request.data))
+            return Reply()
+
+        with tempfile.TemporaryDirectory() as d, mock.patch("urllib.request.urlopen", fake_urlopen):
+            for effort in ("default", "off", "high"):
+                reply = SailClient("k", Ledger(Path(d) / "s.jsonl", cap=1), effort=effort).call(
+                    "zai-org/GLM-5.3-Flash", "sys", [{"type": "text", "text": "hi"}])
+                self.assertEqual((reply["effort"], reply["stop_reason"], reply["thinking_chars"]), (effort, "end_turn", 3))
+        self.assertNotIn("thinking", sent[0])
+        self.assertNotIn("output_config", sent[0])
+        self.assertEqual(sent[1]["thinking"], {"type": "disabled"})
+        self.assertEqual(sent[2]["output_config"], {"effort": "high"})
 
     def test_session_resumes_with_the_same_experience(self):
         trajs = {("groot", "Plain", 1000): traj(first=305), ("pi05", "Plain", 1000): traj(first=None, ident="b")}

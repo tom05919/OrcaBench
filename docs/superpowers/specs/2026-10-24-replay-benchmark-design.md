@@ -112,3 +112,49 @@ before the ledger would pass $45. No Prime Intellect spend is planned.
 - **Checked:** the always-defer recordings run to the step budget after success (for example CloseFridge, scene
   1000, success with 899 recorded steps), so post-success frames exist; deadlines are the same `deadline_seconds`
   as the earlier score.
+
+## Addendum, October 25: reasoning level (written before any reasoning-level run)
+
+**What was missed.** The main runs sent no reasoning setting, so every model used Sail's default for it. That was not
+a choice and was not recorded, and the defaults differ by model (one request per level on the same probe, October
+25): Gemma 4 31B does not reason by default (6 output tokens, no thinking block), while Kimi K3, GLM-5.3-Flash and
+DeepSeek V4.1 Flash return a thinking block by default. Consequences for the main runs, to be stated in the report:
+
+- **Comparisons across models in the main runs confound the model with whether it reasons.** Kimi against Gemma is a
+  reasoning model against a non-reasoning one.
+- **The 6,144-token reply limit interacted with reasoning.** It cut off 20% of GLM's session replies (median 3,153
+  output tokens) and 2-4% of Kimi's and DeepSeek's; a cut-off reply counts as unreadable.
+
+**Decisions, each fixed before the runs it governs:**
+
+1. **Levels:** `off` (thinking disabled), `low`, `medium`, `high`. For GLM-5.3-Flash, `minimal` replaces `off`,
+   because Sail rejects disabling its reasoning. *Reason:* this spans no reasoning to high on every model. `xhigh` is
+   left out for cost and latency. The main runs remain the `default` condition.
+2. **Within-model comparisons only.** *Reason:* Sail maps each requested level to the model's own native tiers, so
+   "high" on one model is not the same amount of reasoning as "high" on another.
+3. **Record on every call:** the requested level, Sail's `stop_reason`, the length of any thinking block, output
+   tokens and the number of attempts. *Reason:* a level only means something if it measurably changes the reasoning;
+   these fields are the manipulation check, and `stop_reason` shows cut-offs directly instead of inferring them.
+4. **Reply limit 32,768 tokens for every level run.** *Reason:* with a fixed low limit, higher levels would be
+   penalized for being cut off rather than for their answers. The main runs stay at 6,144 and are reported as such.
+5. **Per-call time limit 900 s, up to 4 attempts.** *Reason:* longer reasoning takes longer. A timed-out attempt is
+   discarded and retried, so a short limit wastes calls: DeepSeek timed out on 5-8% of attempts at 180 s, and
+   repeated timeouts stopped GLM's sessions on October 24.
+6. **Pilot gate.** The same 10 probes for every model and level, unscored (pass 0). *Reason:* to confirm, before
+   spending, that thinking length rises with the level, and to price the full runs. If two levels of a model give the
+   same thinking length, the higher one is dropped for that model.
+7. **Probe at every level for every model:** all 450 probes, one pass. *Reason:* recognizing "done" is where
+   reasoning most plausibly helps, the probe isolates it, and it is cheap except for Kimi. Levels are compared on
+   identical probes (paired).
+8. **Sessions at `off` and `high` where the projected cost fits** the remaining budget, in priority order DeepSeek,
+   Gemma, Kimi (Kimi only at `off`), and no GLM sessions. *Reasons:* Kimi's reasoning sessions cost about $40 per
+   pass, which does not fit, while `off` costs about $8 because it produces almost no output. GLM's session calls took
+   2-5 minutes each on Sail and its sessions stalled for hours on October 24, so they cannot finish by October 26.
+   Two levels per model give the largest contrast for the money.
+9. **Primary measures for this addendum.** Per model: probe balanced accuracy at each level, and the paired
+   difference between `high` and `off` (or `minimal`), with a 95% bootstrap clustered by recorded run. For sessions:
+   the leave-alone value minus the held-out perfect detector at each level. Everything else is descriptive. The noise
+   reference is the difference between two default passes of the same model (Gemma and DeepSeek have two).
+10. **Budget:** ledger cap $100 (Tom, October 25). The running default-condition GLM and DeepSeek runs are restarted
+    with the same cap so that they do not stop when the ledger passes their old $70 cap. Restarting loses nothing,
+    since every look is saved when it arrives.
