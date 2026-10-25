@@ -196,3 +196,10 @@ Every pilot reply ended normally (`stop_reason` `end_turn`); none was cut off at
   Ten probes is a small sample, so a full `high` pass tests that finding (about $1.50); if the levels really do not
   differ, that is reported as a property of how Sail serves Gemma's levels.
 - **Projected ledger** with these: about $94 of the $100 cap.
+
+### No cutoff (Tom, October 25, 12:30, before any reasoning-level result)
+
+Every planned run continues until complete, including GLM-5.3-Flash's default sessions (about 74 calls an hour on
+Sail, so likely finishing on October 26). *Reason (Tom's choice):* complete conditions over an earlier report. Each run
+is restarted until nothing is left; an episode interrupted by a failure is replayed from its start, and its
+interrupted looks stay on disk.
