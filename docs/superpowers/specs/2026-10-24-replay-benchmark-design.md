@@ -220,3 +220,8 @@ interrupted looks stay on disk.
   while the original is still running. *Reason:* Sail's documentation: without a key, a retry after a timeout can start
   and bill a second generation; with one, Sail returns the original reply. This also recovers replies that previously
   arrived after the client had given up.
+
+### Cap raised to $150 (Tom, October 25, 16:40)
+
+Estimated spending reached the $100 cap at 13:17 with about $8 of planned work left (Kimi K3 without reasoning made
+about 13 looks per episode, more than projected). Tom raised the cap to $150 to finish every planned condition.
