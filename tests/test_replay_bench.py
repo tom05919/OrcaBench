@@ -121,6 +121,36 @@ class ReplayBenchTests(unittest.TestCase):
         self.assertEqual(sent[1]["thinking"], {"type": "disabled"})
         self.assertEqual(sent[2]["output_config"], {"effort": "high"})
 
+    def test_a_retry_after_a_timeout_reuses_the_idempotency_key(self):
+        from unittest import mock
+        keys = []
+
+        class Reply:
+            def read(self):
+                return json.dumps({"content": [{"type": "text", "text": "{}"}], "stop_reason": "end_turn",
+                                   "usage": {"input_tokens": 1, "output_tokens": 2}}).encode()
+
+        def fake_urlopen(request, timeout):
+            keys.append(request.headers["Anthropic-idempotency-key"])
+            if len(keys) == 1:
+                raise TimeoutError("slow")
+            return Reply()
+
+        with tempfile.TemporaryDirectory() as d, mock.patch("urllib.request.urlopen", fake_urlopen), \
+                mock.patch("time.sleep"):
+            reply = SailClient("k", Ledger(Path(d) / "s.jsonl", cap=1)).call("zai-org/GLM-5.3-Flash", "s",
+                                                                             [{"type": "text", "text": "hi"}])
+        self.assertEqual((reply["attempts"], len(keys), len(set(keys))), (2, 2, 1))
+
+    def test_timeouts_are_counted_at_the_99th_percentile_reply_cost(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "s.jsonl"
+            lines = [{"model": "m", "tag": "probe:off:x", "dollars": 0.01} for _ in range(30)]
+            lines.append({"model": "m", "tag": "probe:off:x:timeout", "dollars": 0.40})
+            lines.append({"model": "m", "tag": "probe:high:x:timeout", "dollars": 0.40})  # no replies at that level
+            path.write_text("".join(json.dumps(l) + "\n" for l in lines))
+            self.assertAlmostEqual(Ledger(path, cap=10).spent, 30 * 0.01 + 0.01 + 0.40)
+
     def test_session_resumes_with_the_same_experience(self):
         trajs = {("groot", "Plain", 1000): traj(first=305), ("pi05", "Plain", 1000): traj(first=None, ident="b")}
         plan = [{"task": "Plain", "scene_seed": 1000, "policy_label": "K", "backend": "groot"},

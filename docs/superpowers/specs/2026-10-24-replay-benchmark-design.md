@@ -203,3 +203,20 @@ Every planned run continues until complete, including GLM-5.3-Flash's default se
 Sail, so likely finishing on October 26). *Reason (Tom's choice):* complete conditions over an earlier report. Each run
 is restarted until nothing is left; an episode interrupted by a failure is replayed from its start, and its
 interrupted looks stay on disk.
+
+### Spending accounting and retries (October 25, 12:40, after the ledger reached the cap)
+
+- **What happened.** The ledger booked every timed-out call at its worst case: the full reply limit at the model's
+  output price, about $0.41 for a Kimi call allowed 32,768 tokens. With about 150 requests in flight at once, timeouts
+  rose (602 in all), and their bookings ($28.92) pushed the ledger to the $100 cap while replies with reported usage
+  totalled $72.26. The runs stopped there; nothing was lost.
+- **Decision: count a timed-out call at the 99th-percentile cost of that model's replies in the same part and
+  reasoning level** (its worst case while fewer than 20 such replies exist); the cap compares $100 with that
+  estimate. *Reason:* Sail's documentation says a timed-out request may or may not have run, so some charge is
+  possible, but a no-reasoning Kimi call costs about $0.003, not $0.41. The 99th percentile keeps the estimate
+  conservative. The raw worst-case values stay in the ledger file, and the report gives both totals. Tom's Sail
+  dashboard has the exact bill.
+- **Decision: one idempotency key per call** (`anthropic-idempotency-key`), reused on every retry, waiting on HTTP 409
+  while the original is still running. *Reason:* Sail's documentation: without a key, a retry after a timeout can start
+  and bill a second generation; with one, Sail returns the original reply. This also recovers replies that previously
+  arrived after the client had given up.

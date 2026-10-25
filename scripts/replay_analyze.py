@@ -21,7 +21,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from robot_benchmark.replay_bench import FRAME_STEP, load_trajectories  # noqa: E402
+from robot_benchmark.replay_bench import FRAME_STEP, Ledger, load_trajectories  # noqa: E402
 from robot_benchmark.time_score import STEPS_PER_SECOND, load_config, score_episode  # noqa: E402
 
 POD_ROOTS = {"podC": ROOT / "runs/addon/podC/always_defer", "podB": ROOT / "runs/final/podB/always_defer"}
@@ -430,12 +430,13 @@ def main():
                                                                              for t in trajs),
               "probe": probe, "probe_contrasts": probe_contrasts(probe_groups), "sessions": session,
               "model_differences": model_differences(session_groups), "reliability": reliability(probes, sessions),
-              "spent_dollars": round(sum(json.loads(l)["dollars"] for l in (OUT / "api_spend.jsonl").read_text()
-                                         .splitlines() if l.strip()), 2)}
+              "spent_dollars": {"ledger_raw": round(sum(json.loads(l)["dollars"] for l in (OUT / "api_spend.jsonl")
+                                                        .read_text().splitlines() if l.strip()), 2),
+                                "estimated": round(Ledger(OUT / "api_spend.jsonl", 1e9).spent, 2)}}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2) + "\n")
     print(f"wrote {args.out}: {len(probes)} probe answers, {len(sessions)} session episodes, "
-          f"${report['spent_dollars']} spent")
+          f"spent ${report['spent_dollars']['estimated']} estimated (${report['spent_dollars']['ledger_raw']} raw)")
 
 
 if __name__ == "__main__":

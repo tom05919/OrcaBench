@@ -9,7 +9,7 @@ robot's trajectory, so a recorded always-defer run of the plain policy stands in
 Analysis and development only: nothing here is in the contract hash, and records are kind `replay_development`,
 never mixed with the October 15-16 benchmark scores. Models never see checker values of the current episode."""
 import base64
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import io
 import json
 from pathlib import Path
@@ -20,6 +20,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+import uuid
 
 from robot_benchmark.time_score import STEPS_PER_SECOND, score_episode
 
@@ -213,18 +214,39 @@ class SpendCapReached(RuntimeError):
     pass
 
 
+def condition_of(tag):
+    """(part, reasoning level) of a ledger tag: probe tags read `probe[:level]:<probe id>`, session tags carry
+    `@level` when a level was requested."""
+    if tag.startswith("probe"):
+        fields = tag.split(":")
+        return "probe", fields[1] if len(fields) > 2 and fields[1] in EFFORTS else "default"
+    return "session", tag.split("@")[1].split("#")[0].split(":")[0] if "@" in tag else "default"
+
+
 class Ledger:
     """Shared dollar ledger: every call reserves a worst case before it is sent and settles from reported usage; a
-    call with no usage keeps its reservation. Appends one line per settled call to `path`."""
+    call with no usage (a timeout) is written at its worst case. Appends one line per settled call to `path`."""
 
     def __init__(self, path, cap):
         self.path, self.cap, self.lock = Path(path), cap, threading.Lock()
         self.spent, self.reserved = self._settled(), 0.0
 
     def _settled(self):
-        """Dollars already settled in the file, including calls by other processes sharing it."""
-        return sum(json.loads(l)["dollars"] for l in self.path.read_text().splitlines() if l.strip()) \
-            if self.path.exists() else 0.0
+        """Estimated dollars spent, including calls by other processes sharing the file. A timed-out call reports no
+        usage, and Sail may still have run and billed it, so it is counted at the 99th-percentile cost of that model's
+        replies in the same part and reasoning level (at its written worst case while fewer than 20 such replies
+        exist). Written worst cases (up to $0.41 for a Kimi call allowed 32,768 output tokens) made the cap stop runs
+        far below real spending on October 25; the file keeps the raw values."""
+        if not self.path.exists():
+            return 0.0
+        entries = [json.loads(l) for l in self.path.read_text().splitlines() if l.strip()]
+        replies = defaultdict(list)
+        for e in entries:
+            if not e["tag"].endswith(":timeout") and ":http" not in e["tag"]:
+                replies[(e["model"], condition_of(e["tag"]))].append(e["dollars"])
+        p99 = {k: sorted(v)[int(0.99 * (len(v) - 1))] for k, v in replies.items() if len(v) >= 20}
+        return sum(min(e["dollars"], p99.get((e["model"], condition_of(e["tag"])), e["dollars"]))
+                   if e["tag"].endswith(":timeout") else e["dollars"] for e in entries)
 
     @staticmethod
     def cost(model, input_tokens, output_tokens):
@@ -274,13 +296,16 @@ class SailClient:
         text = sum(len(c.get("text", "")) for c in content) + len(system)
         body = json.dumps({"model": model, "max_tokens": self.max_tokens, "system": system,
                            "messages": [{"role": "user", "content": content}], **EFFORTS[self.effort]}).encode()
-        for attempt in range(4):
+        # One idempotency key per call, reused on every retry: Sail then returns the original reply instead of running
+        # (and billing) the request again, and answers 409 while the original is still running.
+        key, attempt, waits = str(uuid.uuid4()), 0, 0
+        while True:
             worst = self.ledger.reserve(model, 3000 * images + text // 2 + 1000, self.max_tokens)
             started, usage = time.time(), None
             try:
                 request = urllib.request.Request(self.endpoint, data=body, headers={
                     "content-type": "application/json", "x-api-key": self.key, "authorization": f"Bearer {self.key}",
-                    "anthropic-version": "2023-06-01"})
+                    "anthropic-version": "2023-06-01", "anthropic-idempotency-key": key})
                 reply = json.loads(urllib.request.urlopen(request, timeout=self.timeout).read())
                 usage = reply.get("usage")
                 blocks = reply.get("content", [])
@@ -295,6 +320,10 @@ class SailClient:
                 message = e.read()[:300].decode(errors="replace")
                 self.ledger.settle(model, worst, {"input_tokens": 0, "output_tokens": 0},
                                    f"{tag}:http:{e.code}:{message}")
+                if e.code == 409 and waits < 40:  # the original request is still running: ask again later, same key
+                    waits += 1
+                    time.sleep(float(e.headers.get("Retry-After") or 30) if e.headers else 30)
+                    continue
                 if e.code in (401, 403, 404) or attempt == 3:
                     raise
             except (urllib.error.URLError, TimeoutError, ConnectionError):
@@ -302,6 +331,7 @@ class SailClient:
                 if attempt == 3:
                     raise
             time.sleep((5, 20, 60)[min(attempt, 2)])
+            attempt += 1
 
 
 def parse_json_reply(text):
