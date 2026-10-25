@@ -36,7 +36,9 @@ October 26 deadline (pod setup, a hashed logging change and a new release would 
 ## Models (Sail Research Messages API)
 
 Vision-capable on Sail (probed October 24): `moonshotai/Kimi-K3`, `moonshotai/Kimi-K2.6`, `zai-org/GLM-5.3-Flash`,
-`google/gemma-4-31B-it`. Not usable: DeepSeek V4 models, GLM-5.3, gpt-oss-120b and Gemma 4 12B (no image input);
+`google/gemma-4-31B-it`, and `deepseek-ai/DeepSeek-V4.1-Flash-1017` (found October 25: the October 24 probe tested only
+two of Sail's four DeepSeek models; added with the same prompt, settings and passes as Gemma, after GLM's sessions
+stalled on Sail). Not usable: the other DeepSeek V4 models, GLM-5.3, gpt-oss-120b and Gemma 4 12B (no image input);
 Qwen3.6-35B-A3B (Sail serves it only in an asynchronous mode). Sail serves quantized versions; results are for those.
 
 ## Part 1: done-detection probe (skill 1 alone)

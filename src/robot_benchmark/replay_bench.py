@@ -185,8 +185,10 @@ def image_block(png_bytes):
                                         "data": base64.b64encode(png_bytes).decode()}}
 
 
-PRICES = {  # dollars per million input / output tokens (Sail list prices; Kimi K2.6 assumed equal to K3)
+PRICES = {  # dollars per million input / output tokens (Sail's "ASAP" list prices, docs.sailresearch.com/pricing,
+    # checked October 25; Kimi K2.6 assumed equal to K3)
     "moonshotai/Kimi-K3": (2.50, 12.50), "moonshotai/Kimi-K2.6": (2.50, 12.50),
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017": (0.09, 0.30),
     "zai-org/GLM-5.3-Flash": (0.11, 0.35), "google/gemma-4-31B-it": (0.40, 0.60),
 }
 
