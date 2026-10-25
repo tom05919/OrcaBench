@@ -182,3 +182,25 @@ class ReplayBaselineTests(unittest.TestCase):
         value = self.a.held_out([target, other, same_scene], target, self.a.timer_value,
                                 lambda x: range(10, x["steps"] + 1, 10), CONFIG, 2.0)
         self.assertEqual(value, 0.0)  # tuned to declare at 100 (the other scene), too early for the target
+
+
+class ReplayAnalysisTests(ReplayBaselineTests):
+    def test_paired_balanced_accuracy_difference_uses_shared_probes(self):
+        def rows(correct_neg):
+            return ([{"probe": f"p{i}", "traj": f"t{i}", "label": True, "correct": 1.0} for i in range(4)] +
+                    [{"probe": f"n{i}", "traj": f"t{i}", "label": False, "correct": float(i < correct_neg)}
+                     for i in range(4)])
+        diff = self.a.paired_ba_difference(rows(4), rows(2))  # balanced accuracy 1.0 against 0.75
+        self.assertEqual((diff["mean"], diff["probes"]), (0.25, 8))
+        self.assertLessEqual(diff["ci95"][0], 0.25)
+
+    def test_block_concordance_compares_policies_within_a_task_block(self):
+        fast = {**traj(first=100, ident="f"), "backend": "fast", "scene": 1001}
+        slow = {**traj(first=500, ident="s"), "backend": "slow", "scene": 1001}
+        trajs = [fast, slow]
+        block = [{"session": "s1", "task": "Plain", "scene": 1000, "backend": "fast", "first_wait": 100},
+                 {"session": "s1", "task": "Plain", "scene": 1000, "backend": "slow", "first_wait": 400}]
+        same = [dict(r, session="s2", first_wait=200) for r in block]
+        out = self.a.block_concordance(block + same, trajs)
+        self.assertEqual((out["concordant"], out["discordant"], out["tied"]), (1, 0, 1))
+        self.assertEqual((out["blocks"], out["blocks_with_identical_value"], out["concordant_share"]), (2, 1, 1.0))
