@@ -56,8 +56,8 @@ does not lift any of them to the simple baselines.
 \caption{\textbf{Supervision leaderboard.} Each bar is one configuration's supervision score: its value on the 72
 trained-task episodes as a percentage of an oracle that stops at the exact moment the robot finishes (100). Dashed
 lines: a timer that never looks at the cameras (51) and a rule with perfect vision that checks at a fixed interval
-(61), both tuned on other kitchens. Whiskers: 95\% bootstrap intervals. GLM-5.3 Flash's lowest setting is
-``minimal''.}
+(61), both tuned on other kitchens. Small numbers above the bars: 95\% bootstrap intervals. GLM-5.3 Flash's
+lowest setting is ``minimal''.}
 \label{fig:leaderboard}
 \end{figure*}
 
@@ -147,11 +147,8 @@ Table~\ref{tab:design} lists each design decision with its reason; all were fixe
 \raggedright Decision & \raggedright Reason \tabularnewline
 \midrule
 \raggedright Replay recorded runs & \raggedright Waiting and stopping do not change the robot; identical inputs for every model, repeatable, no GPU. \tabularnewline
-\raggedright Separate done-detection test & \raggedright Measures perception without scheduling, to explain supervision results. \tabularnewline
-\raggedright Labels from the simulator's success check & \raggedright Fully automatic scoring; no human labels. \tabularnewline
 \raggedright Same 2~s charge per check for every model & \raggedright Measured latency on a shared API reflects server load, not the model. \tabularnewline
 \raggedright Baselines tuned in other kitchens & \raggedright A rule must not be tuned on the run it is scored on. \tabularnewline
-\raggedright Score as \% of the oracle & \raggedright One number a reader can interpret: the share of the achievable value kept. \tabularnewline
 \raggedright Earlier outcomes shown, policies anonymous & \raggedright Lets a model learn each policy's speed without revealing the current run's outcome. \tabularnewline
 \raggedright Same reasoning settings and limits for every model; reasoning length recorded & \raggedright A uniform design; the recorded length checks that a setting actually changed the reasoning. \tabularnewline
 \raggedright 95\% bootstrap intervals resampling runs & \raggedright Answers about the same run are correlated. \tabularnewline
@@ -185,10 +182,10 @@ configurations.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.94\textwidth]{\figdir/fig3_what_models_did.pdf}
-\caption{\textbf{What the models did}, on the 50 trained-task runs the robot finishes. Left: share of runs where the
-model said ``done'' before the robot had finished (each one is a failure). Middle: camera checks per episode (2~s
-each). Right: median seconds between the robot finishing and a correct ``done''. Dashed lines: the rule with perfect
-vision and a fixed check interval.}
+\caption{\textbf{What the models did}, on the 50 trained-task runs the robot finishes; for each model, reasoning
+off (lightest), low and high (darkest). Left: share of runs where the model said ``done'' before the robot had finished
+(each one is a failure). Middle: camera checks per episode (2~s each). Right: median seconds between the robot
+finishing and a correct ``done''. Dashed lines: the rule with perfect vision and a fixed check interval.}
 \label{fig:behaviour}
 \end{figure*}
 
@@ -204,13 +201,13 @@ way. We also tested whether models adapt their checks to the policies they learn
 policy should get a longer first wait); we found no consistent evidence of adaptation, though this test has little
 statistical power.
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.94\textwidth]{\figdir/fig2_detection_leaderboard.pdf}
+\includegraphics[width=\columnwidth]{\figdir/fig2_detection_leaderboard.pdf}
 \caption{\textbf{Done-detection leaderboard.} Balanced accuracy on 450 single ``is the task finished?'' questions
 (114 finished moments, 336 unfinished); 50 is chance. Whiskers: 95\% bootstrap intervals.}
 \label{fig:detection}
-\end{figure*}
+\end{figure}
 
 \subsection{Recognising completion is the bottleneck}
 The done-detection test (Figure~\ref{fig:detection}) isolates perception. Every configuration is between 69 and 78
