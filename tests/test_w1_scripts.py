@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from test_time_score import SCRIPTED, episode
+from test_time_score import COMPLETE, SCRIPTED, episode, run
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 
@@ -138,6 +138,60 @@ class PrimaryResultTests(unittest.TestCase):
         self.assertAlmostEqual(diff["ci95"][0], 0.3)  # a constant shift: no spread across clusters
         cells = {("m1", "b", "A"): rows(0.5), ("m2", "b", "A"): rows(0.2)}
         self.assertIn("m1 - m2", score_time.primary(cells)["differences"])
+
+    def test_paired_heldout_regret_uses_the_same_root_twin_and_a_step_chosen_without_its_scene(self):
+        score_time = load("score_time")
+        pod, other_pod = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+        for scene, first in ((1000, 200), (1001, 300), (1002, 400)):  # always-defer twins: checker true from `first`
+            episode(pod, f"twin{scene}", kind="baseline_always_defer", agent=SCRIPTED, steps=999,
+                    truth=[False] * first + [True] * (1000 - first), scene_seed=scene)
+        # Held-out steps: 400 for scenes 1000 and 1001 (chosen on the other two), 300 for 1002, where its twin is
+        # not yet successful. Twin values 0.6, 0.6 and 0; model values 1 - (15 + 2 x 4.7) / 50, 0 and 1 - 39.1 / 50.
+        episode(pod, "llm1000", steps=300, model_calls=2, decisions=[COMPLETE(300)], scene_seed=1000)
+        episode(pod, "llm1001", steps=100, success=False, false_completion=True, model_calls=2,
+                decisions=[COMPLETE(100)], scene_seed=1001)
+        episode(pod, "llm1002", steps=500, model_calls=3, decisions=[COMPLETE(500)], scene_seed=1002)
+        episode(pod, "llm_infra", steps=50, success=False, model_calls=1, scene_seed=1000,
+                infrastructure_error={"type": "frame_noise"})
+        episode(other_pod, "llm_other_pod", steps=300, model_calls=2, scene_seed=1000)  # no twin on its own pod
+        _, cells = score_time.score(score_time.load([pod, other_pod]), CONFIG, {"Plain": 1000})
+        rows = sorted(cells[("claude-opus-5-5", "groot", "Plain")], key=lambda r: r["scene"])
+        self.assertEqual(len(rows), 4)  # the infrastructure error is not scored
+        paired = [r for r in rows if "paired_regret_heldout" in r]
+        self.assertEqual([r["scene"] for r in paired], [1000, 1001, 1002])
+        for row, expected in zip(paired, (0.6 - 0.512, 0.6, 0.0 - 0.218)):
+            self.assertAlmostEqual(row["paired_regret_heldout"], expected)
+        self.assertAlmostEqual(paired[2]["paired_regret"], 0.6 - 0.218)  # hindsight step 400 on every twin
+        result = score_time.primary(cells)["per_model"]["claude-opus-5-5"]
+        self.assertEqual((result["mean"], result["episodes"], result["clusters"]), (0.157, 3, 3))
+        kept = score_time.load([pod, other_pod], scenes=[1000, 1001])
+        self.assertEqual(sorted({e["scene_seed"] for e in kept}), [1000, 1001])
+        self.assertEqual(len(kept), 6)  # two twins and four model episodes (one an infrastructure error)
+
+    def test_task_type_breakdown_counts_successes_twins_and_rewrites(self):
+        breakdown = load("task_type_breakdown").breakdown
+        pod = Path(tempfile.mkdtemp())
+        for scene, first in ((1000, 200), (1001, 300), (1002, 400)):
+            episode(pod, f"twin{scene}", kind="baseline_always_defer", agent=SCRIPTED, steps=999,
+                    truth=[False] * first + [True] * (1000 - first), scene_seed=scene)
+        episode(pod, "llm1000", steps=300, model_calls=2, decisions=[run(0, 300, "go"), COMPLETE(300)],
+                scene_seed=1000)
+        episode(pod, "llm1001", steps=100, success=False, false_completion=True, model_calls=2, prompt_changes=1,
+                decisions=[run(0, 100, "go"), COMPLETE(100)], scene_seed=1001)
+        episode(pod, "llm1002", steps=500, model_calls=3,
+                decisions=[run(0, 300, "go"), run(300, 200), COMPLETE(500)], scene_seed=1002)
+        selection = {"seen_tasks": ["Plain"], "unseen_tasks": ["Warm"]}
+        cell = breakdown(load("score_time").load([pod]), CONFIG, selection, {"Plain": 1000})[
+            ("claude-opus-5-5", "leave-alone")]
+        self.assertEqual((cell["episodes"], cell["successes"], cell["successes_with_value"]), (3, 2, 2))
+        self.assertEqual((cell["twins"], cell["twin_successes"]), (3, 3))
+        self.assertEqual((cell["no_rewrite"], cell["rewrote"]), ([2, 2], [0, 1]))
+        self.assertAlmostEqual(cell["timer_value"], 0.4)  # held-out twin values 0.6, 0.6 and 0
+        self.assertEqual(cell["declarations"], {"correct": 2, "false: not reached yet": 1})
+        # The false "done" at step 100 of scene 1001 came 200 steps before its twin's first success at 300.
+        self.assertEqual((cell["early_declarations"], cell["early_median_seconds"]), (1, 10.0))
+        self.assertEqual(cell["twin_done_before_false_declaration"], 0)
+        self.assertEqual(cell["first_interval"], {300: 2, 100: 1})
 
 
 if __name__ == "__main__":

@@ -1,0 +1,143 @@
+379 episodes; seconds per call {'claude-opus-5-5': 4.74, 'claude-sonnet-5-5': 1.76, 'moonshotai/Kimi-K3': 5.92}
+
+Best fixed rule (declare at step T, in hindsight) per backend and task:
+  groot           ArrangeTea                 no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           ArrangeTea                 reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           ArrangeTea                 reissue_every_50_v1    n=  3  T= 1880  value 0.194  held-out 0.0  oracle 0.194  reached success 0.33
+  groot           CloseFridge                no_restart             n=  6  T=  780  value 0.472  held-out 0.378  oracle 0.544  reached success 0.83
+  groot           CloseFridge                reissue_every_100_v1   n=  3  T=  720  value 0.600  held-out 0.4  oracle 0.688  reached success 1.00
+  groot           CloseFridge                reissue_every_50_v1    n=  3  T=  800  value 0.556  held-out 0.37  oracle 0.662  reached success 1.00
+  groot           MakeIceLemonade            no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           MakeIceLemonade            reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           MakeIceLemonade            reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           OpenCabinet                no_restart             n=  6  T=  400  value 0.810  held-out 0.81  oracle 0.852  reached success 1.00
+  groot           OpenCabinet                reissue_every_100_v1   n=  3  T=  880  value 0.581  held-out 0.387  oracle 0.763  reached success 1.00
+  groot           OpenCabinet                reissue_every_50_v1    n=  3  T=  420  value 0.800  held-out 0.533  oracle 0.838  reached success 1.00
+  groot           PanTransfer                no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           PanTransfer                reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           PanTransfer                reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           PickPlaceCounterToStove    no_restart             n=  6  T=  220  value 0.817  held-out 0.681  oracle 0.837  reached success 1.00
+  groot           PickPlaceCounterToStove    reissue_every_100_v1   n=  3  T=  220  value 0.817  held-out 0.817  oracle 0.836  reached success 1.00
+  groot           PickPlaceCounterToStove    reissue_every_50_v1    n=  3  T=  200  value 0.833  held-out 0.556  oracle 0.853  reached success 1.00
+  groot           WaffleReheat               no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           WaffleReheat               reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot           WaffleReheat               reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       ArrangeTea                 no_restart             n=  6  T= 2020  value 0.184  held-out 0.092  oracle 0.209  reached success 0.33
+  groot_u30       ArrangeTea                 reissue_every_100_v1   n=  3  T= 1380  value 0.231  held-out 0.0  oracle 0.231  reached success 0.33
+  groot_u30       ArrangeTea                 reissue_every_50_v1    n=  3  T= 2120  value 0.176  held-out 0.0  oracle 0.177  reached success 0.33
+  groot_u30       CloseFridge                no_restart             n=  6  T=  420  value 0.256  held-out 0.128  oracle 0.277  reached success 0.33
+  groot_u30       CloseFridge                reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       CloseFridge                reissue_every_50_v1    n=  3  T=  520  value 0.237  held-out 0.0  oracle 0.240  reached success 0.33
+  groot_u30       MakeIceLemonade            no_restart             n=  6  T= 1140  value 0.135  held-out 0.0  oracle 0.135  reached success 0.17
+  groot_u30       MakeIceLemonade            reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       MakeIceLemonade            reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       OpenCabinet                no_restart             n=  6  T=  480  value 0.257  held-out 0.257  oracle 0.257  reached success 0.33
+  groot_u30       OpenCabinet                reissue_every_100_v1   n=  3  T=  720  value 0.438  held-out 0.219  oracle 0.494  reached success 0.67
+  groot_u30       OpenCabinet                reissue_every_50_v1    n=  3  T=  560  value 0.244  held-out 0.0  oracle 0.246  reached success 0.33
+  groot_u30       PanTransfer                no_restart             n=  6  T=  420  value 0.147  held-out 0.0  oracle 0.147  reached success 0.17
+  groot_u30       PanTransfer                reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       PanTransfer                reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       PickPlaceCounterToStove    no_restart             n=  6  T=  380  value 0.456  held-out 0.258  oracle 0.606  reached success 0.83
+  groot_u30       PickPlaceCounterToStove    reissue_every_100_v1   n=  3  T=  360  value 0.700  held-out 0.467  oracle 0.760  reached success 1.00
+  groot_u30       PickPlaceCounterToStove    reissue_every_50_v1    n=  3  T=  340  value 0.478  held-out 0.239  oracle 0.519  reached success 0.67
+  groot_u30       WaffleReheat               no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       WaffleReheat               reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  groot_u30       WaffleReheat               reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            ArrangeTea                 no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            ArrangeTea                 reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            ArrangeTea                 reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            CloseFridge                no_restart             n=  6  T=  800  value 0.556  held-out 0.463  oracle 0.646  reached success 1.00
+  pi05            CloseFridge                reissue_every_100_v1   n=  3  T=  780  value 0.567  held-out 0.378  oracle 0.652  reached success 1.00
+  pi05            CloseFridge                reissue_every_50_v1    n=  3  T=  780  value 0.567  held-out 0.378  oracle 0.642  reached success 1.00
+  pi05            MakeIceLemonade            no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            MakeIceLemonade            reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            MakeIceLemonade            reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            OpenCabinet                no_restart             n=  6  T=  680  value 0.451  held-out 0.356  oracle 0.604  reached success 0.83
+  pi05            OpenCabinet                reissue_every_100_v1   n=  3  T=  640  value 0.463  held-out 0.232  oracle 0.518  reached success 0.67
+  pi05            OpenCabinet                reissue_every_50_v1    n=  3  T=  780  value 0.419  held-out 0.21  oracle 0.497  reached success 0.67
+  pi05            PanTransfer                no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            PanTransfer                reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            PanTransfer                reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            PickPlaceCounterToStove    no_restart             n=  6  T=  360  value 0.583  held-out 0.467  oracle 0.610  reached success 0.83
+  pi05            PickPlaceCounterToStove    reissue_every_100_v1   n=  3  T=  340  value 0.717  held-out 0.717  oracle 0.730  reached success 1.00
+  pi05            PickPlaceCounterToStove    reissue_every_50_v1    n=  3  T=  360  value 0.700  held-out 0.467  oracle 0.724  reached success 1.00
+  pi05            WaffleReheat               no_restart             n=  6  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            WaffleReheat               reissue_every_100_v1   n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+  pi05            WaffleReheat               reissue_every_50_v1    n=  3  T= None  value 0.000  held-out 0.0  oracle 0.000  reached success 0.00
+
+LLM supervisors (regret = best fixed rule's value minus the supervisor's; positive is worse):
+  claude-opus-5-5    groot    ArrangeTea                 n= 3 success 0.00 value 0.000 regret 0.194 paired 0.0 held-out 0.0 (n=3) calls 5 rewrites 1.333 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot    CloseFridge                n= 3 success 0.00 value 0.000 regret 0.6 paired 0.378 held-out 0.189 (n=3) calls 3.333 rewrites 1.333 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot    MakeIceLemonade            n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 5.667 rewrites 2 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot    OpenCabinet                n= 3 success 1.00 value 0.673 regret 0.136 paired 0.136 held-out -0.134 (n=3) calls 2.667 rewrites 0.667 restarts 0 {'correct': 3}
+  claude-opus-5-5    groot    PanTransfer                n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 4 rewrites 1.333 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot    PickPlaceCounterToStove    n= 3 success 1.00 value 0.592 regret 0.241 paired 0.225 held-out 0.23 (n=3) calls 2 rewrites 0 restarts 0 {'correct': 3}
+  claude-opus-5-5    groot    WaffleReheat               n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 9.667 rewrites 4 restarts 2 {'false: not reached yet': 3}
+  claude-opus-5-5    groot_u30 ArrangeTea                 n= 3 success 0.00 value 0.000 regret 0.231 paired 0.184 held-out 0.0 (n=3) calls 4.333 rewrites 0.667 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot_u30 CloseFridge                n= 3 success 0.00 value 0.000 regret 0.256 paired 0.256 held-out 0.0 (n=3) calls 3 rewrites 1 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot_u30 MakeIceLemonade            n= 3 success 0.00 value 0.000 regret 0.135 paired 0.0 held-out 0.0 (n=3) calls 6.333 rewrites 2 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot_u30 OpenCabinet                n= 3 success 0.00 value 0.000 regret 0.438 paired 0.257 held-out 0.0 (n=3) calls 2.667 rewrites 0 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot_u30 PanTransfer                n= 3 success 0.00 value 0.000 regret 0.147 paired 0.0 held-out 0.0 (n=3) calls 4 rewrites 1.333 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    groot_u30 PickPlaceCounterToStove    n= 3 success 0.33 value 0.197 regret 0.503 paired 0.258 held-out -0.025 (n=3) calls 2.667 rewrites 0 restarts 0 {'correct': 1, 'false: not reached yet': 2}
+  claude-opus-5-5    groot_u30 WaffleReheat               n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 8 rewrites 5.333 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    pi05     ArrangeTea                 n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 5 rewrites 1 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    pi05     CloseFridge                n= 3 success 0.33 value 0.188 regret 0.379 paired 0.367 held-out 0.182 (n=3) calls 3.333 rewrites 1 restarts 0 {'correct': 1, 'false: not reached yet': 2}
+  claude-opus-5-5    pi05     MakeIceLemonade            n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 6 rewrites 3.333 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    pi05     OpenCabinet                n= 3 success 0.00 value 0.000 regret 0.463 paired 0.451 held-out 0.356 (n=3) calls 2.667 rewrites 0 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    pi05     PanTransfer                n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 4.667 rewrites 1 restarts 0.667 {'false: not reached yet': 3}
+  claude-opus-5-5    pi05     PickPlaceCounterToStove    n= 3 success 0.00 value 0.000 regret 0.717 paired 0.7 held-out 0.467 (n=3) calls 2 rewrites 0 restarts 0 {'false: not reached yet': 3}
+  claude-opus-5-5    pi05     WaffleReheat               n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 10.667 rewrites 6.667 restarts 0.333 {'false: not reached yet': 3}
+  claude-sonnet-5-5  groot    ArrangeTea                 n= 3 success 0.00 value 0.000 regret 0.194 paired 0.0 held-out 0.0 (n=3) calls 10.667 rewrites 3.333 restarts 0 {'timeout, never reached': 2, 'false: not reached yet': 1}
+  claude-sonnet-5-5  groot    CloseFridge                n= 3 success 0.00 value 0.000 regret 0.6 paired 0.567 held-out 0.378 (n=3) calls 7.667 rewrites 2.667 restarts 0 {'timeout, success was reached': 2, 'timeout, never reached': 1}
+  claude-sonnet-5-5  groot    MakeIceLemonade            n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 10.667 rewrites 4 restarts 0.333 {'timeout, never reached': 1, 'false: not reached yet': 2}
+  claude-sonnet-5-5  groot    OpenCabinet                n= 3 success 0.00 value 0.000 regret 0.81 paired 0.81 held-out 0.54 (n=3) calls 7.333 rewrites 1.333 restarts 0 {'timeout, success was reached': 3}
+  claude-sonnet-5-5  groot    PanTransfer                n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 12 rewrites 2 restarts 0 {'false: not reached yet': 3}
+  claude-sonnet-5-5  groot    PickPlaceCounterToStove    n= 3 success 0.67 value 0.489 regret 0.345 paired 0.328 held-out 0.056 (n=3) calls 2.333 rewrites 0 restarts 0 {'false: not reached yet': 1, 'correct': 2}
+  claude-sonnet-5-5  groot    WaffleReheat               n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 16.333 rewrites 7 restarts 1.667 {'timeout, never reached': 3}
+  claude-sonnet-5-5  groot_u30 ArrangeTea                 n= 3 success 0.00 value 0.000 regret 0.231 paired 0.184 held-out 0.0 (n=3) calls 10.333 rewrites 2 restarts 0.667 {'timeout, never reached': 2, 'timeout, success was reached': 1}
+  claude-sonnet-5-5  groot_u30 CloseFridge                n= 3 success 0.00 value 0.000 regret 0.256 paired 0.256 held-out 0.0 (n=3) calls 6.333 rewrites 3 restarts 0.333 {'timeout, success was reached': 1, 'timeout, never reached': 2}
+  claude-sonnet-5-5  groot_u30 MakeIceLemonade            n= 3 success 0.00 value 0.000 regret 0.135 paired 0.27 held-out 0.0 (n=3) calls 12.333 rewrites 2.333 restarts 0 {'timeout, never reached': 2, 'false: not reached yet': 1}
+  claude-sonnet-5-5  groot_u30 OpenCabinet                n= 3 success 0.00 value 0.000 regret 0.438 paired 0.257 held-out 0.0 (n=3) calls 7 rewrites 1 restarts 0 {'false: not reached yet': 2, 'timeout, success was reached': 1}
+  claude-sonnet-5-5  groot_u30 PanTransfer                n= 3 success 0.00 value 0.000 regret 0.147 paired 0.294 held-out 0.0 (n=3) calls 9.667 rewrites 2.333 restarts 0.333 {'false: not reached yet': 3}
+  claude-sonnet-5-5  groot_u30 PickPlaceCounterToStove    n= 3 success 0.00 value 0.000 regret 0.7 paired 0.456 held-out 0.172 (n=3) calls 3.333 rewrites 0.667 restarts 0 {'false: not reached yet': 2, 'timeout, never reached': 1}
+  claude-sonnet-5-5  groot_u30 WaffleReheat               n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 15 rewrites 7.333 restarts 0.333 {'false: not reached yet': 1, 'timeout, never reached': 2}
+  claude-sonnet-5-5  pi05     ArrangeTea                 n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 10.667 rewrites 4.333 restarts 1.333 {'timeout, never reached': 2, 'false: not reached yet': 1}
+  claude-sonnet-5-5  pi05     CloseFridge                n= 3 success 0.00 value 0.000 regret 0.567 paired 0.556 held-out 0.37 (n=3) calls 7.333 rewrites 2.667 restarts 0.333 {'timeout, success was reached': 2, 'timeout, never reached': 1}
+  claude-sonnet-5-5  pi05     MakeIceLemonade            n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 11 rewrites 3.667 restarts 1 {'timeout, never reached': 1, 'false: not reached yet': 2}
+  claude-sonnet-5-5  pi05     OpenCabinet                n= 3 success 0.00 value 0.000 regret 0.463 paired 0.451 held-out 0.178 (n=3) calls 7 rewrites 2 restarts 0 {'timeout, success was reached': 2, 'timeout, never reached': 1}
+  claude-sonnet-5-5  pi05     PanTransfer                n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 10 rewrites 2 restarts 0 {'false: not reached yet': 3}
+  claude-sonnet-5-5  pi05     PickPlaceCounterToStove    n= 3 success 0.00 value 0.000 regret 0.717 paired 0.467 held-out 0.467 (n=3) calls 2.667 rewrites 0 restarts 0 {'false: not reached yet': 3}
+  claude-sonnet-5-5  pi05     WaffleReheat               n= 3 success 0.00 value 0.000 regret 0.0 paired 0.0 held-out 0.0 (n=3) calls 15 rewrites 8.667 restarts 1 {'timeout, never reached': 3}
+
+Primary (paired held-out regret; positive means the fixed rule did better):
+  claude-opus-5-5: {'mean': 0.06, 'ci95': [0.018, 0.106], 'episodes': 63, 'clusters': 21}
+  claude-sonnet-5-5: {'mean': 0.103, 'ci95': [0.031, 0.189], 'episodes': 63, 'clusters': 21}
+  claude-opus-5-5 - claude-sonnet-5-5: {'mean': -0.043, 'ci95': [-0.102, 0.015], 'clusters': 21}
+
+Sessions (per anonymous policy label; learning < 0 means regret fell in the second half):
+  opus-scene1000 claude-opus-5-5 R (pi05) n=7 value 0.081 regret 0.16894331065759638 pooled-rule value 0.22511337868480727 learning 0.02385449735449735 calls 4.714285714285714 interval 400 restarts 0.0
+  opus-scene1000 claude-opus-5-5 K (groot_u30) n=7 value 0.085 regret 0.18785487528344672 pooled-rule value 0.1902947845804989 learning -0.07588359788359789 calls 3.857142857142857 interval 400 restarts 0.0
+  opus-scene1000 claude-opus-5-5 T (groot) n=7 value 0.157 regret 0.19071806500377933 pooled-rule value 0.26035525321239605 learning -0.19102116402116404 calls 4.428571428571429 interval 400 restarts 0.0
+  opus-scene1001 claude-opus-5-5 R (groot_u30) n=7 value 0.000 regret 0.27242630385487526 pooled-rule value 0.1902947845804989 learning 0.1928571428571428 calls 4.857142857142857 interval 300 restarts 0.0
+  opus-scene1001 claude-opus-5-5 K (pi05) n=7 value 0.000 regret 0.24954648526077097 pooled-rule value 0.22511337868480727 learning 0.10615079365079366 calls 4.428571428571429 interval 300 restarts 0.14285714285714285
+  opus-scene1001 claude-opus-5-5 T (groot) n=7 value 0.198 regret 0.15060922146636435 pooled-rule value 0.26035525321239605 learning -0.19964373897707224 calls 4.285714285714286 interval 400 restarts 0.0
+  opus-scene1002 claude-opus-5-5 R (groot) n=7 value 0.187 regret 0.1608133030990174 pooled-rule value 0.26035525321239605 learning 0.0879788359788359 calls 5.142857142857143 interval 300 restarts 0.8571428571428571
+  opus-scene1002 claude-opus-5-5 T (pi05) n=7 value 0.000 regret 0.24954648526077097 pooled-rule value 0.22511337868480727 learning -0.25171957671957673 calls 5.571428571428571 interval 350 restarts 0.2857142857142857
+  opus-scene1002 claude-opus-5-5 K (groot_u30) n=7 value 0.000 regret 0.27242630385487526 pooled-rule value 0.1902947845804989 learning -0.1871428571428571 calls 4.571428571428571 interval 400 restarts 0.0
+  sonnet-scene1000 claude-sonnet-5-5 R (pi05) n=7 value 0.000 regret 0.24954648526077097 pooled-rule value 0.22511337868480727 learning -0.16421957671957668 calls 8.857142857142858 interval 150 restarts 0.2857142857142857
+  sonnet-scene1000 claude-sonnet-5-5 K (groot_u30) n=7 value 0.000 regret 0.27242630385487526 pooled-rule value 0.1902947845804989 learning 0.07211640211640208 calls 9.428571428571429 interval 150 restarts 0.2857142857142857
+  sonnet-scene1000 claude-sonnet-5-5 T (groot) n=7 value 0.000 regret 0.34813303099017384 pooled-rule value 0.26035525321239605 learning -0.212989417989418 calls 9.142857142857142 interval 200 restarts 0.0
+  sonnet-scene1001 claude-sonnet-5-5 R (groot_u30) n=7 value 0.000 regret 0.27242630385487526 pooled-rule value 0.1902947845804989 learning 0.1928571428571428 calls 8.142857142857142 interval 200 restarts 0.2857142857142857
+  sonnet-scene1001 claude-sonnet-5-5 K (pi05) n=7 value 0.000 regret 0.24954648526077097 pooled-rule value 0.22511337868480727 learning 0.10615079365079366 calls 8.714285714285714 interval 150 restarts 0.7142857142857143
+  sonnet-scene1001 claude-sonnet-5-5 T (groot) n=7 value 0.099 regret 0.24937112622826912 pooled-rule value 0.26035525321239605 learning -0.026810405643738933 calls 8.142857142857142 interval 200 restarts 0.0
+  sonnet-scene1002 claude-sonnet-5-5 R (groot) n=7 value 0.111 regret 0.23746636432350718 pooled-rule value 0.26035525321239605 learning -0.09087830687830697 calls 11.428571428571429 interval 200 restarts 0.8571428571428571
+  sonnet-scene1002 claude-sonnet-5-5 T (pi05) n=7 value 0.000 regret 0.24954648526077097 pooled-rule value 0.22511337868480727 learning -0.25171957671957673 calls 9.714285714285714 interval 200 restarts 0.5714285714285714
+  sonnet-scene1002 claude-sonnet-5-5 K (groot_u30) n=7 value 0.000 regret 0.27242630385487526 pooled-rule value 0.1902947845804989 learning -0.1871428571428571 calls 9.857142857142858 interval 150 restarts 0.14285714285714285
+
+Across sessions, per model and policy:
+  claude-opus-5-5 groot: {'model': 'claude-opus-5-5', 'backend': 'groot', 'episodes': 21, 'value': 0.181, 'regret': 0.167, 'pooled_rule_value': 0.26, 'learning': -0.101}
+  claude-opus-5-5 groot_u30: {'model': 'claude-opus-5-5', 'backend': 'groot_u30', 'episodes': 21, 'value': 0.028, 'regret': 0.244, 'pooled_rule_value': 0.19, 'learning': -0.023}
+  claude-opus-5-5 pi05: {'model': 'claude-opus-5-5', 'backend': 'pi05', 'episodes': 21, 'value': 0.027, 'regret': 0.223, 'pooled_rule_value': 0.225, 'learning': -0.041}
+  claude-sonnet-5-5 groot: {'model': 'claude-sonnet-5-5', 'backend': 'groot', 'episodes': 21, 'value': 0.07, 'regret': 0.278, 'pooled_rule_value': 0.26, 'learning': -0.11}
+  claude-sonnet-5-5 groot_u30: {'model': 'claude-sonnet-5-5', 'backend': 'groot_u30', 'episodes': 21, 'value': 0.0, 'regret': 0.272, 'pooled_rule_value': 0.19, 'learning': 0.026}
+  claude-sonnet-5-5 pi05: {'model': 'claude-sonnet-5-5', 'backend': 'pi05', 'episodes': 21, 'value': 0.0, 'regret': 0.25, 'pooled_rule_value': 0.225, 'learning': -0.103}

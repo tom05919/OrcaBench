@@ -1,6 +1,6 @@
 # OrcaBench final results (October 16, 2026): summary for the presentation
 
-W1's collected numbers for the slides, with sources. The scorer is `time_score.py` at `18b90ad` (the story-limit fix, #10
+W1's collected numbers for the slides, with sources. Later re-analysis (no new runs) is in `docs/reanalysis.md`. The scorer is `time_score.py` at `18b90ad` (the story-limit fix, #10
 and #11), applied to frozen runs of `release-2026-10-15`. Every number is from the runs below; nothing is estimated.
 
 ## The question and the score (one line each)
@@ -24,6 +24,9 @@ and #11), applied to frozen runs of `release-2026-10-15`. Every number is from t
 - **Not yet on the same scenes:** Sonnet's number includes scene 1003; its scenes 1000-1002 number was requested (#8).
   No Opus − Sonnet difference with an interval exists yet (it needs both pods' data in one run). Do not rank the models:
   the intervals overlap.
+- **Update, October 23 (`docs/reanalysis.md`):** both pods scored together on scenes 1000-1002, as the analysis plan
+  specifies: Opus 0.049 [0.004, 0.100], Sonnet 0.066 [0.016, 0.126], Opus − Sonnet -0.016 [-0.058, 0.028]. Both still
+  lose to the fixed rule, and there is no detectable difference between them.
 - **Kimi K3 is an add-on**, run after the freeze on its own pod (A100 PCIe) with its own twins and only 2 complete
   scenes; compare it only through paired regret, and descriptively.
 
@@ -83,7 +86,8 @@ and `addon_format_check_samples.csv`.
 
 - **Scene 1003 is excluded for every model.** PanTransfer's start state at scene 1003 builds randomly into one of two
   states; a session stops after two consecutive start-state mismatches. Opus's scene-1003 session stopped at 6 of 21,
-  Kimi K3's at 5 of 21; Sonnet's happened to complete. No reruns (Tom, October 16).
+  Kimi K3's at 5 of 21; Sonnet's happened to complete. No reruns (Tom, October 16). This was decided after Sonnet's
+  0.071 was computed, so that number still includes scene 1003 until pod B is rescored (`docs/reanalysis.md`).
 - **Small samples:** 3 scenes (63 paired episodes) per main model; per-task and per-policy numbers are descriptive.
 - **Two final pods,** compared only through paired regret (start states are machine-specific).
 - **`reissue_200` is unavailable,** not zero: pod B's restart phase never ran (wrapper stop, then no GPU capacity).
