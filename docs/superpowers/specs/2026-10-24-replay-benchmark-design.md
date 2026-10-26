@@ -271,3 +271,23 @@ Tom confirmed `none`/`low`/`high` only (all four models accept `medium`, but add
 on October 26 for about $147, too close to the deadline and the cap). DeepSeek's three `default` session runs (c=2
 passes 1 and 2, c=6 pass 1) were stopped, at 143, 104 and 82 of 168 episodes, so the grid gets Sail's DeepSeek
 capacity; with `default` out of the comparison they are unused, and their records stay on disk.
+
+### Headline score and leaderboard (Tom, October 26, after the runs; analysis only)
+
+- **What was wrong.** The first class-report draft had no final score: readers had to combine twelve rows of
+  differences from baselines to see which model supervises best, and the figures plotted "value minus the perfect
+  detector", which needs two definitions before it can be read.
+- **Decision: the headline is the supervision score, the model's mean value as a percentage of the oracle's mean value
+  on the same episodes,** on the three leave-alone tasks at 2 s per look (72 episodes per configuration), with a 95%
+  bootstrap interval clustered by (task, scene) that resamples the ratio. The oracle (declare at the robot's first
+  success, one look) is 100; the perfect detector and the fixed timer are drawn as reference lines on the same scale.
+  *Reason:* one number per configuration that a reader can interpret without our vocabulary ("what share of the best
+  achievable value did it get?"); it is a fixed rescaling of the value the pre-declared primary measure already
+  compared (the oracle's mean is the same for every configuration), so no result is re-chosen after seeing data. The
+  leave-alone tasks are kept because they were the pre-declared scope and the unseen tasks score about 0 for everyone.
+- **Decision: done-detection is reported as its own score,** balanced accuracy in percent (50 = chance), not combined
+  with the supervision score. *Reason:* averaging two different scales would be an arbitrary weighting.
+- **Change to decision 2 (within-model comparisons only):** configurations (model × requested level) are now ranked
+  against each other on a leaderboard, as public leaderboards rank "model (reasoning effort)" entries. This ranks
+  deployed configurations; it still does not claim that a requested level means the same amount of reasoning on two
+  models, and level effects are still computed within a model.

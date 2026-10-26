@@ -250,6 +250,14 @@ class ReplayAnalysisTests(ReplayBaselineTests):
         self.assertEqual((diff["mean"], diff["probes"]), (0.25, 8))
         self.assertLessEqual(diff["ci95"][0], 0.25)
 
+    def test_percent_of_oracle_is_a_ratio_of_sums_resampled_by_cluster(self):
+        rows = [{"c": 1, "value": 0.1, "oracle_value": 0.2}, {"c": 1, "value": 0.0, "oracle_value": 0.2},
+                {"c": 2, "value": 0.3, "oracle_value": 0.4}, {"c": 2, "value": None, "oracle_value": 0.4}]
+        out = self.a.percent_of_oracle(rows, "value", lambda r: r["c"])
+        self.assertEqual(out["mean"], 50.0)  # (0.1 + 0 + 0.3) / (0.2 + 0.2 + 0.4); the unknown row is left out
+        self.assertLessEqual(out["ci95"][0], 50.0)
+        self.assertGreaterEqual(out["ci95"][1], 50.0)
+
     def test_block_concordance_compares_policies_within_a_task_block(self):
         fast = {**traj(first=100, ident="f"), "backend": "fast", "scene": 1001}
         slow = {**traj(first=500, ident="s"), "backend": "slow", "scene": 1001}

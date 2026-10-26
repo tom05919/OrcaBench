@@ -618,6 +618,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 27.4,
+          "ci95": [
+            18.7,
+            35.5
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 6.64,
         "median_first_wait": 100.0,
         "false_done": 43,
@@ -669,6 +690,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 8.7,
+          "ci95": [
+            0.2,
+            33.3
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 15.75,
         "median_first_wait": 150.0,
         "false_done": 89,
@@ -719,6 +761,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 25.0,
+          "ci95": [
+            16.6,
+            32.7
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 11.85,
         "median_first_wait": 100.0,
@@ -804,6 +867,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 17.3,
+          "ci95": [
+            10.0,
+            24.0
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 6.96,
         "median_first_wait": 100.0,
         "false_done": 53,
@@ -855,6 +939,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 0.2,
+          "ci95": [
+            0.0,
+            0.4
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 16.38,
         "median_first_wait": 100.0,
         "false_done": 90,
@@ -905,6 +1010,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 15.0,
+          "ci95": [
+            7.7,
+            21.4
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 12.34,
         "median_first_wait": 100.0,
@@ -990,6 +1116,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 8.1,
+          "ci95": [
+            1.6,
+            16.1
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 9.31,
         "median_first_wait": 100.0,
         "false_done": 31,
@@ -1041,6 +1188,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 6.0,
+          "ci95": [
+            0.0,
+            15.3
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 23.34,
         "median_first_wait": 100.0,
         "false_done": 89,
@@ -1091,6 +1259,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 7.8,
+          "ci95": [
+            1.8,
+            14.5
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 17.33,
         "median_first_wait": 100.0,
@@ -1176,6 +1365,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 29.4,
+          "ci95": [
+            14.1,
+            42.8
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 5.43,
         "median_first_wait": 100.0,
         "false_done": 42,
@@ -1227,6 +1437,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 16.82,
         "median_first_wait": 100.0,
         "false_done": 90,
@@ -1277,6 +1508,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 25.5,
+          "ci95": [
+            10.7,
+            37.8
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 11.94,
         "median_first_wait": 100.0,
@@ -1362,6 +1614,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 31.4,
+          "ci95": [
+            18.8,
+            44.2
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 5.46,
         "median_first_wait": 100.0,
         "false_done": 42,
@@ -1413,6 +1686,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 16.62,
         "median_first_wait": 175.0,
         "false_done": 90,
@@ -1463,6 +1757,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 27.2,
+          "ci95": [
+            14.6,
+            39.1
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 11.84,
         "median_first_wait": 100.0,
@@ -1548,6 +1863,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 39.8,
+          "ci95": [
+            24.1,
+            52.8
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 4.26,
         "median_first_wait": 200.0,
         "false_done": 36,
@@ -1599,6 +1935,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 13.99,
         "median_first_wait": 200.0,
         "false_done": 89,
@@ -1649,6 +2006,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 34.6,
+          "ci95": [
+            18.7,
+            47.1
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 9.82,
         "median_first_wait": 200.0,
@@ -1734,6 +2112,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 36.1,
+          "ci95": [
+            18.2,
+            53.2
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 4.42,
         "median_first_wait": 150.0,
         "false_done": 41,
@@ -1785,6 +2184,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 7.2,
+          "ci95": [
+            0.0,
+            18.1
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 12.42,
         "median_first_wait": 200.0,
         "false_done": 90,
@@ -1835,6 +2255,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 32.3,
+          "ci95": [
+            15.7,
+            47.9
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 8.99,
         "median_first_wait": 200.0,
@@ -1920,6 +2361,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 38.7,
+          "ci95": [
+            27.7,
+            49.7
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 4.6,
         "median_first_wait": 180.0,
         "false_done": 43,
@@ -1971,6 +2433,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 24.2,
+          "ci95": [
+            0.0,
+            61.0
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 14.8,
         "median_first_wait": 200.0,
         "false_done": 89,
@@ -2021,6 +2504,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 36.8,
+          "ci95": [
+            25.6,
+            47.1
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 10.43,
         "median_first_wait": 200.0,
@@ -2106,6 +2610,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 18.7,
+          "ci95": [
+            6.4,
+            30.1
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 10.03,
         "median_first_wait": 100.0,
         "false_done": 34,
@@ -2157,6 +2682,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 14.6,
+          "ci95": [
+            0.0,
+            36.9
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 26.01,
         "median_first_wait": 100.0,
         "false_done": 89,
@@ -2207,6 +2753,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 18.1,
+          "ci95": [
+            6.8,
+            28.7
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 19.16,
         "median_first_wait": 100.0,
@@ -2292,6 +2859,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 17.1,
+          "ci95": [
+            8.9,
+            22.6
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 7.88,
         "median_first_wait": 100.0,
         "false_done": 44,
@@ -2343,6 +2931,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 24.23,
         "median_first_wait": 100.0,
         "false_done": 90,
@@ -2393,6 +3002,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 14.9,
+          "ci95": [
+            7.1,
+            20.5
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 17.22,
         "median_first_wait": 100.0,
@@ -2478,6 +3108,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 22.6,
+          "ci95": [
+            8.2,
+            35.3
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 8.26,
         "median_first_wait": 100.0,
         "false_done": 41,
@@ -2530,6 +3181,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 0.1,
+          "ci95": [
+            0.0,
+            0.8
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 29.98,
         "median_first_wait": 100.0,
         "false_done": 89,
@@ -2581,6 +3253,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 19.7,
+          "ci95": [
+            6.7,
+            31.5
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 20.67,
         "median_first_wait": 100.0,
@@ -2666,6 +3359,27 @@
           "n": 72,
           "clusters": 12
         },
+        "score": {
+          "mean": 15.3,
+          "ci95": [
+            7.0,
+            23.1
+          ]
+        },
+        "detector_score": {
+          "mean": 61.2,
+          "ci95": [
+            43.8,
+            74.5
+          ]
+        },
+        "timer_score": {
+          "mean": 50.8,
+          "ci95": [
+            32.6,
+            66.6
+          ]
+        },
         "looks_per_episode": 7.67,
         "median_first_wait": 100.0,
         "false_done": 42,
@@ -2718,6 +3432,27 @@
           "n": 96,
           "clusters": 16
         },
+        "score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "detector_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "timer_score": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
         "looks_per_episode": 24.86,
         "median_first_wait": 100.0,
         "false_done": 91,
@@ -2769,6 +3504,27 @@
           ],
           "n": 168,
           "clusters": 28
+        },
+        "score": {
+          "mean": 13.3,
+          "ci95": [
+            5.4,
+            20.4
+          ]
+        },
+        "detector_score": {
+          "mean": 53.1,
+          "ci95": [
+            33.8,
+            67.7
+          ]
+        },
+        "timer_score": {
+          "mean": 44.1,
+          "ci95": [
+            26.6,
+            59.5
+          ]
         },
         "looks_per_episode": 17.49,
         "median_first_wait": 100.0,
