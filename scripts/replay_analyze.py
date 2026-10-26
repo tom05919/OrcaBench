@@ -127,10 +127,15 @@ def cut_off(usage, stop_reason, effort):
 # ---------------------------------------------------------------------------------------------------------------
 # Baselines on one recorded run (same look accounting as a model: every reply is a look)
 
-def declared_value(traj, step, looks, looks_from_trigger, config, cost):
-    """Value of declaring at `step` after `looks` looks, scored like a model episode (story limit included)."""
+def declared_value(traj, step, looks, looks_from_trigger, config, cost, allowance=0):
+    """Value of declaring at `step` after `looks` looks, scored like a model episode (story limit included).
+    `allowance` (post-hoc check only): a declaration at most this many steps before the robot's first success also
+    counts as a success."""
+    first = traj["first_success"]
+    success = traj["success_by_step"][min(step, len(traj["success_by_step"]) - 1)] or (
+        allowance > 0 and first is not None and 0 < first - step <= allowance)
     episode = {"task": traj["task"], "steps": step, "llm": True, "agent": "rule", "calls": looks,
-               "success": traj["success_by_step"][min(step, len(traj["success_by_step"]) - 1)],
+               "success": success,
                "first_true": traj["first_true"], "logged": traj["logged"],
                "decisions": [{"step_before": s} for s in looks_from_trigger]}
     return score_episode(episode, {**config, "call_seconds": {"rule": cost}})["value"]
@@ -146,10 +151,10 @@ def detector_value(traj, k, config, cost):
     return 0.0
 
 
-def timer_value(traj, t, config, cost):
+def timer_value(traj, t, config, cost, allowance=0):
     """Declare at step t without looking in between: a look at step 0 and the declaration."""
     s = min(t, traj["steps"])
-    return declared_value(traj, s, 2, [0, s], config, cost)
+    return declared_value(traj, s, 2, [0, s], config, cost, allowance)
 
 
 def oracle_value(traj, config, cost):
@@ -387,6 +392,48 @@ def session_summary(rows, trajs, config, task_type):
     return out, groups
 
 
+def tolerance_check(rows, trajs, config, task_type, allowances=(20, 40)):
+    """Post-hoc check (October 26, after the results; design doc): is an early 'done' a model error or the success
+    check's strictness? Returns how early the early 'done's were on trained-task runs the robot finishes, and every
+    configuration's supervision score when a 'done' at most 1 s or 2 s (20 or 40 steps) before the check turns true
+    counts as a success, valued where the model stopped, with its paired value differences from the fixed timer and
+    the perfect-vision rule on the same runs. The fixed timer gets the same allowance, re-tuned in the other scenes; the
+    perfect-vision rule never stops early, so it is unchanged. Not a headline measure."""
+    by_id = {t["id"]: t for t in trajs}
+    la = [r for r in rows if r["kind"] == "leave-alone" and r["cost"] == 2.0]
+    gaps = [by_id[r["traj"]]["first_success"] - r["final_step"] for r in la
+            if by_id[r["traj"]]["first_success"] is not None and r["final_step"] < by_id[r["traj"]]["first_success"]]
+    bins = {"within 1 s": (1, 20), "1-2 s": (21, 40), "2-5 s": (41, 100), "5-10 s": (101, 200), "over 10 s": (201, 10 ** 9)}
+    by_task = defaultdict(list)
+    for r in la:
+        first = by_id[r["traj"]]["first_success"]
+        if first is not None and r["final_step"] < first:
+            by_task[r["task"]].append(first - r["final_step"])
+    out = {"early_done_on_runs_that_succeed": {"n": len(gaps), **{k: sum(lo <= g <= hi for g in gaps)
+                                                                  for k, (lo, hi) in bins.items()},
+                                               "median_steps_early_by_task": {k: statistics.median(v)
+                                                                              for k, v in sorted(by_task.items())}}}
+    cluster = lambda r: (r["task"], r["scene"])
+    for allowance in allowances:
+        timer = {t["id"]: held_out(trajs, t, lambda x, p, c, k: timer_value(x, p, c, k, allowance),
+                                   lambda x: range(10, x["steps"] + 1, 10), config, 2.0)
+                 for t in trajs if task_type.get(t["task"]) == "leave-alone"}
+        groups = defaultdict(list)
+        for r in la:
+            value = declared_value(by_id[r["traj"]], r["final_step"], r["looks"], [d["step"] for d in r["decisions"]],
+                                   config, 2.0, allowance) if r["outcome"] == "false_done" else r["value"]
+            groups[f"{r['model']}|{r['effort']}"].append({
+                **r, "allowed_value": value, "timer_allowed": timer[r["traj"]],
+                "minus_timer_allowed": value - timer[r["traj"]],
+                "minus_detector_allowed": None if r["detector_value"] is None else value - r["detector_value"]})
+        cell = {k: {"score": percent_of_oracle(rs, "allowed_value", cluster),
+                    "minus_timer": bootstrap(rs, "minus_timer_allowed", cluster),
+                    "minus_detector": bootstrap(rs, "minus_detector_allowed", cluster)} for k, rs in sorted(groups.items())}
+        cell["fixed timer"] = percent_of_oracle(next(iter(groups.values())), "timer_allowed", cluster)
+        out[f"allowance {allowance // 20} s"] = cell
+    return out
+
+
 # ---------------------------------------------------------------------------------------------------------------
 # Reliability
 
@@ -468,6 +515,7 @@ def main():
     report = {"recorded_runs": len(trajs), "recorded_runs_that_succeed": sum(t["first_success"] is not None
                                                                              for t in trajs),
               "probe": probe, "probe_contrasts": probe_contrasts(probe_groups), "sessions": session,
+              "post_hoc_tolerance": tolerance_check(sessions, trajs, config, task_type),
 "reliability": reliability(probes, sessions),
               "spent_dollars": {"ledger_raw": round(sum(json.loads(l)["dollars"] for l in (OUT / "api_spend.jsonl")
                                                         .read_text().splitlines() if l.strip()), 2),

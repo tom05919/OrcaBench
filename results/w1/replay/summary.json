@@ -3563,6 +3563,687 @@
       }
     }
   },
+  "post_hoc_tolerance": {
+    "early_done_on_runs_that_succeed": {
+      "n": 228,
+      "within 1 s": 62,
+      "1-2 s": 48,
+      "2-5 s": 73,
+      "5-10 s": 27,
+      "over 10 s": 18,
+      "median_steps_early_by_task": {
+        "CloseFridge": 26.0,
+        "OpenCabinet": 86.0,
+        "PickPlaceCounterToStove": 31.0
+      }
+    },
+    "allowance 1 s": {
+      "deepseek-ai/DeepSeek-V4.1-Flash-1017|high": {
+        "score": {
+          "mean": 42.4,
+          "ci95": [
+            32.4,
+            50.7
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.029,
+          "ci95": [
+            -0.077,
+            0.018
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.053,
+          "ci95": [
+            -0.108,
+            0.008
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "deepseek-ai/DeepSeek-V4.1-Flash-1017|low": {
+        "score": {
+          "mean": 22.8,
+          "ci95": [
+            18.0,
+            28.4
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.084,
+          "ci95": [
+            -0.142,
+            -0.029
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.109,
+          "ci95": [
+            -0.167,
+            -0.054
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "deepseek-ai/DeepSeek-V4.1-Flash-1017|off": {
+        "score": {
+          "mean": 11.1,
+          "ci95": [
+            3.8,
+            20.4
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.117,
+          "ci95": [
+            -0.187,
+            -0.053
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.142,
+          "ci95": [
+            -0.214,
+            -0.077
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "google/gemma-4-31B-it|high": {
+        "score": {
+          "mean": 40.4,
+          "ci95": [
+            21.7,
+            56.2
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.034,
+          "ci95": [
+            -0.073,
+            0.009
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.059,
+          "ci95": [
+            -0.101,
+            -0.014
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "google/gemma-4-31B-it|low": {
+        "score": {
+          "mean": 36.8,
+          "ci95": [
+            20.6,
+            50.9
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.044,
+          "ci95": [
+            -0.081,
+            -0.005
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.069,
+          "ci95": [
+            -0.124,
+            -0.018
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "google/gemma-4-31B-it|off": {
+        "score": {
+          "mean": 42.1,
+          "ci95": [
+            25.8,
+            55.5
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.03,
+          "ci95": [
+            -0.055,
+            -0.001
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.054,
+          "ci95": [
+            -0.094,
+            -0.017
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "moonshotai/Kimi-K3|high": {
+        "score": {
+          "mean": 44.0,
+          "ci95": [
+            25.2,
+            60.7
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.024,
+          "ci95": [
+            -0.066,
+            0.016
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.049,
+          "ci95": [
+            -0.119,
+            -0.0
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "moonshotai/Kimi-K3|low": {
+        "score": {
+          "mean": 42.1,
+          "ci95": [
+            30.2,
+            52.8
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.03,
+          "ci95": [
+            -0.07,
+            0.009
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.054,
+          "ci95": [
+            -0.112,
+            0.004
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "moonshotai/Kimi-K3|off": {
+        "score": {
+          "mean": 18.7,
+          "ci95": [
+            6.4,
+            30.1
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.096,
+          "ci95": [
+            -0.16,
+            -0.03
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.121,
+          "ci95": [
+            -0.167,
+            -0.077
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "zai-org/GLM-5.3-Flash|high": {
+        "score": {
+          "mean": 32.4,
+          "ci95": [
+            21.7,
+            42.7
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.057,
+          "ci95": [
+            -0.116,
+            -0.002
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.081,
+          "ci95": [
+            -0.144,
+            -0.019
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "zai-org/GLM-5.3-Flash|low": {
+        "score": {
+          "mean": 25.5,
+          "ci95": [
+            12.5,
+            37.2
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.077,
+          "ci95": [
+            -0.148,
+            -0.006
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.101,
+          "ci95": [
+            -0.158,
+            -0.05
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "zai-org/GLM-5.3-Flash|minimal": {
+        "score": {
+          "mean": 24.6,
+          "ci95": [
+            13.4,
+            35.6
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.079,
+          "ci95": [
+            -0.149,
+            -0.018
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.104,
+          "ci95": [
+            -0.171,
+            -0.042
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "fixed timer": {
+        "mean": 52.5,
+        "ci95": [
+          33.3,
+          69.4
+        ]
+      }
+    },
+    "allowance 2 s": {
+      "deepseek-ai/DeepSeek-V4.1-Flash-1017|high": {
+        "score": {
+          "mean": 43.4,
+          "ci95": [
+            35.2,
+            50.8
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.04,
+          "ci95": [
+            -0.091,
+            0.011
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.05,
+          "ci95": [
+            -0.104,
+            0.011
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "deepseek-ai/DeepSeek-V4.1-Flash-1017|low": {
+        "score": {
+          "mean": 37.8,
+          "ci95": [
+            26.2,
+            48.2
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.056,
+          "ci95": [
+            -0.105,
+            -0.007
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.066,
+          "ci95": [
+            -0.107,
+            -0.028
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "deepseek-ai/DeepSeek-V4.1-Flash-1017|off": {
+        "score": {
+          "mean": 11.1,
+          "ci95": [
+            3.8,
+            20.4
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.132,
+          "ci95": [
+            -0.203,
+            -0.066
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.142,
+          "ci95": [
+            -0.214,
+            -0.077
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "google/gemma-4-31B-it|high": {
+        "score": {
+          "mean": 46.3,
+          "ci95": [
+            29.7,
+            61.5
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.032,
+          "ci95": [
+            -0.073,
+            0.014
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.042,
+          "ci95": [
+            -0.079,
+            -0.0
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "google/gemma-4-31B-it|low": {
+        "score": {
+          "mean": 44.4,
+          "ci95": [
+            27.7,
+            59.6
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.037,
+          "ci95": [
+            -0.073,
+            -0.0
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.048,
+          "ci95": [
+            -0.091,
+            -0.003
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "google/gemma-4-31B-it|off": {
+        "score": {
+          "mean": 44.7,
+          "ci95": [
+            26.1,
+            61.3
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.036,
+          "ci95": [
+            -0.062,
+            -0.007
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.047,
+          "ci95": [
+            -0.09,
+            -0.006
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "moonshotai/Kimi-K3|high": {
+        "score": {
+          "mean": 51.8,
+          "ci95": [
+            37.2,
+            65.8
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.016,
+          "ci95": [
+            -0.045,
+            0.019
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.027,
+          "ci95": [
+            -0.076,
+            0.013
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "moonshotai/Kimi-K3|low": {
+        "score": {
+          "mean": 51.6,
+          "ci95": [
+            43.2,
+            60.3
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.017,
+          "ci95": [
+            -0.061,
+            0.03
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.027,
+          "ci95": [
+            -0.072,
+            0.02
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "moonshotai/Kimi-K3|off": {
+        "score": {
+          "mean": 19.4,
+          "ci95": [
+            7.0,
+            31.2
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.108,
+          "ci95": [
+            -0.174,
+            -0.041
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.118,
+          "ci95": [
+            -0.166,
+            -0.074
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "zai-org/GLM-5.3-Flash|high": {
+        "score": {
+          "mean": 37.2,
+          "ci95": [
+            24.9,
+            50.4
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.057,
+          "ci95": [
+            -0.124,
+            0.01
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.068,
+          "ci95": [
+            -0.135,
+            -0.002
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "zai-org/GLM-5.3-Flash|low": {
+        "score": {
+          "mean": 26.2,
+          "ci95": [
+            13.1,
+            38.2
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.089,
+          "ci95": [
+            -0.162,
+            -0.016
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.099,
+          "ci95": [
+            -0.158,
+            -0.047
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "zai-org/GLM-5.3-Flash|minimal": {
+        "score": {
+          "mean": 30.2,
+          "ci95": [
+            19.6,
+            40.7
+          ]
+        },
+        "minus_timer": {
+          "mean": -0.077,
+          "ci95": [
+            -0.132,
+            -0.026
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_detector": {
+          "mean": -0.088,
+          "ci95": [
+            -0.142,
+            -0.035
+          ],
+          "n": 72,
+          "clusters": 12
+        }
+      },
+      "fixed timer": {
+        "mean": 57.5,
+        "ci95": [
+          37.3,
+          75.1
+        ]
+      }
+    }
+  },
   "reliability": {
     "moonshotai/Kimi-K3|off|probe": {
       "attempts": 468,

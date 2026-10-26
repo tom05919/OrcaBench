@@ -259,10 +259,14 @@ or repeated API call are documented in the repository; every configuration was c
 \section{Limitations and conclusion}
 Each configuration ran once, so intervals reflect variation across robot runs, not across repeated model runs. The
 models are quantized deployments of one provider. The score rests on 72 episodes per configuration (50 runs the robot
-finishes) from three trained tasks, and supervisors see images only, every 10 steps at most. A ``done'' given in the
-second before the success check turns true may be a correct reading of the image. Despite these limits, the result
-is clear: current open vision-language models stop learned robot policies too early, and a simple timer or a
-perfect-vision rule with a fixed interval does better. Reproducing every number needs no API calls: the recorded runs
+finishes) from three trained tasks, and supervisors see images only, every 10 steps at most. The success check is also strict (a
+cabinet door at least 90\% open, the fridge within 0.5\% of closed, the gripper away from the placed object), so a run
+can look finished for a second or two before it passes, and 48\% of the early ``done''s came within 2~s of it. In a
+post-hoc check that counts such a ``done'' as a success, for the models and the timer alike, no configuration's score
+exceeds the timer (52.5 with a 1~s allowance, 57.5 with 2~s) or the perfect-vision rule (61), but the best ones (Kimi
+K3 low and high, DeepSeek V4.1 Flash high) can no longer be statistically separated from either. Under the
+simulator's definition of success, the result is clear: current open vision-language models stop learned robot
+policies too early, and a simple timer or a perfect-vision rule with a fixed interval does better. Reproducing every number needs no API calls: the recorded runs
 and all model replies are in the repository's release \texttt{replay-data-2026-10-26}.
 
 {\footnotesize

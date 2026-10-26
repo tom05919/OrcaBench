@@ -250,6 +250,13 @@ class ReplayAnalysisTests(ReplayBaselineTests):
         self.assertEqual((diff["mean"], diff["probes"]), (0.25, 8))
         self.assertLessEqual(diff["ci95"][0], 0.25)
 
+    def test_allowance_counts_a_declaration_just_before_success_only_in_the_post_hoc_check(self):
+        t = traj(first=305)
+        self.assertEqual(self.a.timer_value(t, 290, CONFIG, 2.0), 0.0)  # 15 steps early: a failure as scored
+        self.assertAlmostEqual(self.a.timer_value(t, 290, CONFIG, 2.0, allowance=20), 1 - (290 / 20 + 2 * 2.0) / 50)
+        self.assertEqual(self.a.timer_value(t, 280, CONFIG, 2.0, allowance=20), 0.0)  # 25 steps early: still a failure
+        self.assertEqual(self.a.timer_value(traj(first=None), 280, CONFIG, 2.0, allowance=40), 0.0)
+
     def test_percent_of_oracle_is_a_ratio_of_sums_resampled_by_cluster(self):
         rows = [{"c": 1, "value": 0.1, "oracle_value": 0.2}, {"c": 1, "value": 0.0, "oracle_value": 0.2},
                 {"c": 2, "value": 0.3, "oracle_value": 0.4}, {"c": 2, "value": None, "oracle_value": 0.4}]
