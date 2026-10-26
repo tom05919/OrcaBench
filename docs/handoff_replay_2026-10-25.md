@@ -158,3 +158,15 @@ Expected: everything complete around **3-5 am, October 26**; estimated spend abo
    first level "none (minimal)"), drop all `default` handling, re-render, and inspect every PNG for collisions.
 3. Write `docs/replay_report.md` with a justification for every decision (from the design doc), including the mistakes
    and their fixes, then send it and the figures to Tom. Commit and push each step.
+
+## 9. Update, October 26, ~12:00
+
+- **Every grid cell is complete except DeepSeek `high` sessions: 154 of 168 episodes** (short: pod B scenes 1001 (13/21),
+  1002 (20/21), 1003 (17/21), pod C scene 1002 (20/21)). Their session threads died on Sail's 404 "response … not
+  found" when it came on a first attempt (the client only resubmits under a new key after an earlier attempt); one
+  remaining thread then hung for 77 minutes, which kept the restart loop from resuming. That process was killed at
+  about 11:50; `run_grid.sh`'s loop restarted it (resuming the four sessions). Check `status.log` for
+  "sessions deepseek-ai/DeepSeek-V4.1-Flash-1017 high"; if it stalls again, kill the replay process by PID and the loop
+  will restart it.
+- Estimated spend at 11:46: **$138.53** of the $150 cap.
+- Possible small fix if needed: in `SailClient.call`, also resubmit under a new key on a first-attempt 404 "not found".
