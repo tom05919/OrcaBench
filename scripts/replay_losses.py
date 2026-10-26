@@ -7,7 +7,8 @@ From the ledger (`runs/replay/api_spend.jsonl`, one line per settled request) an
 - replies: requests that returned with usage (paid); timeouts: attempts the client gave up on (Sail may still have run
   and billed them); http: error responses by status code.
 - Sessions: looks saved on arrival (`.looks.jsonl`), looks inside finished episodes (scored), looks of interrupted
-  episode attempts (saved, paid, not scored: the episode was replayed from its start), and paid replies with no saved
+  episode attempts (saved, paid, not scored: the episode was replayed from its start; an episode still running when
+  this is run also counts here), and paid replies with no saved
   look (before per-look saving existed, October 24 14:28, or a stop between payment and saving).
 - Probes: replies against answers on disk. Probe ledger tags carry no pass, so pilot (pass 0) replies are counted
   with the cell and subtracted using the pilot files.
@@ -58,6 +59,7 @@ def main():
             continue
         key = "sessions/" + str(folder.relative_to(OUT / "sessions"))
         saved = scored = interrupted_looks = 0
+        interrupted_dollars = 0.0
         attempts, finished = set(), set()
         for looks in folder.glob("*.looks.jsonl"):
             for r in map(json.loads, looks.read_text().splitlines()):
@@ -75,11 +77,14 @@ def main():
         interrupted = attempts - finished
         for looks in folder.glob("*.looks.jsonl"):
             for r in map(json.loads, looks.read_text().splitlines()):
-                interrupted_looks += (looks.name, r["index"], r["attempt"]) in interrupted
+                if (looks.name, r["index"], r["attempt"]) in interrupted:
+                    interrupted_looks += 1
+                    interrupted_dollars += r["dollars"]
         led = ledger.pop(key, {"replies": 0, "timeouts": 0, "http": Counter()})
         out[key] = {"episodes": episodes, "paid_replies": led["replies"], "timeouts": led["timeouts"],
                     "http_errors": dict(led["http"]), "looks_saved": saved, "looks_scored": scored,
                     "interrupted_attempts": len(interrupted), "interrupted_looks": interrupted_looks,
+                    "interrupted_dollars": round(interrupted_dollars, 3),
                     "paid_replies_not_saved": led["replies"] - saved}
     for path in sorted((OUT / "probe").glob("**/pass1/*.jsonl")):
         level = path.parent.parent.name.replace("effort-", "") if path.parent.parent.name.startswith("effort-") \
