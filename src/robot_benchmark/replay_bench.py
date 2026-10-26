@@ -302,7 +302,7 @@ class SailClient:
                            "messages": [{"role": "user", "content": content}], **EFFORTS[self.effort]}).encode()
         # One idempotency key per call, reused on every retry: Sail then returns the original reply instead of running
         # (and billing) the request again, and answers 409 while the original is still running.
-        key, attempt, waits = str(uuid.uuid4()), 0, 0
+        key, attempt, waits, lost = str(uuid.uuid4()), 0, 0, 0
         while True:
             worst = self.ledger.reserve(model, 3000 * images + text // 2 + 1000, self.max_tokens)
             started, usage = time.time(), None
@@ -328,11 +328,14 @@ class SailClient:
                     waits += 1
                     time.sleep(float(e.headers.get("Retry-After") or 30) if e.headers else 30)
                     continue
-                if e.code == 404 and attempt > 0 and "not_found" in message and attempt < 3:
+                if e.code == 404 and attempt > 0 and "not_found" in message and lost < 3:
                     # Sail sometimes loses the request behind an idempotency key after a timeout ("response ... not
-                    # found", October 25): submit afresh under a new key.
-                    key = str(uuid.uuid4())
-                elif e.code in (401, 403, 404) or attempt == 3:
+                    # found", October 25): submit afresh under a new key at once. The lookup ran nothing, so it does not
+                    # use up an attempt; counted as one, a second loss raised on the last attempt and stopped a session
+                    # 27 times on October 25-26.
+                    key, lost = str(uuid.uuid4()), lost + 1
+                    continue
+                if e.code in (401, 403, 404) or attempt == 3:
                     raise
             except (urllib.error.URLError, TimeoutError, ConnectionError):
                 self.ledger.settle(model, worst, None, tag + ":timeout")

@@ -168,6 +168,71 @@ class ReplayBenchTests(unittest.TestCase):
                                                                     [{"type": "text", "text": "hi"}])
         self.assertEqual((len(keys), keys[0] == keys[1], keys[1] == keys[2]), (3, True, False))
 
+    def test_a_request_lost_twice_is_resubmitted_again(self):
+        # October 25-26: timeout, 404 (lost), resubmitted, timeout, 404 again on the fourth request, which raised and
+        # stopped the session 27 times. A lost-request 404 ran nothing, so it does not use up one of the 4 attempts.
+        import io
+        from unittest import mock
+        keys = []
+
+        class Reply:
+            def read(self):
+                return json.dumps({"content": [{"type": "text", "text": "{}"}], "stop_reason": "end_turn",
+                                   "usage": {"input_tokens": 1, "output_tokens": 2}}).encode()
+
+        def fake_urlopen(request, timeout):
+            keys.append(request.headers["Anthropic-idempotency-key"])
+            if len(keys) in (1, 3):
+                raise TimeoutError("slow")
+            if len(keys) in (2, 4):
+                raise urllib.error.HTTPError("u", 404, "Not Found", {}, io.BytesIO(
+                    b'{"error":{"message":"response \\"resp_1\\" not found","type":"not_found_error"}}'))
+            return Reply()
+
+        with tempfile.TemporaryDirectory() as d, mock.patch("urllib.request.urlopen", fake_urlopen), \
+                mock.patch("time.sleep"):
+            reply = SailClient("k", Ledger(Path(d) / "s.jsonl", cap=1)).call("zai-org/GLM-5.3-Flash", "s",
+                                                                             [{"type": "text", "text": "hi"}])
+        self.assertEqual((reply["attempts"], len(keys), len(set(keys))), (3, 5, 3))
+        self.assertEqual((keys[0] == keys[1], keys[2] == keys[3]), (True, True))
+
+    def test_a_call_stops_after_four_timeouts_even_if_every_request_is_lost(self):
+        import io
+        from unittest import mock
+        keys = []
+
+        def fake_urlopen(request, timeout):
+            key = request.headers["Anthropic-idempotency-key"]
+            keys.append(key)
+            if keys.count(key) == 1:
+                raise TimeoutError("slow")
+            raise urllib.error.HTTPError("u", 404, "Not Found", {}, io.BytesIO(
+                b'{"error":{"message":"response \\"resp_1\\" not found","type":"not_found_error"}}'))
+
+        with tempfile.TemporaryDirectory() as d, mock.patch("urllib.request.urlopen", fake_urlopen), \
+                mock.patch("time.sleep"):
+            client = SailClient("k", Ledger(Path(d) / "s.jsonl", cap=1))
+            with self.assertRaises(TimeoutError):
+                client.call("zai-org/GLM-5.3-Flash", "s", [{"type": "text", "text": "hi"}])
+            self.assertEqual((len(keys), len(set(keys))), (7, 4))  # 4 timeouts; a lost lookup after each but the last
+
+    def test_a_not_found_error_on_a_new_request_is_not_retried(self):
+        import io
+        from unittest import mock
+        sent = []
+
+        def fake_urlopen(request, timeout):
+            sent.append(request)
+            raise urllib.error.HTTPError("u", 404, "Not Found", {}, io.BytesIO(
+                b'{"error":{"message":"model: x","type":"not_found_error"}}'))
+
+        with tempfile.TemporaryDirectory() as d, mock.patch("urllib.request.urlopen", fake_urlopen), \
+                mock.patch("time.sleep"):
+            with self.assertRaises(urllib.error.HTTPError):
+                SailClient("k", Ledger(Path(d) / "s.jsonl", cap=1)).call("zai-org/GLM-5.3-Flash", "s",
+                                                                         [{"type": "text", "text": "hi"}])
+        self.assertEqual(len(sent), 1)
+
     def test_timeouts_are_counted_at_the_99th_percentile_reply_cost(self):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "s.jsonl"

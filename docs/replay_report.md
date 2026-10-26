@@ -398,12 +398,14 @@ change.
     out and were retried (counted in section 8).
 11. **Sail held and lost DeepSeek `high` requests (October 25-26).** From about 23:30 on, many DeepSeek `high` calls
     got no reply until the 900 s limit, and Sail then answered the retry with HTTP 404 "response ... not found". The
-    client resubmits under a new key after a 404 only on the second to fourth attempt; a 404 on the first attempt, or
-    a fourth failed attempt, ends that session's worker until the process is restarted. `grid.log` records 27 such
-    crashes on 404 between 23:28 and 11:47. Progress fell from about 40 episodes an hour to 3-4. *Not fixed:* Tom chose
-    to let the run finish unchanged rather than patch the client mid-condition (October 26). Another Claude session
-    killed the stalled process at about 11:47 so that `run_grid.sh` restarted it (the stall overlapped the second
-    sleep above).
+    client counted that 404 as one of a call's four attempts, so a request lost twice ended that session's worker until
+    the process was restarted: timeout, 404, resubmitted under a new key, timeout, and a second 404 on the fourth
+    attempt, which raised. `grid.log` records 27 such crashes on 404 between 23:28 and 11:47, and the ledger shows
+    exactly this sequence 27 times (no 404 came on a first attempt). Progress fell from about 40 episodes an hour to
+    3-4. *Not fixed during the run:* Tom chose to let the run finish unchanged rather than patch the client
+    mid-condition (October 26). Another Claude session killed the stalled process at about 11:47 so that `run_grid.sh`
+    restarted it (the stall overlapped the second sleep above). *Fixed after the runs (October 26):* a lost-request 404
+    no longer uses up an attempt (a call still stops after four timeouts); no recorded reply changes.
 
 Every stop was followed by a restart-until-complete wrapper: an interrupted episode is replayed from its start, and its
 interrupted looks stay on disk (`.looks.jsonl`). In all, the run logs record 142 process crashes (69 on HTTP 404, 50 on
