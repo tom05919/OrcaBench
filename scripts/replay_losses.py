@@ -9,7 +9,8 @@ From the ledger (`runs/replay/api_spend.jsonl`, one line per settled request) an
 - Sessions: looks saved on arrival (`.looks.jsonl`), looks inside finished episodes (scored), looks of interrupted
   episode attempts (saved, paid, not scored: the episode was replayed from its start; an episode still running when
   this is run also counts here), and paid replies with no saved
-  look (before per-look saving existed, October 24 14:28, or a stop between payment and saving).
+  look (a stop between payment and saving; for runs started before per-look saving existed, October 24 14:28, it
+  counts every reply, so compare it with the scored looks there).
 - Probes: replies against answers on disk. Probe ledger tags carry no pass, so pilot (pass 0) replies are counted
   with the cell and subtracted using the pilot files.
 - Requests still in flight when a process stopped are in neither the ledger nor the records; each interrupted episode
