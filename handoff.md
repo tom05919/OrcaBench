@@ -1,5 +1,7 @@
 # OrcaBench handoff
 
+> **Latest (October 25, 2026): read `docs/handoff_replay_2026-10-25.md` first** — the replay benchmark of open models (done-detection and look scheduling), what is running, and what to do next.
+
 Read section **S** first. A0 (October 11) and A (October 10) are kept as history: their findings stand, but their
 "what is left" and "next steps" lists are replaced by S.4. Sections 0-15 are the October 2 handoff: still right about
 the interface, scoring, seeds, compute commands and tooling gotchas, but their status, branch and plans are superseded
