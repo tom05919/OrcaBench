@@ -225,3 +225,13 @@ interrupted looks stay on disk.
 
 Estimated spending reached the $100 cap at 13:17 with about $8 of planned work left (Kimi K3 without reasoning made
 about 13 looks per episode, more than projected). Tom raised the cap to $150 to finish every planned condition.
+
+### GLM-5.3-Flash sessions at `minimal` and `medium` (Tom, October 25, 20:25, before any result at these levels)
+
+- **Added:** GLM sessions at `minimal` and `medium`, the two GLM levels the pilot gate kept, so that GLM has three
+  session conditions like the other models (its `default` reasons heavily: median about 3,100 output tokens per
+  session reply). *Reason:* at these levels GLM answers in a median of about 30 s for about $0.0001 per call (probe
+  data), so both fit before the deadline for under $1, unlike its slow default.
+- **Fallback (Tom):** if GLM's sessions are not complete when the final analysis is run on October 26, the main
+  session comparison uses Kimi K3, Gemma 4 31B and DeepSeek V4.1 Flash, and GLM's sessions are reported as partial
+  with their sample sizes. GLM's probe results (complete at every level) are reported either way.
