@@ -53,9 +53,28 @@ python3.12 -B scripts/replay_run.py sessions --models google/gemma-4-31B-it --pa
   --cost-per-look 2 --max-tokens 32768 --timeout 900 --workers 8 --cap 10
 ```
 
+**Run the whole grid (costs money; the October 25-26 grid cost about $72, estimated).** `scripts/replay_grid.sh` runs
+every model at reasoning off (GLM: minimal), low and high, in the probe (450 questions) and the sessions (168 episodes
+at 2 s per look), pass 1, with the settings the data was produced with: `--timeout 900 --max-tokens 32768`, 6 workers
+for the probe and 8 for sessions, and a ledger cap of $150 (`CAP=...` to change it; the cap counts everything in
+`runs/replay/api_spend.jsonl`, including the downloaded ledger's $139). Every cell runs in parallel in its own
+loop and is restarted until complete (at most 20 times for a probe cell and 40 for a session cell), since the runner
+resumes where it stopped; a cell that is already complete is skipped. Logs go to `runs/replay/logs/`.
+
+```bash
+scripts/replay_grid.sh pilot                            # optional: the unscored 10-probe pilot of every cell (pass 0)
+scripts/replay_grid.sh                                  # probe and sessions, all four models
+scripts/replay_grid.sh sessions moonshotai/Kimi-K3      # one part, one model
+```
+
+The script replaces the one-off, Git-ignored scripts that produced the data (`runs/replay/run_*.sh` on Tom's Mac).
+Probe cells run before the final grid (October 25, 21:30) used 8 workers instead of 6, and runs before 16:40 that day
+a $100 cap. Neither setting changes what a model is asked: the cap only stops spending, and the worker count only sets
+how many calls are in flight (with more in flight, more calls time out and are retried).
+
 Code: `src/robot_benchmark/replay_bench.py` (frames, probe sampling, sessions, API client, spending ledger),
-`scripts/replay_run.py`, `scripts/replay_analyze.py`, `scripts/replay_losses.py`, `scripts/replay_figures.py`;
-tests in `tests/test_replay_bench.py`.
+`scripts/replay_run.py`, `scripts/replay_grid.sh`, `scripts/replay_analyze.py`, `scripts/replay_losses.py`,
+`scripts/replay_figures.py`; tests in `tests/test_replay_bench.py`.
 
 ## Earlier live benchmark (October 2026, superseded by the replay benchmark above)
 
