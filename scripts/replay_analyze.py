@@ -23,7 +23,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from robot_benchmark.replay_bench import FRAME_STEP, Ledger, condition_of, load_trajectories  # noqa: E402
+from robot_benchmark.replay_bench import (FRAME_STEP, Ledger, condition_of, estimated_dollars,  # noqa: E402
+                                          load_trajectories)
 from robot_benchmark.time_score import STEPS_PER_SECOND, load_config, score_episode  # noqa: E402
 
 POD_ROOTS = {"podC": ROOT / "runs/addon/podC/always_defer", "podB": ROOT / "runs/final/podB/always_defer"}
@@ -398,13 +399,7 @@ def reliability(probe, sessions):
         tag = r["tag"]
         if ":http" in tag:
             continue
-        part = "probe" if tag.startswith("probe") else "session"
-        if part == "probe":
-            fields = tag.split(":")
-            effort = fields[1] if len(fields) > 2 and fields[1] in ("off", "minimal", "low", "medium", "high",
-                                                                    "xhigh", "default") else "default"
-        else:
-            effort = tag.split("@")[1].split("#")[0] if "@" in tag else "default"
+        part, effort = condition_of(tag)
         if ":p0:" in tag or effort not in GRID or (part == "session" and ":c2:p1:" not in tag):
             continue  # probe tags carry no pass: probe attempts include the 10-probe pilot of each cell
         k = f"{r['model']}|{effort}|{part}"
@@ -428,13 +423,8 @@ def spending():
     """Dollars by use, raw (timeouts at their written worst case) and estimated (timeouts at the 99th-percentile reply
     cost of the same model, part and level, as the cap counts them): the grid, its pilots, and runs not analysed."""
     entries = [json.loads(l) for l in (OUT / "api_spend.jsonl").read_text().splitlines() if l.strip()]
-    replies = defaultdict(list)
-    for e in entries:
-        if not e["tag"].endswith(":timeout") and ":http" not in e["tag"]:
-            replies[(e["model"], condition_of(e["tag"]))].append(e["dollars"])
-    p99 = {k: sorted(v)[int(0.99 * (len(v) - 1))] for k, v in replies.items() if len(v) >= 20}
     out = defaultdict(lambda: {"raw": 0.0, "estimated": 0.0, "timeouts": 0})
-    for e in entries:
+    for e, est in zip(entries, estimated_dollars(entries)):
         part, effort = condition_of(e["tag"])
         if ":p0:" in e["tag"]:
             use = "pilot sessions (pass 0)"
@@ -445,7 +435,6 @@ def spending():
         else:
             use = f"{effort} runs (stopped, not analysed)"
         timeout = e["tag"].endswith(":timeout")
-        est = min(e["dollars"], p99.get((e["model"], (part, effort)), e["dollars"])) if timeout else e["dollars"]
         for key in (use, f"{use}|{e['model']}"):
             out[key]["raw"] += e["dollars"]
             out[key]["estimated"] += est

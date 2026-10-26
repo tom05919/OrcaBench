@@ -223,6 +223,21 @@ def condition_of(tag):
     return "session", tag.split("@")[1].split("#")[0].split(":")[0] if "@" in tag else "default"
 
 
+def estimated_dollars(entries):
+    """Estimated dollars of each ledger entry, in order. A timed-out call reports no usage, and Sail may still have run
+    and billed it, so it is counted at the 99th-percentile cost of that model's replies in the same part and reasoning
+    level (at its written worst case while fewer than 20 such replies exist). Written worst cases (up to $0.41 for a
+    Kimi call allowed 32,768 output tokens) made the cap stop runs far below real spending on October 25; the ledger
+    file keeps the raw values."""
+    replies = defaultdict(list)
+    for e in entries:
+        if not e["tag"].endswith(":timeout") and ":http" not in e["tag"]:
+            replies[(e["model"], condition_of(e["tag"]))].append(e["dollars"])
+    p99 = {k: sorted(v)[int(0.99 * (len(v) - 1))] for k, v in replies.items() if len(v) >= 20}
+    return [min(e["dollars"], p99.get((e["model"], condition_of(e["tag"])), e["dollars"]))
+            if e["tag"].endswith(":timeout") else e["dollars"] for e in entries]
+
+
 class Ledger:
     """Shared dollar ledger: every call reserves a worst case before it is sent and settles from reported usage; a
     call with no usage (a timeout) is written at its worst case. Appends one line per settled call to `path`."""
@@ -232,21 +247,10 @@ class Ledger:
         self.spent, self.reserved = self._settled(), 0.0
 
     def _settled(self):
-        """Estimated dollars spent, including calls by other processes sharing the file. A timed-out call reports no
-        usage, and Sail may still have run and billed it, so it is counted at the 99th-percentile cost of that model's
-        replies in the same part and reasoning level (at its written worst case while fewer than 20 such replies
-        exist). Written worst cases (up to $0.41 for a Kimi call allowed 32,768 output tokens) made the cap stop runs
-        far below real spending on October 25; the file keeps the raw values."""
+        """Estimated dollars spent (`estimated_dollars`), including calls by other processes sharing the file."""
         if not self.path.exists():
             return 0.0
-        entries = [json.loads(l) for l in self.path.read_text().splitlines() if l.strip()]
-        replies = defaultdict(list)
-        for e in entries:
-            if not e["tag"].endswith(":timeout") and ":http" not in e["tag"]:
-                replies[(e["model"], condition_of(e["tag"]))].append(e["dollars"])
-        p99 = {k: sorted(v)[int(0.99 * (len(v) - 1))] for k, v in replies.items() if len(v) >= 20}
-        return sum(min(e["dollars"], p99.get((e["model"], condition_of(e["tag"])), e["dollars"]))
-                   if e["tag"].endswith(":timeout") else e["dollars"] for e in entries)
+        return sum(estimated_dollars([json.loads(l) for l in self.path.read_text().splitlines() if l.strip()]))
 
     @staticmethod
     def cost(model, input_tokens, output_tokens):
