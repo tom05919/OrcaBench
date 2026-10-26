@@ -235,3 +235,21 @@ about 13 looks per episode, more than projected). Tom raised the cap to $150 to 
 - **Fallback (Tom):** if GLM's sessions are not complete when the final analysis is run on October 26, the main
   session comparison uses Kimi K3, Gemma 4 31B and DeepSeek V4.1 Flash, and GLM's sessions are reported as partial
   with their sample sizes. GLM's probe results (complete at every level) are reported either way.
+
+### Full grid of reasoning levels; `default` off the level figures (Tom's review, October 25, 21:05)
+
+- **What was wrong.** The pilot gate kept a level only if its thinking length differed clearly from the level below,
+  judged on 10 probes. That left each model with a different set of levels (DeepSeek had no `medium` or `high`), which
+  makes the comparison look arbitrary, and the figures showed Sail's `default` as if it were a level although Sail
+  does not document what it is.
+- **Decision: every model is run at the same standard levels,** `off` (GLM: `minimal`, since Sail rejects disabling
+  its reasoning), `low`, `medium` and `high`, in both the probe and the sessions. Thinking length is reported per level
+  as the check that the level changed the model's behaviour; it no longer decides which levels are run. *Reason:* a
+  benchmark should apply one grid to every model; whether a provider's levels differ is itself a result to report.
+- **Decision: `default` is not plotted as a level.** Sail does not document it, so it is identified empirically: its
+  thinking length (output tokens) is compared with each explicit level's on the same probes, adding `xhigh` for Kimi
+  and GLM, whose defaults produced more output than their `high`. The main runs that used `default` are reported
+  separately, described by that comparison, and never pooled with an explicit level: they also used a 6,144-token
+  reply limit instead of 32,768.
+- **No result at the added levels has been seen.** They are added to make the design uniform, after preliminary
+  figures for the other levels; every level gets identical settings.
