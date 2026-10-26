@@ -73,9 +73,15 @@ A good supervisor needs two skills. It must \textbf{recognise completion} from c
 task that is almost done looks very much like a task that is done. It must also \textbf{decide when to look}: each
 look costs time (the model has to be called and answer) and money, so looking constantly is wasteful, while looking
 rarely means stopping long after the robot has finished, and stopping before it has finished fails the task.
-Vision-language models have been tested as success detectors on curated video clips~\cite{successdetectors}, but we
-know of no benchmark that scores the whole supervision decision, \emph{when to look and when to stop}, against
-simple non-language baselines.
+Vision-language models have been tested as success detectors on curated video clips~\cite{successdetectors}.
+Closest to our setting, Hu et al.~\cite{whatmatters} study hierarchical agents in which a vision-language planner
+hands subgoals to learned robot policies, and compare ways of deciding when a subgoal is over: a fixed horizon, a
+horizon predicted by the planner, and a success detector. The success detector did best overall, though on short
+tasks a fixed horizon matched it (75.8\% against 74.7\% success). Their study treats stopping as one design choice
+among many: in simulation the success detector reads privileged simulator state, and systems are scored by task
+success alone, so neither the cost of a check nor how late a stop comes counts. We isolate this decision. Our
+supervisor must judge completion from the cameras alone and decide when to check, each check costs time, and we
+score it against a timer and a perfect-vision rule that use no language model.
 
 \textbf{Contributions.} (1)~A benchmark that scores both skills automatically on recorded runs of real learned
 policies, with a single headline score and baselines that use no language model. (2)~Results for four open
@@ -228,7 +234,7 @@ actually obtain rather than trust the label.
 
 \section{What did not work}
 \label{sec:didnotwork}
-\textbf{Our first benchmark could not be interpreted.} Before this design, we ran language-model supervisors (Claude
+\textbf{Our first iteration did not measure enough information.} Before this design, we ran language-model supervisors (Claude
 Opus~5.5, Claude Sonnet~5.5 and later Kimi K3) live on GPU machines, supervising the same three policies. The
 supervisor could also rewrite the policy's instruction or restart it, each model call was charged that model's
 measured response time, and the score compared each model with a fixed stopping rule. Both Claude models lost to the
@@ -273,6 +279,7 @@ and all model replies are in the repository's release \texttt{replay-data-2026-1
 \bibitem{saycan} M.~Ahn et al. Do as I can, not as I say: Grounding language in robotic affordances. CoRL, 2022.
 \bibitem{innermonologue} W.~Huang et al. Inner monologue: Embodied reasoning through planning with language models. CoRL, 2022.
 \bibitem{successdetectors} Y.~Du et al. Vision-language models as success detectors. CoLLAs, 2023.
+\bibitem{whatmatters} J.~Hu et al. What matters in orchestrating robot policies: A systematic study of hierarchical VLA agents. arXiv:2606.10267, 2026.
 \end{thebibliography}}
 
 \end{document}
