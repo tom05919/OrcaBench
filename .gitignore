@@ -10,3 +10,9 @@ checkpoints/
 runs/
 dist/
 .env
+
+# LaTeX build outputs of the class report
+docs/cos597c_report/*.aux
+docs/cos597c_report/*.log
+docs/cos597c_report/*.out
+docs/cos597c_report/missfont.log

@@ -45,6 +45,7 @@ def grid(model):
 
 def level_label(effort):
     return {"off": "none", "minimal": "none (minimal)"}.get(effort, effort)
+NOTES = True  # set False by --no-notes
 INK, INK2, MUTED, GRID, AXIS = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#c3c2b7"
 
 plt.rcParams.update({
@@ -96,10 +97,11 @@ def fig_probe_accuracy(summary, out, label):
                     transform=ax.transAxes, ha="left", va="top", fontsize=6.3, color=INK2)
     axes[0].set_ylabel("Balanced accuracy, 'is it done?'")
     axes[0].set_ylim(0.6, 0.88)
-    fig.text(0.01, -0.08, "Requested reasoning level. Points: 450 probes each (pass 1), 95% bootstrap CI clustered by "
-             "recorded run; unreadable replies count as wrong. Text: paired difference\nhigh − none on the same "
-             "probes, 95% CI. GLM's \"none\" is Sail's minimal level (disabling its reasoning is rejected). Compare "
-             "levels within a model, not across models.", fontsize=6.5, color=INK2, va="top")
+    if NOTES:  # explanatory notes under the figure; papers put them in the caption instead
+        fig.text(0.01, -0.08, "Requested reasoning level. Points: 450 probes each (pass 1), 95% bootstrap CI clustered by "
+                 "recorded run; unreadable replies count as wrong. Text: paired difference\nhigh − none on the same "
+                 "probes, 95% CI. GLM's \"none\" is Sail's minimal level (disabling its reasoning is rejected). Compare "
+                 "levels within a model, not across models.", fontsize=6.5, color=INK2, va="top")
     save(fig, out, "fig1_probe_accuracy_by_reasoning", label)
 
 
@@ -146,10 +148,11 @@ def fig_probe_heatmap(rows, trajs, task_type, out, label):
     for i in range(1, len(keys)):
         if keys[i][0] != keys[i - 1][0]:
             ax.axhline(i - 0.5, color="white", lw=3)
-    fig.text(0.0, -0.02, "% of probes answered \"done\". Left four columns: the task is not done (a correct "
-             "answer is \"not done\"); right two: it is done. Pass 1; the 2 s band\njust before success is not probed "
-             "(the checker lags the images by about 1 s). GLM's none = minimal.", fontsize=6.5, color=INK2,
-             va="top")
+    if NOTES:  # explanatory notes under the figure; papers put them in the caption instead
+        fig.text(0.0, -0.02, "% of probes answered \"done\". Left four columns: the task is not done (a correct "
+                 "answer is \"not done\"); right two: it is done. Pass 1; the 2 s band\njust before success is not probed "
+                 "(the checker lags the images by about 1 s). GLM's none = minimal.", fontsize=6.5, color=INK2,
+                 va="top")
     save(fig, out, "fig2_probe_said_done_heatmap", label)
 
 
@@ -206,10 +209,11 @@ def fig_sessions(summary, out, label):
     handles = [Line2D([], [], marker=mk, ls="none", color=c, label=n) for n, c, mk in MODELS.values()]
     a2.legend(handles=handles, frameon=False, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2,
               handletextpad=0.2, columnspacing=1.0, borderaxespad=0.2)
-    fig.text(0.0, -0.04, "Leave-alone tasks (OpenCabinet, PickPlaceCounterToStove, CloseFridge), 2 s per look, pass 1; "
-             "intervals: 95% bootstrap clustered by task and scene. GLM's\nnone = minimal. Dashed: conditions no "
-             "other condition beats on both axes (fewer looks, more correct declarations). Partial conditions show "
-             "their n.", fontsize=6.5, color=INK2, va="top")
+    if NOTES:  # explanatory notes under the figure; papers put them in the caption instead
+        fig.text(0.0, -0.04, "Leave-alone tasks (OpenCabinet, PickPlaceCounterToStove, CloseFridge), 2 s per look, pass 1; "
+                 "intervals: 95% bootstrap clustered by task and scene. GLM's\nnone = minimal. Dashed: conditions no "
+                 "other condition beats on both axes (fewer looks, more correct declarations). Partial conditions show "
+                 "their n.", fontsize=6.5, color=INK2, va="top")
     fig.tight_layout(w_pad=2.5)
     save(fig, out, "fig3_sessions_value_and_tradeoff", label)
 
@@ -254,9 +258,10 @@ def fig_declaration_timing(rows, trajs, task_type, out, label):
     ax.set_xlabel("Declared 'done' minus the robot's first success (s)")
     ax.text(-lim + 0.4, -0.9, "too early (failure)", fontsize=6.3, color=INK2, va="bottom")
     ax.text(lim - 0.4, -0.9, "late (time lost)", fontsize=6.3, color=INK2, va="bottom", ha="right")
-    fig.text(0.0, -0.02, "Leave-alone tasks, runs the robot finishes, 2 s per look; one dot per episode, black bar = "
-             "median. Arrowheads: episodes beyond ±15 s, with\ntheir count. GLM's none = minimal.", fontsize=6.5,
-             color=INK2, va="top")
+    if NOTES:  # explanatory notes under the figure; papers put them in the caption instead
+        fig.text(0.0, -0.02, "Leave-alone tasks, runs the robot finishes, 2 s per look; one dot per episode, black bar = "
+                 "median. Arrowheads: episodes beyond ±15 s, with\ntheir count. GLM's none = minimal.", fontsize=6.5,
+                 color=INK2, va="top")
     save(fig, out, "fig4_declaration_timing", label)
 
 
@@ -265,7 +270,10 @@ def main():
     parser.add_argument("--summary", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--label", default="")
+    parser.add_argument("--no-notes", action="store_true", help="omit the notes under each figure (paper captions)")
     args = parser.parse_args()
+    global NOTES
+    NOTES = not args.no_notes
     summary = json.loads(args.summary.read_text())
     selection = json.loads((ROOT / "configs/final/selection.json").read_text())
     task_type = {t: "leave-alone" for t in selection["seen_tasks"]} | {t: "unseen" for t in selection["unseen_tasks"]}
