@@ -124,3 +124,37 @@ the cap rises). Progress check: count lines in the probe files and `"outcome"` l
 - Sessions (leave-alone, c=2): every condition is below the perfect detector. Reasoning off → ~2× more looks, more
   often right when declaring (76-82% vs 58-70%), lower value; reasoning on → declares a few seconds early in 30-60%
   of episodes.
+
+## 8. Final state at 21:50 (supersedes sections 4 and 6 where they differ)
+
+**Decision (Tom, confirmed 21:50): the grid is `none` / `low` / `high` for every model, probe and sessions; GLM uses
+`minimal` for `none`.** All four models accept `medium` on Sail, but adding it would have finished around midday
+October 26 for about $147; Tom chose to keep three levels. Do not add levels.
+
+**Stopped (data kept on disk, not used):** every `medium` and `xhigh` run; GLM `default` sessions; DeepSeek `default`
+session runs (c=2 pass 1: 143/168, c=2 pass 2: 104/168, c=6 pass 1: 82/168). `default` is excluded from the comparison
+entirely: not plotted, not mapped. The analysis and figures must use only `off` (GLM: `minimal`), `low`, `high`.
+
+**Grid status at 21:50 (probe out of 450; sessions out of 168 episodes):**
+
+| Model | none | low | high |
+|---|---|---|---|
+| Kimi K3 | probe ✓, sessions ✓ | probe ✓, sessions ✓ | probe ✓, sessions 50 (running, ~1 h) |
+| Gemma 4 31B | probe ✓, sessions 115 (running, ~15 min) | probe ✓, sessions ✓ | probe ✓, sessions ✓ |
+| DeepSeek V4.1 Flash | probe ✓, sessions ✓ | probe ✓, sessions 139 (running, ~2 h) | probe 147 (running, ~1 h), sessions 12 (running, ~4-5 h) |
+| GLM-5.3 Flash (none = minimal) | probe ✓, sessions 107 (running) | probe ✓, sessions 64 (running) | probe ✓, sessions 39 (running, ~1.5 h) |
+
+Expected: everything complete around **3-5 am, October 26**; estimated spend about **$135** of the $150 cap
+($117.22 at 21:45). Running scripts: `run_grid.sh` (Gemma none sessions, DeepSeek high, GLM low/high),
+`run_glm_levels.sh` (GLM minimal), `run_finish2.sh` (DeepSeek low; its default and GLM default loops were killed),
+`run_kimi_high.sh`. Each condition writes a line to `runs/replay/logs/status.log` when complete.
+
+**Next steps (replace section 6):**
+
+1. When every grid cell is complete, run `python3.12 -B scripts/replay_analyze.py --out results/w1/replay/summary.json`.
+   The script currently summarises every level it finds (including partial `medium` and the `default` runs): restrict
+   the reported tables and the contrasts to `off`/`minimal`, `low`, `high` (filter, do not delete data).
+2. Update `scripts/replay_figures.py` to plot only those three levels, in the same order for every model (label GLM's
+   first level "none (minimal)"), drop all `default` handling, re-render, and inspect every PNG for collisions.
+3. Write `docs/replay_report.md` with a justification for every decision (from the design doc), including the mistakes
+   and their fixes, then send it and the figures to Tom. Commit and push each step.

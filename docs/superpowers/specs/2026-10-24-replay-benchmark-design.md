@@ -264,3 +264,10 @@ about 13 looks per episode, more than projected). Tom raised the cap to $150 to 
   mentioned only as earlier runs at an undocumented provider setting. GLM's `default` sessions were stopped to free
   Sail's GLM capacity for the grid.
 - **Kimi K3 `high` sessions started** (~$20-25; within the $150 cap with `medium` dropped).
+
+### Grid confirmed; DeepSeek default runs stopped (Tom, October 25, 21:50)
+
+Tom confirmed `none`/`low`/`high` only (all four models accept `medium`, but adding it would have finished around midday
+on October 26 for about $147, too close to the deadline and the cap). DeepSeek's three `default` session runs (c=2
+passes 1 and 2, c=6 pass 1) were stopped, at 143, 104 and 82 of 168 episodes, so the grid gets Sail's DeepSeek
+capacity; with `default` out of the comparison they are unused, and their records stay on disk.
