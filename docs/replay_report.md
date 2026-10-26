@@ -3,9 +3,30 @@
 W1 (Tom Wang), October 26, 2026. Every decision below is taken from the design record
 (`docs/superpowers/specs/2026-10-24-replay-benchmark-design.md`), with the reason given there and the time it was
 fixed. Numbers come from `results/w1/replay/summary.json` (`scripts/replay_analyze.py`) and
-`results/w1/replay/losses.json` (`scripts/replay_losses.py`); figures from `scripts/replay_figures.py`.
+`results/w1/replay/losses.json` (`scripts/replay_losses.py`); figures from `scripts/replay_figures.py`. The 4-page
+class report is `docs/cos597c_report/report.pdf`; this file is the full technical record behind it.
+
+**Glossary (this record's terms, and the class report's plain names).**
+
+| Here | In the class report | Meaning |
+|---|---|---|
+| probe | done-detection test | 450 single "is the task finished?" questions, no history |
+| sessions | supervision test | the model supervises a recorded run: wait N steps or say "done", 2 s per look |
+| look | camera check | one model call during an episode |
+| leave-alone tasks | trained tasks | OpenCabinet, PickPlaceCounterToStove, CloseFridge (the policies were trained on them) |
+| unseen tasks | new tasks | the four composite tasks the robot rarely finishes |
+| perfect detector | perfect vision, fixed check interval | knows when the task is finished, checks every k steps (k tuned in other scenes) |
+| fixed timer | fixed timer | never looks; declares "done" after T steps (T tuned in other scenes) |
+| oracle | oracle | declares at the exact step the robot first succeeds |
+| none (`off`; GLM `minimal`) | reasoning off (GLM: minimal) | the lowest reasoning setting the provider accepts |
+| supervision score | supervision score | the model's value as % of the oracle's on the leave-alone tasks (added October 26) |
 
 ## Summary
+
+- **Headline (supervision score, % of the oracle's value, leave-alone tasks).** Best: Gemma 4 31B with reasoning off
+  39.8 [24.1, 52.8] and Kimi K3 low 38.7 [27.7, 49.7]; worst: DeepSeek V4.1 Flash off 8.1 [1.6, 16.1]. Reference:
+  perfect detector 61.2, fixed timer 50.8. Paired on the same runs, all 12 configurations are below the perfect detector
+  and 11 below the timer (Kimi K3 high is not distinguishable from it).
 
 - **Question.** Two supervisor skills, measured separately: (1) *done-detection*, telling from the cameras whether the
   robot has finished; (2) *look scheduling*, choosing how long to let a policy run before looking again.
@@ -139,7 +160,7 @@ the checker at that step; reaching the step budget is a failure. An unreadable r
 
 ## 5. Results: done-detection (probe)
 
-![Probe accuracy by reasoning level](../results/w1/replay/figures/fig1_probe_accuracy_by_reasoning.png)
+![Done-detection leaderboard](../results/w1/replay/figures/fig2_detection_leaderboard.png)
 
 | Model | Level | n | Balanced accuracy [95% CI] | Hit rate (done) | Correct rejection (not done) |
 |---|---|---|---|---|---|
@@ -173,7 +194,7 @@ Paired contrasts within each model (same 450 probes, 95% CI clustered by recorde
 - Twelve cells cannot rank models: the intervals of the best and worst cells overlap, and levels are not comparable
   across models.
 
-![Share of probes answered done, by probe moment](../results/w1/replay/figures/fig2_probe_said_done_heatmap.png)
+![Share of camera images answered done, by moment](../results/w1/replay/figures/fig4_answers_by_moment.png)
 
 Where the errors are: every model says "done" on 62-80% of frames 2 s before success (the robot is visibly almost
 finished), 14-28% at 10 s before, 36-50% on frames of leave-alone runs that never succeed, and 3-29% on unseen-task
@@ -183,7 +204,9 @@ image.
 
 ## 6. Results: look scheduling (sessions)
 
-![Session value and look trade-off](../results/w1/replay/figures/fig3_sessions_value_and_tradeoff.png)
+![Supervision leaderboard](../results/w1/replay/figures/fig1_supervision_leaderboard.png)
+
+![What the models did on runs the robot finishes](../results/w1/replay/figures/fig3_what_models_did.png)
 
 Leave-alone tasks, 2 s per look, 72 episodes per cell (50 on runs the robot finishes). Baselines on the same runs:
 perfect detector 0.173, timer 0.144, oracle 0.284.
@@ -221,7 +244,7 @@ for a premature declaration on a run that does succeed. No episode ran out of bu
   0 whether the model declares or lets the budget run out, so the value measure does not distinguish the two; false
   "done" counts above include them.
 
-![When the model declared, relative to the robot's success](../results/w1/replay/figures/fig4_declaration_timing.png)
+![When the model said done, relative to the robot finishing](../results/w1/replay/figures/fig5_declaration_timing.png)
 
 **All tasks and unseen tasks.** On the four unseen composite tasks, 7 of 96 runs succeed; every cell declares "done"
 on 88-89 of the 89 failing runs, and value there is 0.000-0.008. Unseen tasks therefore add almost nothing to the
@@ -441,6 +464,7 @@ PYTHONPATH=src python3.12 -m unittest discover -s tests
 python3.12 -B scripts/replay_analyze.py --out results/w1/replay/summary.json
 python3.12 -B scripts/replay_losses.py --out results/w1/replay/losses.json
 python3.12 -B scripts/replay_figures.py --summary results/w1/replay/summary.json --out results/w1/replay/figures
+python3.12 -B scripts/replay_figures.py --summary results/w1/replay/summary.json --out results/w1/replay/figures/paper --no-notes
 ```
 
 Recorded replies are under `runs/replay/` (Git-ignored): `probe/effort-<level>/pass1/<model>.jsonl`,

@@ -5,10 +5,19 @@
 **Report:** [docs/cos597c_report/report.pdf](docs/cos597c_report/report.pdf) (4 pages). Full record of every design
 decision, error and loss: [docs/replay_report.md](docs/replay_report.md).
 
-An LLM supervisor watches recorded rollouts of learned robot policies and must say when the task is done (the
-*probe*: 450 questions) and decide how long to wait between looks (the *sessions*: 168 episodes, 2 s per look). Both
-are scored automatically by the simulator's success checker. Four open vision-language models on Sail Research (Kimi
-K3, Gemma 4 31B, DeepSeek V4.1 Flash, GLM-5.3 Flash) were run at reasoning levels none (GLM: minimal), low and high.
+Learned robot policies do not stop when they have finished a task. This benchmark tests whether a vision-language
+model can supervise one: it watches recorded simulation runs of three policies doing kitchen tasks, and at each camera
+check it either waits a number of steps or says "done". The simulator's success check scores every decision
+automatically. Each check costs 2 s and saying "done" too early fails the task, so the **supervision score** is the
+share of the best achievable value a model keeps (100 = an oracle that stops the moment the robot finishes). A
+separate **done-detection test** asks 450 single "is the task finished?" questions. Four open models (Kimi K3, Gemma 4
+31B, DeepSeek V4.1 Flash, GLM-5.3 Flash) were run with reasoning off (GLM: minimal), low and high.
+
+![Supervision leaderboard](results/w1/replay/figures/fig1_supervision_leaderboard.png)
+
+**Result:** the best configurations keep about 40% of the achievable value; a timer that never looks at the cameras
+keeps 51%, and a rule with perfect vision that checks at a fixed interval keeps 61%. Models mostly fail by saying
+"done" before the robot has finished.
 
 **Reproduce every table and figure from the recorded data (no API calls, no GPU).** Needs Python 3.11 or 3.12 and
 matplotlib; the PDF also needs `pdflatex`.
@@ -25,7 +34,6 @@ python3.12 -B scripts/replay_analyze.py --out results/w1/replay/summary.json
 python3.12 -B scripts/replay_losses.py --out results/w1/replay/losses.json
 python3.12 -B scripts/replay_figures.py --summary results/w1/replay/summary.json --out results/w1/replay/figures
 python3.12 -B scripts/replay_figures.py --summary results/w1/replay/summary.json --out results/w1/replay/figures/paper --no-notes
-python3.12 -B scripts/replay_paper_tables.py --summary results/w1/replay/summary.json --out docs/cos597c_report/results_table.tex
 cd docs/cos597c_report && pdflatex report.tex && pdflatex report.tex
 ```
 
@@ -46,8 +54,8 @@ python3.12 -B scripts/replay_run.py sessions --models google/gemma-4-31B-it --pa
 ```
 
 Code: `src/robot_benchmark/replay_bench.py` (frames, probe sampling, sessions, API client, spending ledger),
-`scripts/replay_run.py`, `scripts/replay_analyze.py`, `scripts/replay_losses.py`, `scripts/replay_figures.py`,
-`scripts/replay_paper_tables.py`; tests in `tests/test_replay_bench.py`.
+`scripts/replay_run.py`, `scripts/replay_analyze.py`, `scripts/replay_losses.py`, `scripts/replay_figures.py`;
+tests in `tests/test_replay_bench.py`.
 
 ## Earlier live benchmark (October 2026, superseded by the replay benchmark above)
 

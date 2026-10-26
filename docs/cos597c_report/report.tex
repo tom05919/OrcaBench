@@ -21,11 +21,9 @@
 \setlength{\textfloatsep}{7pt plus 2pt minus 2pt}
 \setlength{\dbltextfloatsep}{7pt plus 2pt minus 2pt}
 \setlist{nosep,leftmargin=1.1em}
-\renewcommand{\arraystretch}{1.05}
 \newcommand{\figdir}{../../results/w1/replay/figures/paper}
-\newcommand{\hd}[1]{\begin{tabular}[b]{@{}c@{}}#1\end{tabular}}
 
-\title{\vspace{-0.6em}\Large\bfseries Does the Robot Look Done? A Replay Benchmark for\\LLM Supervisors of Learned Robot Policies}
+\title{\vspace{-0.6em}\Large\bfseries Can Language Models Tell When a Robot Is Done?\\A Benchmark for Supervising Learned Robot Policies}
 \author{Tom Wang \quad Ranveer Singh \quad Ty Lipscomb\\[2pt]
 \small COS 597C, Project 1 report, October 26, 2026\\
 \small Code, data, results and exact commands: \url{https://github.com/tom05919/OrcaBench}}
@@ -35,80 +33,111 @@
 \maketitle
 
 \begin{abstract}
-\noindent A learned robot policy does not know when it has finished a task, so a language-model supervisor that
-watches the cameras has to decide when the task is done and how often to look, and every look costs time. We built a
-benchmark that measures these two skills separately and scores them automatically. It replays 168 recorded rollouts
-of three learned policies on seven RoboCasa~\cite{robocasa} kitchen tasks. The supervisor's only actions, ``wait $N$ steps'' and
-``done'', do not change what the robot does, so a recording is exactly what a live run would show, and every model
-sees identical rollouts. A \emph{probe} asks 450 single ``is it done?'' questions labelled by the simulator's success
-checker; \emph{supervision sessions} score 168 episodes with a time-charged value against baselines that need no
-language model. We evaluated four open vision-language models at three requested reasoning levels (12
-configurations). Done-detection balanced accuracy is 0.69--0.78; reasoning raises it by about 0.06 for two models and
-not detectably for the other two. No configuration schedules its looks as well as a perfect detector that looks at a
-fixed interval, and none has a higher mean value than a fixed timer. A requested reasoning level was not a reliable treatment: for
-three of the four models, two levels produced the same amount of reasoning.
+\noindent Robot policies learned from demonstrations do not stop when they have finished a task; they keep moving
+until a time limit. One fix is to let a vision-language model watch the robot's cameras and say when the task is done.
+This supervisor faces a trade-off: every look at the cameras costs time, but stopping too early fails the task. We
+built a benchmark for this skill. It replays 168 recorded simulation videos of three learned policies doing kitchen
+tasks; at each decision the model sees the camera images and either waits a number of steps or declares the task
+done, and the simulator's built-in success check scores the decision automatically. An episode is worth more the
+sooner the task is correctly declared done and the fewer looks it took, and nothing if ``done'' comes too early. The
+headline \emph{supervision score} is the share of the best achievable worth that a model keeps, where 100 is an oracle
+that stops at the exact moment the robot finishes. We evaluated four open vision-language models, each with reasoning off, low and high. The best
+configuration scores 40 (95\% CI 24--53). In paired comparisons on the same runs, every configuration scores below a
+rule that sees perfectly but checks at a fixed interval (61), and 11 of 12 score below a timer that never looks at
+the cameras (51). The main cause is stopping too early: models declare the task done before the robot has finished
+on 18--62\% of the runs it does finish. A separate test of single ``is it finished?'' questions shows the same
+weakness (69--78\% balanced accuracy). Turning reasoning on helps two of the four models answer these questions but
+does not lift any of them to the simple baselines.
 \end{abstract}
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.94\textwidth]{\figdir/fig1_supervision_leaderboard.pdf}
+\caption{\textbf{Supervision leaderboard.} Each bar is one configuration's supervision score: its value on the 72
+trained-task episodes as a percentage of an oracle that stops at the exact moment the robot finishes (100). Dashed
+lines: a timer that never looks at the cameras (51) and a rule with perfect vision that checks at a fixed interval
+(61), both tuned on other kitchens. Whiskers: 95\% bootstrap intervals. GLM-5.3 Flash's lowest setting is
+``minimal''.}
+\label{fig:leaderboard}
+\end{figure*}
+
 \section{Motivation}
-Vision-language-action policies such as GR00T~\cite{gr00t} and $\pi_{0.5}$~\cite{pi05} carry out household tasks
-quickly but unreliably, and they do not stop when they are finished: in our recordings the policy keeps acting until
-the step budget runs out, even after the simulator's checker has registered success. A natural remedy is a
-supervisor, a language model that periodically looks at the cameras and ends the episode when the task is
-done~\cite{saycan,innermonologue}. Whether such a supervisor helps depends on two skills:
+Vision-language-action policies such as GR00T~\cite{gr00t} and $\pi_{0.5}$~\cite{pi05} control a robot arm from
+camera images and a text instruction. They are trained to imitate demonstrations, and they have no notion of having
+finished: in every recording we use, the policy keeps acting until the episode's time limit, including after it has
+completed the task. Something has to decide when to stop. A natural candidate is a vision-language model acting as a
+\emph{supervisor}: it looks at the robot's cameras from time to time and declares the task done, as language models
+already plan and monitor robot skills in prior work~\cite{saycan,innermonologue}.
+
+A good supervisor needs two skills. It must \textbf{recognise completion} from camera images, which is hard because a
+task that is almost done looks very much like a task that is done. It must also \textbf{decide when to look}: each
+look costs time (the model has to be called and answer) and money, so looking constantly is wasteful, while looking
+rarely means stopping long after the robot has finished, and stopping before it has finished fails the task.
+Vision-language models have been tested as success detectors on curated video clips~\cite{successdetectors}, but we
+know of no benchmark that scores the whole supervision decision, \emph{when to look and when to stop}, against
+simple non-language baselines.
+
+\textbf{Contributions.} (1)~A benchmark that scores both skills automatically on recorded runs of real learned
+policies, with a single headline score and baselines that use no language model. (2)~Results for four open
+vision-language models with reasoning off, low and high (12 configurations), with 95\% confidence intervals. (3)~An
+account of what did not work, including the first version of this benchmark.
+
+\section{The benchmark}
+\label{sec:benchmark}
+\textbf{Recorded robot runs.} We recorded three policies from the official RoboCasa365~\cite{robocasa} release
+(GR00T~N1.5 trained on many tasks, GR00T~N1.5 fine-tuned on 30\% of the target tasks' demonstrations, and
+$\pi_{0.5}$) on seven kitchen tasks in four simulated kitchens, twice each: 168 runs. Three tasks are ones the
+policies were trained on (open a cabinet, move an object from the counter to the stove, close the fridge); the
+robot finishes 50 of these 72 runs. The other four are new multi-step tasks that it finishes in only 7 of 96 runs.
+Each run has three $256\times256$ camera videos and the simulator's success check at every control step (20 steps per
+second). The success check is used only for scoring; the model never sees it.
+
+\textbf{Why replay works.} The supervisor can only say ``wait'' or ``done''. Neither changes how the robot moves, so a
+recording of the robot running uninterrupted shows exactly what the supervisor would have seen live. Every model
+therefore sees identical runs, experiments are repeatable and cheap, and no GPU is needed.
+
+\textbf{Supervision test (the main test).} One \emph{episode} supervises one recorded run. At the start, the model
+sees the task instruction and the camera images and replies either \texttt{wait $N$} (10 to 400 steps) or
+\texttt{done}. After a wait it sees new images (now, and two earlier moments of the interval it skipped) and decides
+again. Each such decision is a \emph{camera check}. A ``done'' succeeds if the success check is true at that step;
+otherwise the episode fails, as it does if the time limit runs out. Every check is charged 2~s, the same for every
+model, so that the provider's server speed does not affect the score. An episode's value is
+\begin{equation*}
+\text{value} = \text{success} \times \max\!\Big(0,\; 1 - \frac{\text{robot time} + 2\,\text{s} \times \text{checks}}{\text{time limit}}\Big),
+\end{equation*}
+where robot time is how long the robot has run when the model says ``done'' and the time limit is the task's
+budget. Stopping soon after the robot finishes, with few checks, scores high; failing scores 0. Episodes run in blocks of 21 per kitchen (seven
+tasks $\times$ three policies, each policy named only by a letter); before each episode the model sees one line per
+earlier episode in the block (policy letter, task, outcome), so it can learn how fast each policy usually is.
+\emph{Example} (Gemma~4, reasoning low, close the fridge): the model waited 100, 200 and 200 steps, then said ``done''
+at step 500; the robot had finished at step 493, so the episode succeeded with 4 checks and value
+$1 - (25 + 4\times2)/45 = 0.27$.
+
+\textbf{Supervision score.} We report the model's total value as a percentage of the oracle's total value on the
+72 trained-task episodes:
 \begin{itemize}
-\item \textbf{Done-detection:} recognising from camera images that the task is complete.
-\item \textbf{Look scheduling:} choosing how long to let the policy run before looking again. Each look costs seconds
-on the task clock and money, so looking constantly is not free and looking rarely wastes time after completion.
+\item \textbf{Oracle} (100): stops at the exact step the robot finishes. Its absolute value is only 0.28 on average,
+because the robot itself uses much of the time limit and 22 of the 72 runs never finish; dividing by it makes 100
+the best any supervisor could do on these recordings.
+\item \textbf{Perfect vision, fixed check interval} (61): a rule that always knows whether the task is finished but
+checks every $k$ steps, with $k$ tuned on the same policy and task in the other kitchens. It loses value only to the
+cost of its checks and to noticing completion up to $k$ steps late. It separates ``cannot see that it is done''
+from ``checks at the wrong times''.
+\item \textbf{Fixed timer} (51): never looks at the cameras; declares ``done'' after a fixed number of steps, tuned the
+same way. It represents supervision with no perception at all.
 \end{itemize}
-Existing evaluations either test success detection on curated clips~\cite{successdetectors} or report the end-to-end
-success of a combined LLM--robot system, where perception, planning and time cost are mixed into one number. Our own
-first benchmark did the latter and could not tell which skill failed (Section~\ref{sec:didnotwork}). This report
-describes the benchmark we rebuilt to measure the two skills separately, and its results on four models.
+The new tasks are excluded from the score because the robot almost never finishes them, so every method, the oracle
+included, scores close to 0 there (all results are in the repository).
 
-\textbf{Contributions.} (1)~A replay benchmark that isolates done-detection (the probe) and look scheduling (the
-sessions), scored by the simulator's checker, with baselines that need no language model. (2)~Results for four open
-models at three requested reasoning levels, with a check of whether each level changed the reasoning, 95\% cluster
-bootstrap intervals, and full accounting of cost and losses. (3)~An account of what did not work.
+\textbf{Done-detection test.} To measure perception alone, we ask 450 single questions with no history: the task
+instruction and the camera images at one moment (plus 2~s and 5~s earlier), ``is the task finished?''. 114 moments
+are finished (the moment the robot finishes and 5~s later) and 336 are not (10~s and 2~s before it finishes, and
+moments of runs that never finish). Moments in the last 2~s before finishing are not used, because the success check
+lags the images by about 1~s. The \emph{done-detection score} is balanced accuracy, the mean of the accuracy on
+finished and on unfinished moments (50 = chance), because plain accuracy would reward always answering ``not
+finished''.
 
-\section{Benchmark design}
-\label{sec:design}
-\textbf{Why replay.} Once re-prompting is excluded (it did not help these policies, Section~\ref{sec:didnotwork}),
-the supervisor can only say ``wait $N$ steps'' or ``done''. Neither changes the robot, so an uninterrupted recording
-of the policy contains everything the supervisor would have seen in a live run. Replay gives every model identical
-inputs (no robot randomness between conditions), makes runs repeatable and cheap, and needs no GPU.
-
-\textbf{Data.} 168 recorded rollouts (two machines, 84 each): three policies from the official RoboCasa365 checkpoints (GR00T~N1.5 multitask,
-GR00T~N1.5 post-trained on 30\% of the target-task demonstrations, and $\pi_{0.5}$ multitask), seven tasks and four kitchen scenes. Three tasks
-are \emph{leave-alone} tasks the policies were trained on (OpenCabinet, PickPlaceCounterToStove, CloseFridge); four
-are unseen composite tasks. 57 rollouts reach success. Each rollout has three $256\times256$ camera videos (a frame
-every 10 control steps, 20 steps per second) and the checker's value at every step.
-
-\textbf{Probe (done-detection alone).} One question is one model call with no history: the task instruction and
-three images (all three cameras now, 2~s earlier and 5~s earlier, tiled). The model answers
-\texttt{\{"done": true\}} or \texttt{false}. Positives are taken at the checker's first true frame and 5~s later;
-negatives 2~s and 10~s before it, and at the middle and end of rollouts that never succeed (114 positives, 336
-negatives, fixed seed). The primary measure is balanced accuracy.
-
-\textbf{Sessions (detection and scheduling together).} A session is one scene's 21 episodes (7 tasks $\times$ 3
-policies) in a fixed order, with the policy identified only by an anonymous letter; 8 sessions give 168 episodes per
-configuration. In an episode the model starts at step 0 and repeatedly answers \texttt{wait $N$} (10--400 steps) or
-\texttt{done}; at each look it sees the cameras now and at two earlier points of the last interval, the step, the time
-left, the look cost and its earlier looks. ``Done'' is scored by the checker at that step; reaching the step budget is
-a failure. Before each episode it sees one line per earlier episode of the session (policy letter, task, outcome,
-looks), and nothing about the current episode's checker.
-\emph{A real episode} (Gemma~4, low reasoning, CloseFridge, policy~R): the model waited 100, 200 and 200 steps, then
-said ``done'' at step 500; the checker had turned true at step 493, so the episode succeeded with 4 looks and scored
-$1 - (25\,\mathrm{s} + 4 \times 2\,\mathrm{s}) / 45\,\mathrm{s} = 0.27$.
-
-\textbf{Score and baselines.} Value $=$ success $\times \max(0, 1 - (\text{robot seconds} + \text{looks} \times c) /
-\text{deadline})$, with the task's deadline and $c = 2$~s per look. Three baselines need no language model and pay for
-looks in the same way: a \emph{fixed timer} declares at step $T$; a \emph{perfect detector} looks every $k$ steps and
-declares at the first look where the checker is true (the bar for scheduling); the \emph{oracle} declares at the
-first success. $T$ and $k$ are tuned on the same policy and task \emph{in the other scenes}. The primary
-session measure is the model's value minus the perfect detector's on the same recording, on the leave-alone tasks
-(72 episodes per configuration, 50 of them on rollouts that succeed).
-
-Table~\ref{tab:design} lists each design decision and the reason for it. All were fixed before the runs they govern.
+Table~\ref{tab:design} lists each design decision with its reason; all were fixed before the runs they govern.
 
 \begin{table}[t]
 \centering\footnotesize
@@ -117,16 +146,15 @@ Table~\ref{tab:design} lists each design decision and the reason for it. All wer
 \toprule
 \raggedright Decision & \raggedright Reason \tabularnewline
 \midrule
-\raggedright Replay recorded rollouts, not live runs & \raggedright The supervisor's actions do not change the robot; identical inputs for every model, repeatable, no GPU. \tabularnewline
-\raggedright Probe separate from sessions & \raggedright Our live benchmark mixed skills in one score; the probe isolates perception. \tabularnewline
-\raggedright Labels from the simulator checker; the 2~s just before success not probed & \raggedright Automatic scoring; the checker lags the images by about 1~s, so frames in that band are ambiguous. \tabularnewline
-\raggedright Balanced accuracy & \raggedright Only 25\% of probes are positive, mostly from three tasks; plain accuracy would reward always saying ``not done''. \tabularnewline
-\raggedright Same look cost $c = 2$~s for every model & \raggedright Measured latency on a shared API reflects serving load, not the model. \tabularnewline
-\raggedright Baselines tuned in other scenes & \raggedright A fixed rule must not be tuned on the rollout it is tested on. \tabularnewline
-\raggedright Past outcomes shown, policies anonymous & \raggedright Adapting to a policy is impossible without feedback; the current episode's outcome is never shown. \tabularnewline
-\raggedright Same three levels for every model, recorded on every call; 32,768-token reply limit & \raggedright A uniform design; recording the reasoning length checks that a level did something; a high limit avoids penalising long reasoning. \tabularnewline
-\raggedright Levels compared within a model only & \raggedright Providers map a requested level onto each model's own settings differently. \tabularnewline
-\raggedright 95\% bootstrap clustered by rollout (probe) or task and scene (sessions) & \raggedright Answers about the same rollout are correlated. \tabularnewline
+\raggedright Replay recorded runs & \raggedright Waiting and stopping do not change the robot; identical inputs for every model, repeatable, no GPU. \tabularnewline
+\raggedright Separate done-detection test & \raggedright Measures perception without scheduling, to explain supervision results. \tabularnewline
+\raggedright Labels from the simulator's success check & \raggedright Fully automatic scoring; no human labels. \tabularnewline
+\raggedright Same 2~s charge per check for every model & \raggedright Measured latency on a shared API reflects server load, not the model. \tabularnewline
+\raggedright Baselines tuned in other kitchens & \raggedright A rule must not be tuned on the run it is scored on. \tabularnewline
+\raggedright Score as \% of the oracle & \raggedright One number a reader can interpret: the share of the achievable value kept. \tabularnewline
+\raggedright Earlier outcomes shown, policies anonymous & \raggedright Lets a model learn each policy's speed without revealing the current run's outcome. \tabularnewline
+\raggedright Same reasoning settings and limits for every model; reasoning length recorded & \raggedright A uniform design; the recorded length checks that a setting actually changed the reasoning. \tabularnewline
+\raggedright 95\% bootstrap intervals resampling runs & \raggedright Answers about the same run are correlated. \tabularnewline
 \bottomrule
 \end{tabular}
 \caption{Design decisions and their reasons.}
@@ -134,141 +162,111 @@ Table~\ref{tab:design} lists each design decision and the reason for it. All wer
 \end{table}
 
 \section{Experimental setup}
-\textbf{Models.} Kimi K3, Gemma~4 31B, DeepSeek V4.1 Flash and GLM-5.3 Flash: the four models that accept images
-through Sail Research's synchronous API, which serves quantized weights. Results are for those deployments.
+\textbf{Models.} Kimi K3, Gemma~4 31B, DeepSeek V4.1 Flash and GLM-5.3 Flash, the four open models that accept images
+through the Sail Research API, which serves quantized weights; results are for those deployments. Every model received
+the same prompts, a 32,768-token reply limit (no reply reached it) and the same retry rules.
 
-\textbf{Reasoning levels.} Every model ran at the same three requested levels, \emph{none}, \emph{low} and
-\emph{high}, in both the probe and the sessions; GLM rejects disabling reasoning, so its ``none'' is the provider's
-\emph{minimal} level. Every call recorded the length of the model's thinking, the stop reason, output tokens and
-attempts. Each configuration ran once: 450 probes and 168 session episodes. The grid cost an estimated \$71.9
-(Kimi K3 \$58.3); everything run on the API for this study, including runs not analysed here, cost an estimated
-\$138.7.
+\textbf{Reasoning settings.} Each model ran with reasoning \emph{off}, \emph{low} and \emph{high}, the provider's
+reasoning-effort setting. GLM-5.3 Flash cannot turn reasoning off; its lowest setting, \emph{minimal}, replaces off.
+A model with a setting is a \emph{configuration}; each of the 12 configurations answered all 450 done-detection
+questions and supervised all 168 runs once. Intervals are 95\% bootstrap intervals resampling recorded runs
+(done-detection) or task--kitchen pairs (supervision). The 12 configurations cost an estimated \$72 in API fees.
 
 \section{Results}
-\label{sec:results}
-\begin{table*}[t]
-\centering\footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}llrcccrr@{}}
-\toprule
-& & \multicolumn{3}{c}{Done-detection probe (450 questions)} & \multicolumn{3}{c}{Sessions, leave-alone tasks (72 episodes, 2~s per look)} \\
-\cmidrule(lr){3-5}\cmidrule(l){6-8}
-Model & Level & \hd{Thinking\\(chars)} & \hd{Balanced accuracy\\{}[95\% CI]} & \hd{Change from none\\{}[95\% CI]} & \hd{Value $-$ perfect\\detector [95\% CI]} & \hd{Looks /\\episode} & \hd{Correct\\(\%)} \\
-\midrule
-\input{results_table.tex}
-\end{tabular}
-\caption{Results for every configuration. \emph{Thinking}: median characters of the model's reasoning per probe
-answer, the check that a requested level changed the reasoning. \emph{Change from none}: paired difference on the same
-probes. \emph{Correct}: share of the 50 rollouts that succeed on which the model's ``done'' was
-scored a success (the alternative is a premature ``done''). Baselines on the same leave-alone episodes: perfect detector 0.173, timer 0.144, oracle 0.284
-(mean value). No reply was cut off by the reply limit.}
-\label{tab:results}
-\end{table*}
+
+\subsection{No model supervises as well as simple rules}
+Figure~\ref{fig:leaderboard} ranks the 12 configurations. The best, Gemma~4 31B with reasoning off (40) and Kimi K3
+with reasoning low (39), keep about two fifths of the achievable value; the worst, DeepSeek V4.1 Flash with reasoning
+off, keeps 8. Comparing each configuration with the baselines on the same runs, all 12 are significantly below the
+perfect-vision rule, and 11 are significantly below the fixed timer; Kimi K3 with reasoning high is the one we cannot
+distinguish from the timer. On average, a supervisor that never looks at the robot did better than every one of these
+configurations.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=\textwidth]{\figdir/fig1_probe_accuracy_by_reasoning.pdf}
-\caption{Done-detection: balanced accuracy by requested reasoning level, one panel per model (450 probes per point;
-95\% bootstrap CI clustered by recorded rollout; unreadable replies count as wrong). The text in each panel is the
-paired difference high $-$ none on the same probes. GLM's ``none'' is the provider's minimal level. Levels are
-comparable within a panel, not across panels.}
-\label{fig:probe}
+\includegraphics[width=0.94\textwidth]{\figdir/fig3_what_models_did.pdf}
+\caption{\textbf{What the models did}, on the 50 trained-task runs the robot finishes. Left: share of runs where the
+model said ``done'' before the robot had finished (each one is a failure). Middle: camera checks per episode (2~s
+each). Right: median seconds between the robot finishing and a correct ``done''. Dashed lines: the rule with perfect
+vision and a fixed check interval.}
+\label{fig:behaviour}
 \end{figure*}
 
-\subsection{Done-detection}
-Balanced accuracy lies between 0.69 and 0.78 in every configuration (Table~\ref{tab:results},
-Figure~\ref{fig:probe}). Turning reasoning on helps Kimi K3 (high $-$ none $+0.064$ [$+0.013$, $+0.114$]) and
-DeepSeek V4.1 Flash ($+0.058$ [$+0.006$, $+0.109$]), mainly because the model says ``done'' more readily when the task is
-done: its hit rate rises from 0.64 to 0.85 (Kimi) and from 0.55 to 0.76 (DeepSeek). Gemma~4 does not change although
-its reasoning does (0 to about 840 characters), and GLM's only reasoning level adds $+0.032$ [$-0.007$, $+0.072$]. Low
-and high never differ. The errors concentrate just before success: every configuration says ``done'' on 62--80\% of
-frames 2~s before the robot succeeds, where the task often looks finished, and on 36--50\% of frames from leave-alone
-rollouts that never succeed.
-
-\subsection{Look scheduling}
-No configuration reaches the perfect detector: all 12 intervals for value minus detector lie below zero
-(Table~\ref{tab:results}, Figure~\ref{fig:sessions}). The best configurations (Gemma~4 with no reasoning, Kimi K3 at
-low) give up about 0.06 of the detector's 0.173. No configuration has a higher mean value than the fixed timer
-(0.144), and only one interval (Kimi K3 high) reaches it.
-Reasoning changes the trade-off rather than the outcome. Without it, Kimi K3 and DeepSeek look 9--10 times per episode
-and are right when they declare on 76--82\% of the rollouts that succeed, but they pay for every look and declare late
-(median 10--18~s after success). With reasoning they look 4--7 times, but declare too early on 38--62\% of the
-rollouts that succeed. On the 22 leave-alone rollouts that never succeed, every configuration eventually says
-``done''; these episodes score 0 either way. Unseen tasks add nothing: 7 of 96 of those rollouts succeed, and every
-value there is at most 0.008.
-
-\textbf{Adaptation.} If a model adapted to the anonymous policies, the policy that usually finishes later should get
-the longer first wait and the later declaration. Within task blocks, only one of 24 such comparisons points that way
-(Gemma~4 none, first wait, from just 16 untied pairs). For DeepSeek low and all three GLM levels the slower policy was
-declared \emph{earlier} more often than not, which fits early false ``done'' on slow policies that fail; we did not
-test that explanation. This test was declared exploratory and has
-little power (at most 64 policy pairs per configuration).
+\subsection{Why: models stop too early}
+Figure~\ref{fig:behaviour} shows where the value goes. On runs the robot does finish, every configuration says
+``done'' too early on 18--62\% of them, and each early ``done'' scores 0; the perfect-vision rule never does. The
+models check about as often as that rule (4--9 times against its 6) and, when they are right, are about as late
+(median 2--6~s against its 4~s), except two configurations with reasoning off: Kimi K3 and DeepSeek V4.1 Flash check
+9 times and are 10 and 18~s late. Turning reasoning on makes these two models check less and stop sooner, which
+raises their score (Kimi K3 from 19 to 39) but also makes them stop too early more often (24\% to 42\% for Kimi K3).
+On the 22 runs the robot never finishes, every configuration eventually says ``done''; those episodes score 0 either
+way. We also tested whether models adapt their checks to the policies they learn about within a block (a slower
+policy should get a longer first wait); we found no consistent evidence of adaptation, though this test has little
+statistical power.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.92\textwidth]{\figdir/fig3_sessions_value_and_tradeoff.pdf}
-\caption{Look scheduling on the leave-alone tasks (OpenCabinet, PickPlaceCounterToStove, CloseFridge; 2~s per look).
-Left: value minus the perfect detector on the same rollouts, 95\% bootstrap CI clustered by task and scene (0 = as good
-as the detector). Right: share of correct declarations on the rollouts that succeed, against looks per episode; the
-dashed line joins configurations that no other configuration beats on both axes.}
-\label{fig:sessions}
+\includegraphics[width=0.94\textwidth]{\figdir/fig2_detection_leaderboard.pdf}
+\caption{\textbf{Done-detection leaderboard.} Balanced accuracy on 450 single ``is the task finished?'' questions
+(114 finished moments, 336 unfinished); 50 is chance. Whiskers: 95\% bootstrap intervals.}
+\label{fig:detection}
 \end{figure*}
 
-\subsection{Is a reasoning level a treatment?}
-Only Kimi K3 has three distinct levels (median thinking 0, 343 and 1,576 characters). Gemma~4 and DeepSeek think the
-same amount at low and high, and GLM's low level produces no reasoning at all, exactly like its minimal level. A
-benchmark that varies ``reasoning effort'' through a provider's setting should therefore measure the reasoning it
-actually obtained, as we did, rather than assume the label.
+\subsection{Recognising completion is the bottleneck}
+The done-detection test (Figure~\ref{fig:detection}) isolates perception. Every configuration is between 69 and 78
+balanced accuracy, and the intervals overlap heavily, so the test does not separate the models much. Their errors are
+where the supervision failures are: shown the cameras 2~s before the robot finishes, configurations answer
+``finished'' 62--80\% of the time, and on moments from runs that never finish they answer ``finished'' 36--50\% of the
+time. Turning reasoning on raises the score of Kimi K3 by 6.4 points (95\% CI 1.3 to 11.4, same questions) and of
+DeepSeek V4.1 Flash by 5.8 (0.6 to 10.9), mostly by saying ``finished'' more readily when it is finished; it does not
+detectably change Gemma~4 ($-0.6$, $-3.9$ to 2.6) or GLM-5.3 Flash ($+3.2$, $-0.7$ to 7.2).
+
+\subsection{A reasoning setting is not a reliable treatment}
+We recorded how much each configuration reasoned (median characters of reasoning per done-detection answer). Only
+Kimi K3 has three distinct levels (0, 343 and 1,576 characters). Gemma~4 (0, 838, 844) and DeepSeek V4.1 Flash (0,
+1,556, 1,630) reason the same amount at low and at high, and GLM-5.3 Flash's low setting produces no reasoning at all,
+exactly like minimal (0, 0, 206). Benchmarks that vary ``reasoning effort'' through a provider's setting should measure the reasoning they
+actually obtain rather than trust the label.
+
 
 \section{What did not work}
 \label{sec:didnotwork}
-\textbf{The first benchmark (shown on October 16).} Language-model supervisors (Claude Opus~5.5 and Sonnet~5.5, and
-Kimi K3 later) supervised the same three policies live on GPU machines. They could wait, rewrite the policy's
-instruction, restart it, or declare done; every model call was charged its measured latency (4.7~s for Opus) on the
-task clock, and the headline was regret against a fixed declaration rule tuned in other scenes. Both models lost to
-the rule (regret 0.049 [0.004, 0.100] for Opus, 0.066 [0.016, 0.126] for Sonnet) and could not be told apart
-($-0.016$ [$-0.058$, $0.028$]). The number did not say \emph{why}, for four reasons:
+\textbf{Our first benchmark could not be interpreted.} Before this design, we ran language-model supervisors (Claude
+Opus~5.5, Claude Sonnet~5.5 and later Kimi K3) live on GPU machines, supervising the same three policies. The
+supervisor could also rewrite the policy's instruction or restart it, each model call was charged that model's
+measured response time, and the score compared each model with a fixed stopping rule. Both Claude models lost to the
+rule (by 0.049 and 0.066 on a 0--1 value scale, both 95\% intervals above zero) and could not be told apart, but
+the number did not say why. Four design problems caused this, and each shaped the benchmark above:
 \begin{itemize}
-\item \textbf{One score mixed three skills} (re-prompting, done-detection, look scheduling), so a loss could come from
-any of them. The rebuilt benchmark measures them separately.
-\item \textbf{Re-prompting could not help.} Even a privileged prompter that reads the simulator's state and gives
-correct step-by-step instructions solved 3 of 76 paired unseen-task episodes, against 4 of 76 for the unchanged
-policy. Supervisors that rewrote the instruction also failed more often (a small, unpaired comparison). We therefore
-removed re-prompting.
-\item \textbf{The latency charge decided the result.} In a post-hoc analysis with no charge per call, Opus and Kimi
-were statistically tied with the fixed rule. Latency on a shared API measures serving load, so the rebuilt benchmark charges every model the
-same 2~s per look.
-\item \textbf{Most episodes carried no signal.} The robot alone almost never succeeds on the unseen tasks, so 12 of
-21 episodes per session scored about 0 for every supervisor and every rule. Live runs also gave each model different
-rollouts, one pass per model, and data spread over three machines.
+\item \textbf{One score mixed three skills} (rewriting instructions, recognising completion, deciding when to look),
+so a loss could come from any of them. We now measure completion and timing, and test perception separately.
+\item \textbf{Rewriting instructions could not help.} Even a rule that reads the simulator's state and gives the policy
+correct step-by-step instructions solved 3 of 76 episodes on the new tasks, against 4 of 76 for the unchanged policy.
+We dropped instruction rewriting, which is what makes replay possible.
+\item \textbf{Charging each model's measured response time decided the result}: with no charge per call (a post-hoc
+check), Opus and Kimi K3 tied the rule. Response time on a shared API measures the provider's servers, so every model
+now pays the same 2~s per check.
+\item \textbf{Most episodes carried no signal.} On the new tasks the robot almost never succeeds, so 12 of 21 episodes
+per block scored about 0 for every method. Live runs also gave every model a different robot run, and only one pass
+per model was affordable. Replay removes both problems; the headline score uses the trained tasks.
 \end{itemize}
 
-\textbf{Problems during this study, and their fixes.} (1)~The first replay runs sent no reasoning setting, so each
-model used the provider's undocumented default (Gemma does not reason by default; the others do), confounding model
-with reasoning. Those runs are excluded; the grid above declares and records the level. (2)~A pilot of 10 probes was
-used to drop levels that did not change the reasoning; with so few probes it gave models different sets of levels
-(and was wrong for DeepSeek), so we replaced it with one grid for every model. (3)~Our spending ledger booked every
-timed-out call at its worst case and stopped the runs at \$72 of real spend; timeouts are now counted at the 99th
-percentile of real replies, and every call carries an idempotency key so a retry cannot be billed twice. Before the
-keys were added, 143 timed-out grid calls may have been billed twice. (4)~Processes crashed 142 times on the
-provider's HTTP 404, 400 and 500 errors and on read timeouts, and the computer twice ran out of memory (whole videos
-were cached; frames are now decoded on demand). In the last configuration the provider held requests until they timed
-out and then reported them lost, and the laptop slept twice with its lid closed; progress fell from about 40 episodes
-an hour to 3--4, and we let it finish unchanged. Every look is saved when it arrives and an interrupted episode is
-replayed from its start, so every configuration is complete; in the grid, 34 probe replies and 9 session replies were
-paid for but lost, 181 episodes were interrupted and replayed (1,402 looks paid twice, \$1.91), and requests in
-flight at a crash cannot be counted.
+\textbf{Reasoning was not controlled at first.} Our first replay runs sent no reasoning setting, so each model used
+the provider's undocumented default, which turned out to differ by model (Gemma~4 does not reason by default; the
+others do): model differences were confounded with reasoning. We discarded those runs from the comparison and re-ran
+every model with explicit settings, recording the reasoning length. We also first chose each model's settings with a
+10-question pilot, which gave models different sets of settings (and was wrong for DeepSeek); we replaced it with the
+same three settings for every model. Operational problems (provider errors, crashes, cost accounting) and every lost
+or repeated API call are documented in the repository; every configuration was completed.
 
-\section{Limitations}
-Each configuration ran once, so the intervals cover sampling over rollouts, not run-to-run variation of the model.
-Reasoning levels are provider settings, not amounts of reasoning, and the models are quantized deployments. Samples
-are small: 57 of 168 rollouts succeed and positives come almost only from three tasks. Supervisors see images only,
-every 10 steps. The value score cannot distinguish a false ``done'' from running out of budget on a rollout that never
-succeeds. Finally, some ``errors'' just before success may be correct readings of images that the checker labels a
-second late.
-
-\textbf{Reproducing.} The repository's README gives the commands; the recorded rollouts and every model reply are
-in its release \texttt{replay-data-2026-10-26}, so all tables and figures can be recomputed without API calls.
+\section{Limitations and conclusion}
+Each configuration ran once, so intervals reflect variation across robot runs, not across repeated model runs. The
+models are quantized deployments of one provider. The score rests on 72 episodes per configuration (50 runs the robot
+finishes) from three trained tasks, and supervisors see images only, every 10 steps at most. A ``done'' given in the
+second before the success check turns true may be a correct reading of the image. Despite these limits, the result
+is clear: current open vision-language models stop learned robot policies too early, and a simple timer or a
+perfect-vision rule with a fixed interval does better. Reproducing every number needs no API calls: the recorded runs
+and all model replies are in the repository's release \texttt{replay-data-2026-10-26}.
 
 {\footnotesize
 \begin{thebibliography}{9}\setlength{\itemsep}{0pt}
