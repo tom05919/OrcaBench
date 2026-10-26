@@ -253,3 +253,14 @@ about 13 looks per episode, more than projected). Tom raised the cap to $150 to 
   reply limit instead of 32,768.
 - **No result at the added levels has been seen.** They are added to make the design uniform, after preliminary
   figures for the other levels; every level gets identical settings.
+
+### Final grid: none, low, high (Tom, October 25, 21:30) — supersedes the 21:05 grid
+
+- **Levels, for every model, probe and sessions: `none` (thinking disabled), `low`, `high`.** GLM-5.3-Flash uses
+  `minimal` for `none`, because Sail rejects disabling its reasoning; the report labels it as such. *Reason (Tom):* the
+  same three levels for every model; `medium` and `xhigh` were not asked for and were stopped. Their partial data stays
+  on disk and is not used.
+- **`default` is excluded from the comparison** (not plotted, not mapped). The earlier main runs at `default` are
+  mentioned only as earlier runs at an undocumented provider setting. GLM's `default` sessions were stopped to free
+  Sail's GLM capacity for the grid.
+- **Kimi K3 `high` sessions started** (~$20-25; within the $150 cap with `medium` dropped).

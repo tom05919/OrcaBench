@@ -1,4 +1,6 @@
-# Handoff: replay benchmark (October 25, 2026, 21:15 EDT)
+# Handoff: replay benchmark (October 25, 2026, 21:15 EDT; grid corrected 21:30)
+
+**Correction at 21:30 (Tom): the grid is exactly `none` (GLM: `minimal`), `low`, `high` for every model, probe and sessions. `medium` and `xhigh` runs were stopped (data unused); `default` is excluded entirely (no plotting, no mapping); GLM `default` sessions were stopped; Kimi `high` sessions are running (`runs/replay/run_kimi_high.sh`). Where sections below mention medium, xhigh, default mapping or a pending Kimi budget decision, this paragraph wins.**
 
 For the next agent working with Tom (W1, project owner) on OrcaBench. Read this whole file first, then the design doc
 `docs/superpowers/specs/2026-10-24-replay-benchmark-design.md` (every decision and its reason, in order).
