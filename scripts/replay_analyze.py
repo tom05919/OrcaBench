@@ -56,6 +56,30 @@ def bootstrap(rows, key, cluster, draws=DRAWS, seed=0):
             round(means[int(0.975 * draws)], 3)], "n": len(values), "clusters": len(keys)}
 
 
+def percent_of_oracle(rows, key, cluster, draws=DRAWS, seed=0):
+    """100 x sum(`key`) / sum(oracle value) over the rows where `key` is known, with a 95% interval resampling clusters
+    (the ratio is recomputed in every draw). The headline supervision score uses the model's value as `key`."""
+    groups = defaultdict(list)
+    for r in rows:
+        if r.get(key) is not None:
+            groups[cluster(r)].append((r[key], r["oracle_value"]))
+    if not groups:
+        return None
+
+    def ratio(pairs):
+        oracle = sum(o for _, o in pairs)
+        return 100 * sum(v for v, _ in pairs) / oracle if oracle else None
+
+    keys, rng, values = sorted(groups, key=str), random.Random(seed), []
+    for _ in range(draws):
+        x = ratio([pair for k in (rng.choice(keys) for _ in keys) for pair in groups[k]])
+        if x is not None:
+            values.append(x)
+    values.sort()
+    return {"mean": round(ratio([pair for pairs in groups.values() for pair in pairs]), 1),
+            "ci95": [round(values[int(0.025 * len(values))], 1), round(values[int(0.975 * len(values))], 1)]}
+
+
 # ---------------------------------------------------------------------------------------------------------------
 # Loading
 
@@ -343,6 +367,9 @@ def session_summary(rows, trajs, config, task_type):
                 "oracle_value": round(mean(r["oracle_value"] for r in sub), 3),
                 "minus_detector": bootstrap(sub, "minus_detector", cluster),
                 "minus_timer": bootstrap(sub, "minus_timer", cluster),
+                "score": percent_of_oracle(sub, "value", cluster),
+                "detector_score": percent_of_oracle(sub, "detector_value", cluster),
+                "timer_score": percent_of_oracle(sub, "timer_value", cluster),
                 "looks_per_episode": round(mean(r["looks"] for r in sub), 2),
                 "median_first_wait": statistics.median([r["first_wait"] for r in sub if r["first_wait"]] or [0]),
                 "false_done": sum(r["outcome"] == "false_done" for r in sub),

@@ -1,0 +1,307 @@
+{
+ "supervision_score": [
+  {
+   "model": "google/gemma-4-31B-it",
+   "effort": "off",
+   "mean": 39.8,
+   "ci95": [
+    24.1,
+    52.8
+   ]
+  },
+  {
+   "model": "moonshotai/Kimi-K3",
+   "effort": "low",
+   "mean": 38.7,
+   "ci95": [
+    27.7,
+    49.7
+   ]
+  },
+  {
+   "model": "moonshotai/Kimi-K3",
+   "effort": "high",
+   "mean": 36.1,
+   "ci95": [
+    18.2,
+    53.2
+   ]
+  },
+  {
+   "model": "google/gemma-4-31B-it",
+   "effort": "low",
+   "mean": 31.4,
+   "ci95": [
+    18.8,
+    44.2
+   ]
+  },
+  {
+   "model": "google/gemma-4-31B-it",
+   "effort": "high",
+   "mean": 29.4,
+   "ci95": [
+    14.1,
+    42.8
+   ]
+  },
+  {
+   "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+   "effort": "high",
+   "mean": 27.4,
+   "ci95": [
+    18.7,
+    35.5
+   ]
+  },
+  {
+   "model": "zai-org/GLM-5.3-Flash",
+   "effort": "low",
+   "mean": 22.6,
+   "ci95": [
+    8.2,
+    35.3
+   ]
+  },
+  {
+   "model": "moonshotai/Kimi-K3",
+   "effort": "off",
+   "mean": 18.7,
+   "ci95": [
+    6.4,
+    30.1
+   ]
+  },
+  {
+   "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+   "effort": "low",
+   "mean": 17.3,
+   "ci95": [
+    10.0,
+    24.0
+   ]
+  },
+  {
+   "model": "zai-org/GLM-5.3-Flash",
+   "effort": "high",
+   "mean": 17.1,
+   "ci95": [
+    8.9,
+    22.6
+   ]
+  },
+  {
+   "model": "zai-org/GLM-5.3-Flash",
+   "effort": "minimal",
+   "mean": 15.3,
+   "ci95": [
+    7.0,
+    23.1
+   ]
+  },
+  {
+   "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+   "effort": "off",
+   "mean": 8.1,
+   "ci95": [
+    1.6,
+    16.1
+   ]
+  }
+ ],
+ "supervision_reference": {
+  "oracle": 100,
+  "detector": 61.2,
+  "timer": 50.8
+ },
+ "detection_score": [
+  {
+   "model": "zai-org/GLM-5.3-Flash",
+   "effort": "high",
+   "mean": 78.4,
+   "ci95": [
+    73.9,
+    82.6
+   ]
+  },
+  {
+   "model": "moonshotai/Kimi-K3",
+   "effort": "high",
+   "mean": 77.2,
+   "ci95": [
+    72.7,
+    81.39999999999999
+   ]
+  },
+  {
+   "model": "moonshotai/Kimi-K3",
+   "effort": "low",
+   "mean": 77.10000000000001,
+   "ci95": [
+    73.3,
+    80.9
+   ]
+  },
+  {
+   "model": "google/gemma-4-31B-it",
+   "effort": "low",
+   "mean": 76.3,
+   "ci95": [
+    72.1,
+    80.4
+   ]
+  },
+  {
+   "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+   "effort": "low",
+   "mean": 76.1,
+   "ci95": [
+    71.6,
+    80.5
+   ]
+  },
+  {
+   "model": "google/gemma-4-31B-it",
+   "effort": "off",
+   "mean": 75.7,
+   "ci95": [
+    71.89999999999999,
+    79.7
+   ]
+  },
+  {
+   "model": "zai-org/GLM-5.3-Flash",
+   "effort": "low",
+   "mean": 75.3,
+   "ci95": [
+    70.39999999999999,
+    79.9
+   ]
+  },
+  {
+   "model": "google/gemma-4-31B-it",
+   "effort": "high",
+   "mean": 75.2,
+   "ci95": [
+    70.8,
+    79.3
+   ]
+  },
+  {
+   "model": "zai-org/GLM-5.3-Flash",
+   "effort": "minimal",
+   "mean": 75.1,
+   "ci95": [
+    70.5,
+    79.60000000000001
+   ]
+  },
+  {
+   "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+   "effort": "high",
+   "mean": 74.6,
+   "ci95": [
+    69.1,
+    79.7
+   ]
+  },
+  {
+   "model": "moonshotai/Kimi-K3",
+   "effort": "off",
+   "mean": 70.89999999999999,
+   "ci95": [
+    66.4,
+    75.5
+   ]
+  },
+  {
+   "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+   "effort": "off",
+   "mean": 68.89999999999999,
+   "ci95": [
+    63.3,
+    74.4
+   ]
+  }
+ ],
+ "behaviour": {
+  "moonshotai/Kimi-K3|off": {
+   "runs": 50,
+   "early_pct": 24.0,
+   "checks": 8.94,
+   "late_s": 9.975
+  },
+  "moonshotai/Kimi-K3|low": {
+   "runs": 50,
+   "early_pct": 42.0,
+   "checks": 4.12,
+   "late_s": 2.45
+  },
+  "moonshotai/Kimi-K3|high": {
+   "runs": 50,
+   "early_pct": 38.0,
+   "checks": 4.18,
+   "late_s": 2.95
+  },
+  "google/gemma-4-31B-it|off": {
+   "runs": 50,
+   "early_pct": 28.0,
+   "checks": 4.1,
+   "late_s": 5.85
+  },
+  "google/gemma-4-31B-it|low": {
+   "runs": 50,
+   "early_pct": 40.0,
+   "checks": 5.1,
+   "late_s": 5.35
+  },
+  "google/gemma-4-31B-it|high": {
+   "runs": 50,
+   "early_pct": 40.0,
+   "checks": 5.28,
+   "late_s": 5.625
+  },
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017|off": {
+   "runs": 50,
+   "early_pct": 18.0,
+   "checks": 9.3,
+   "late_s": 17.7
+  },
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017|low": {
+   "runs": 50,
+   "early_pct": 62.0,
+   "checks": 6,
+   "late_s": 5.0
+  },
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017|high": {
+   "runs": 50,
+   "early_pct": 42.0,
+   "checks": 6.04,
+   "late_s": 2.2
+  },
+  "zai-org/GLM-5.3-Flash|minimal": {
+   "runs": 50,
+   "early_pct": 40.0,
+   "checks": 7.04,
+   "late_s": 4.3
+  },
+  "zai-org/GLM-5.3-Flash|low": {
+   "runs": 50,
+   "early_pct": 38.0,
+   "checks": 7.64,
+   "late_s": 2.7
+  },
+  "zai-org/GLM-5.3-Flash|high": {
+   "runs": 50,
+   "early_pct": 44.0,
+   "checks": 7.36,
+   "late_s": 5.45
+  },
+  "perfect_vision_baseline": {
+   "runs": 50,
+   "early_pct": 0.0,
+   "checks": 5.98,
+   "late_s": 3.95
+  }
+ }
+}
