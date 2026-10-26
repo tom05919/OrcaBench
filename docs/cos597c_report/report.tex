@@ -82,6 +82,11 @@ among many: in simulation the success detector reads privileged simulator state,
 success alone, so neither the cost of a check nor how late a stop comes counts. We isolate this decision. Our
 supervisor must judge completion from the cameras alone and decide when to check, each check costs time, and we
 score it against a timer and a perfect-vision rule that use no language model.
+In Anthropic's Embody study~\cite{embody}, twelve models supervised a frozen policy on LIBERO by accepting, adjusting
+or replacing each of its actions; on familiar tasks every model did substantially worse than the policy alone, and the
+strongest model ranked below two weaker ones because it overrode the policy more often than warranted. Our
+supervisor cannot change the robot's actions at all, yet it also loses to simple rules, for a different reason: it
+stops too early.
 
 \textbf{Contributions.} (1)~A benchmark that scores both skills automatically on recorded runs of real learned
 policies, with a single headline score and baselines that use no language model. (2)~Results for four open
@@ -139,7 +144,7 @@ included, scores close to 0 there (all results are in the repository).
 instruction and the camera images at one moment (plus 2~s and 5~s earlier), ``is the task finished?''. 114 moments
 are finished (the moment the robot finishes and 5~s later) and 336 are not (10~s and 2~s before it finishes, and
 moments of runs that never finish). Moments in the last 2~s before finishing are not used, because the success check
-lags the images by about 1~s. The \emph{done-detection score} is balanced accuracy, the mean of the accuracy on
+is strict and a run can look finished for a second or two before it passes (Section~\ref{sec:limits}). The \emph{done-detection score} is balanced accuracy, the mean of the accuracy on
 finished and on unfinished moments (50 = chance), because plain accuracy would reward always answering ``not
 finished''.
 
@@ -220,7 +225,8 @@ The done-detection test (Figure~\ref{fig:detection}) isolates perception. Every 
 balanced accuracy, and the intervals overlap heavily, so the test does not separate the models much. Their errors are
 where the supervision failures are: shown the cameras 2~s before the robot finishes, configurations answer
 ``finished'' 62--80\% of the time, and on moments from runs that never finish they answer ``finished'' 36--50\% of the
-time. Turning reasoning on raises the score of Kimi K3 by 6.4 points (95\% CI 1.3 to 11.4, same questions) and of
+time. Some moments 2~s before finishing may already look finished, since the success check is strict
+(Section~\ref{sec:limits}), so the first rate likely overstates the error; the second is less affected. Turning reasoning on raises the score of Kimi K3 by 6.4 points (95\% CI 1.3 to 11.4, same questions) and of
 DeepSeek V4.1 Flash by 5.8 (0.6 to 10.9), mostly by saying ``finished'' more readily when it is finished; it does not
 detectably change Gemma~4 ($-0.6$, $-3.9$ to 2.6) or GLM-5.3 Flash ($+3.2$, $-0.7$ to 7.2).
 
@@ -263,6 +269,7 @@ same three settings for every model. Operational problems (provider errors, cras
 or repeated API call are documented in the repository; every configuration was completed.
 
 \section{Limitations and conclusion}
+\label{sec:limits}
 Each configuration ran once, so intervals reflect variation across robot runs, not across repeated model runs. The
 models are quantized deployments of one provider. The score rests on 72 episodes per configuration (50 runs the robot
 finishes) from three trained tasks, and supervisors see images only, every 10 steps at most. The success check is also strict (a
@@ -284,6 +291,7 @@ and all model replies are in the repository's release \texttt{replay-data-2026-1
 \bibitem{innermonologue} W.~Huang et al. Inner monologue: Embodied reasoning through planning with language models. CoRL, 2022.
 \bibitem{successdetectors} Y.~Du et al. Vision-language models as success detectors. CoLLAs, 2023.
 \bibitem{whatmatters} J.~Hu et al. What matters in orchestrating robot policies: A systematic study of hierarchical VLA agents. arXiv:2606.10267, 2026.
+\bibitem{embody} S.~Berman, M.~Ilie, J.~Deng and D.~Freeman. Claude plays robotics. Anthropic, July 2026. \url{https://www.anthropic.com/research/claude-plays-robotics}.
 \end{thebibliography}}
 
 \end{document}
