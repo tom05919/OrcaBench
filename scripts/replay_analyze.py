@@ -3,9 +3,11 @@
 
   python3 scripts/replay_analyze.py [--out results/w1/replay/summary.json]
 
-Conditions are (model, reasoning level, cost per look, pass); the main runs have level `default` (nothing sent).
+Conditions are (model, reasoning level, cost per look, pass). Only the final grid is analysed (design doc, October 25,
+21:30 and 21:50): `off` (GLM: `minimal`), `low` and `high`, pass 1, 2 s per look. Records at other levels (`medium`,
+`xhigh`, `default`) stay on disk and are skipped here; their spending is reported separately.
 - Probe: balanced accuracy (unreadable answers count as wrong) with a 95% bootstrap clustered by recorded run; paired
-  differences between conditions on identical probes.
+  differences between levels of the same model on identical probes (levels are not compared across models).
 - Sessions: value against the held-out perfect detector, the timer and the oracle on the same recorded runs; the
   primary measure is the paired difference with the perfect detector on the leave-alone tasks at c = 2 s, passes pooled,
   clustered by (task, scene). Adaptation (exploratory) compares policies within a task block.
@@ -21,11 +23,12 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from robot_benchmark.replay_bench import FRAME_STEP, Ledger, load_trajectories  # noqa: E402
+from robot_benchmark.replay_bench import FRAME_STEP, Ledger, condition_of, load_trajectories  # noqa: E402
 from robot_benchmark.time_score import STEPS_PER_SECOND, load_config, score_episode  # noqa: E402
 
 POD_ROOTS = {"podC": ROOT / "runs/addon/podC/always_defer", "podB": ROOT / "runs/final/podB/always_defer"}
 OUT = ROOT / "runs" / "replay"
+GRID = ("off", "minimal", "low", "high")  # the final grid; GLM's `minimal` stands for `off` (Sail rejects `off` for it)
 MAIN_MAX_TOKENS = 6144  # the reply limit of the default-condition runs (they did not record stop_reason)
 DRAWS = 4000
 
@@ -64,6 +67,8 @@ def probe_rows():
             continue
         effort = path.parent.parent.name.replace("effort-", "") if path.parent.parent.name.startswith("effort-") \
             else "default"
+        if effort not in GRID or path.parent.name != "pass1":
+            continue
         for r in map(json.loads, path.read_text().splitlines()):
             r.update(effort=effort, pass_no=path.parent.name, model=r["model"])
             rows.append(r)
@@ -79,6 +84,8 @@ def session_rows():
         rel = path.relative_to(OUT / "sessions").parts  # c2/[effort-x/]pass1/model/pod-sceneN.jsonl
         cost, effort = float(rel[0][1:]), rel[1].replace("effort-", "") if rel[1].startswith("effort-") else "default"
         pass_no = rel[-3]
+        if effort not in GRID or pass_no != "pass1":
+            continue
         for r in map(json.loads, path.read_text().splitlines()):
             if "outcome" in r:
                 r.update(effort=effort, cost=cost, pass_no=pass_no, session=f"{pass_no}/{path.stem}")
@@ -227,23 +234,17 @@ def probe_summary(rows, trajs, task_type):
 
 
 def probe_contrasts(groups):
-    """Within each model: every explicit level against the model's lowest level (pass 1), and the two default passes
-    against each other (the noise reference)."""
+    """Within each model, on identical probes (pass 1): low and high against the model's no-reasoning level (`off`, or
+    `minimal` for GLM), and high against low."""
     out = {}
-    lowest = {"off": 0, "minimal": 0, "low": 1, "medium": 2, "high": 3}
     by_model = defaultdict(dict)
-    for (model, effort, pass_no), rs in groups.items():
-        by_model[model][(effort, pass_no)] = rs
+    for (model, effort, _), rs in groups.items():
+        by_model[model][effort] = rs
     for model, conds in sorted(by_model.items()):
-        levels = sorted((e for e, p in conds if p == "pass1" and e in lowest), key=lowest.get)
-        if levels:
-            base = levels[0]
-            for e in levels[1:] + ["default"]:
-                if (e, "pass1") in conds:
-                    out[f"{model}|{e} - {base}"] = paired_ba_difference(conds[(e, "pass1")], conds[(base, "pass1")])
-        if ("default", "pass1") in conds and ("default", "pass2") in conds:
-            out[f"{model}|default pass2 - pass1"] = paired_ba_difference(conds[("default", "pass2")],
-                                                                        conds[("default", "pass1")])
+        base = "minimal" if "minimal" in conds else "off"
+        for a, b in (("low", base), ("high", base), ("high", "low")):
+            if a in conds and b in conds:
+                out[f"{model}|{a} - {b}"] = paired_ba_difference(conds[a], conds[b])
     return out
 
 
@@ -359,25 +360,6 @@ def session_summary(rows, trajs, config, task_type):
     return out, groups
 
 
-def model_differences(groups):
-    """Paired by recorded run and pass: model A's value minus model B's, leave-alone tasks, same level and cost."""
-    keyed = defaultdict(dict)
-    for (model, effort, cost), rows in groups.items():
-        for r in rows:
-            keyed[(effort, cost, r["pass_no"], r["traj"])][model] = r
-    models = sorted({m for (m, _, _) in groups})
-    out = {}
-    for i, a in enumerate(models):
-        for b in models[i + 1:]:
-            for effort, cost in sorted({(e, c) for (_, e, c) in groups}):
-                pairs = [{"task": v[a]["task"], "scene": v[a]["scene"], "diff": v[a]["value"] - v[b]["value"]}
-                         for (e, c, _, _), v in keyed.items()
-                         if (e, c) == (effort, cost) and a in v and b in v and v[a]["kind"] == "leave-alone"]
-                if pairs:
-                    out[f"{a} - {b}|{effort}|c{cost:g}"] = bootstrap(pairs, "diff", lambda p: (p["task"], p["scene"]))
-    return out
-
-
 # ---------------------------------------------------------------------------------------------------------------
 # Reliability
 
@@ -396,8 +378,8 @@ def reliability(probe, sessions):
                                                                     "xhigh", "default") else "default"
         else:
             effort = tag.split("@")[1].split("#")[0] if "@" in tag else "default"
-        if ":p0:" in tag:
-            continue
+        if ":p0:" in tag or effort not in GRID or (part == "session" and ":c2:p1:" not in tag):
+            continue  # probe tags carry no pass: probe attempts include the 10-probe pilot of each cell
         k = f"{r['model']}|{effort}|{part}"
         out[k]["attempts"] += 1
         out[k]["timeouts"] += tag.endswith(":timeout")
@@ -415,6 +397,36 @@ def reliability(probe, sessions):
     return dict(out)
 
 
+def spending():
+    """Dollars by use, raw (timeouts at their written worst case) and estimated (timeouts at the 99th-percentile reply
+    cost of the same model, part and level, as the cap counts them): the grid, its pilots, and runs not analysed."""
+    entries = [json.loads(l) for l in (OUT / "api_spend.jsonl").read_text().splitlines() if l.strip()]
+    replies = defaultdict(list)
+    for e in entries:
+        if not e["tag"].endswith(":timeout") and ":http" not in e["tag"]:
+            replies[(e["model"], condition_of(e["tag"]))].append(e["dollars"])
+    p99 = {k: sorted(v)[int(0.99 * (len(v) - 1))] for k, v in replies.items() if len(v) >= 20}
+    out = defaultdict(lambda: {"raw": 0.0, "estimated": 0.0, "timeouts": 0})
+    for e in entries:
+        part, effort = condition_of(e["tag"])
+        if ":p0:" in e["tag"]:
+            use = "pilot sessions (pass 0)"
+        elif effort in GRID and (part == "probe" or ":c2:p1:" in e["tag"]):
+            use = "grid probes (with their 10-probe pilots)" if part == "probe" else "grid sessions"
+        elif effort == "default":
+            use = "default runs (main runs, not analysed)"
+        else:
+            use = f"{effort} runs (stopped, not analysed)"
+        timeout = e["tag"].endswith(":timeout")
+        est = min(e["dollars"], p99.get((e["model"], (part, effort)), e["dollars"])) if timeout else e["dollars"]
+        for key in (use, f"{use}|{e['model']}"):
+            out[key]["raw"] += e["dollars"]
+            out[key]["estimated"] += est
+            out[key]["timeouts"] += timeout
+    return {k: {"raw": round(v["raw"], 2), "estimated": round(v["estimated"], 2), "timeouts": v["timeouts"]}
+            for k, v in sorted(out.items())}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, default=ROOT / "results" / "w1" / "replay" / "summary.json")
@@ -425,14 +437,15 @@ def main():
     trajs = load_trajectories(POD_ROOTS)
     probes, sessions = probe_rows(), session_rows()
     probe, probe_groups = probe_summary(probes, trajs, task_type)
-    session, session_groups = session_summary(sessions, trajs, config, task_type)
+    session, _ = session_summary(sessions, trajs, config, task_type)
     report = {"recorded_runs": len(trajs), "recorded_runs_that_succeed": sum(t["first_success"] is not None
                                                                              for t in trajs),
               "probe": probe, "probe_contrasts": probe_contrasts(probe_groups), "sessions": session,
-              "model_differences": model_differences(session_groups), "reliability": reliability(probes, sessions),
+"reliability": reliability(probes, sessions),
               "spent_dollars": {"ledger_raw": round(sum(json.loads(l)["dollars"] for l in (OUT / "api_spend.jsonl")
                                                         .read_text().splitlines() if l.strip()), 2),
-                                "estimated": round(Ledger(OUT / "api_spend.jsonl", 1e9).spent, 2)}}
+                                "estimated": round(Ledger(OUT / "api_spend.jsonl", 1e9).spent, 2),
+                                "by_use": spending()}}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2) + "\n")
     print(f"wrote {args.out}: {len(probes)} probe answers, {len(sessions)} session episodes, "
