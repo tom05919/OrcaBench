@@ -291,3 +291,18 @@ capacity; with `default` out of the comparison they are unused, and their record
   against each other on a leaderboard, as public leaderboards rank "model (reasoning effort)" entries. This ranks
   deployed configurations; it still does not claim that a requested level means the same amount of reasoning on two
   models, and level effects are still computed within a model.
+
+### Post-hoc check: early "done" near the success check (Tom's question, October 26, after the results)
+
+- **Question.** Many "done" calls that count as too early land a second or two before the simulator's success check
+  turns true. Are they failures of the model, or of a check that is stricter than the images show?
+- **What the check is.** At the pinned RoboCasa revision (`456174f6`) the check is not delayed but strict: OpenCabinet
+  needs every door joint at 90% or more of its range, CloseFridge needs the door within 0.5% of closed, and
+  PickPlaceCounterToStove needs the object in the pan *and* the gripper away from it. In the last 1-2 s a run can
+  look finished without meeting these thresholds.
+- **Decision: report a post-hoc sensitivity, not a new headline.** Count a "done" given at most 1 s (20 steps) or 2 s
+  (40 steps) before the check turns true as a success, valued at the step where the model stopped, and give the
+  fixed timer the same allowance (its stopping time re-tuned in the other scenes with the allowance). The perfect-
+  vision rule never stops early, so it is unchanged. 95% intervals as for the headline score. *Reason:* it tests
+  whether the conclusion depends on the strictness of the check without re-choosing the pre-declared measure after
+  seeing the data; the headline score and its figures stay as they are.

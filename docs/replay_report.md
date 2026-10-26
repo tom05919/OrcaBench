@@ -443,7 +443,72 @@ HTTP 400, 12 on HTTP 500, 11 on read timeouts); the two memory crashes of the Ma
   and 82 of 168) and GLM's `default` sessions (80 of 168): $3.4 of the estimate for `medium`/`xhigh`, the rest inside
   the $63.53 of the earlier default runs.
 
-## 12. Limitations
+## 12. Post-hoc check: early "done" near the success check (October 26, after the results)
+
+Tom asked whether "done" calls that land a second or two before the success check are really errors, or an artifact
+of the check. The decision and its reason are recorded in the design doc ("Post-hoc check: early 'done' near the
+success check"); `tolerance_check()` in `scripts/replay_analyze.py` computes everything below into `summary.json`
+(`post_hoc_tolerance`). It does not change the headline score.
+
+**The check is strict, not delayed.** At the pinned RoboCasa revision (`456174f6`), OpenCabinet passes when every door
+joint is at 90% or more of its range (`Fixture.is_open`, `th=0.90`), CloseFridge when the door is within 0.5% of closed
+(`is_closed`, `th=0.005`), and PickPlaceCounterToStove when the object is in the pan *and* the gripper is far from it
+(`check_obj_in_receptacle(th=0.07)` and `gripper_obj_far`). The images approach these thresholds gradually: in six runs
+inspected by eye (two per task, frames 3, 2 and 1 s before the check turns true), cabinet doors were visibly partly
+open 2-3 s before, the fridge door was still ajar 1-2 s before, and in one pick-and-place run the fruit already sat in
+the pan 3 s before while the gripper was still releasing it. (Six small frames; this is an illustration, not a
+measurement.) The earlier "~1 s lag" (stage 3) was inferred from Opus's answers, not from ground truth.
+
+**How early were the early "done"s?** On the trained-task runs the robot finishes, 228 episodes ended in a "done" before
+the check turned true:
+
+| How early | Episodes | Share |
+|---|---|---|
+| within 1 s (1-20 steps) | 62 | 27% |
+| 1-2 s | 48 | 21% |
+| 2-5 s | 73 | 32% |
+| 5-10 s | 27 | 12% |
+| over 10 s | 18 | 8% |
+
+By task, the early calls were a median 26 steps early on CloseFridge, 31 on PickPlaceCounterToStove and 86 (4.3 s) on
+OpenCabinet, where a partly open door is often called "open".
+
+**Re-scored with an allowance.** A "done" at most 1 s or 2 s before the check counts as a success, valued at the step
+where the model stopped. The fixed timer gets the same allowance (re-tuned in the other scenes): 52.5 [33.3, 69.4]
+with 1 s and 57.5 [37.3, 75.1] with 2 s (50.8 as scored). The perfect-vision rule never stops early, so it stays
+at 61.2. Differences are paired on the same runs, in value units (0-1), 95% bootstrap by task and scene.
+
+| Configuration | Score as scored | Score, 1 s allowance | − timer (1 s) | − perfect vision (1 s) | Score, 2 s allowance | − timer (2 s) | − perfect vision (2 s) |
+|---|---|---|---|---|---|---|---|
+| Gemma 4 31B off | 39.8 | 42.1 [25.8, 55.5] | −0.030 [−0.055, −0.001] | −0.054 [−0.094, −0.017] | 44.7 [26.1, 61.3] | −0.036 [−0.062, −0.007] | −0.047 [−0.090, −0.006] |
+| Kimi K3 low | 38.7 | 42.1 [30.2, 52.8] | −0.030 [−0.070, +0.009] | −0.054 [−0.112, +0.004] | 51.6 [43.2, 60.3] | −0.017 [−0.061, +0.030] | −0.027 [−0.072, +0.020] |
+| Kimi K3 high | 36.1 | 44.0 [25.2, 60.7] | −0.024 [−0.066, +0.016] | −0.049 [−0.119, −0.000] | 51.8 [37.2, 65.8] | −0.016 [−0.045, +0.019] | −0.027 [−0.076, +0.013] |
+| Gemma 4 31B low | 31.4 | 36.8 [20.6, 50.9] | −0.044 [−0.081, −0.005] | −0.069 [−0.124, −0.018] | 44.4 [27.7, 59.6] | −0.037 [−0.073, −0.000] | −0.048 [−0.091, −0.003] |
+| Gemma 4 31B high | 29.4 | 40.4 [21.7, 56.2] | −0.034 [−0.073, +0.009] | −0.059 [−0.101, −0.014] | 46.3 [29.7, 61.5] | −0.032 [−0.073, +0.014] | −0.042 [−0.079, −0.000] |
+| DeepSeek V4.1 Flash high | 27.4 | 42.4 [32.4, 50.7] | −0.029 [−0.077, +0.018] | −0.053 [−0.108, +0.008] | 43.4 [35.2, 50.8] | −0.040 [−0.091, +0.011] | −0.050 [−0.104, +0.011] |
+| GLM-5.3 Flash low | 22.6 | 25.5 [12.5, 37.2] | −0.077 [−0.148, −0.006] | −0.101 [−0.158, −0.050] | 26.2 [13.1, 38.2] | −0.089 [−0.162, −0.016] | −0.099 [−0.158, −0.047] |
+| Kimi K3 off | 18.7 | 18.7 [6.4, 30.1] | −0.096 [−0.160, −0.030] | −0.121 [−0.167, −0.077] | 19.4 [7.0, 31.2] | −0.108 [−0.174, −0.041] | −0.118 [−0.166, −0.074] |
+| DeepSeek V4.1 Flash low | 17.3 | 22.8 [18.0, 28.4] | −0.084 [−0.142, −0.029] | −0.109 [−0.167, −0.054] | 37.8 [26.2, 48.2] | −0.056 [−0.105, −0.007] | −0.066 [−0.107, −0.028] |
+| GLM-5.3 Flash high | 17.1 | 32.4 [21.7, 42.7] | −0.057 [−0.116, −0.002] | −0.081 [−0.144, −0.019] | 37.2 [24.9, 50.4] | −0.057 [−0.124, +0.010] | −0.068 [−0.135, −0.002] |
+| GLM-5.3 Flash minimal | 15.3 | 24.6 [13.4, 35.6] | −0.079 [−0.149, −0.018] | −0.104 [−0.171, −0.042] | 30.2 [19.6, 40.7] | −0.077 [−0.132, −0.026] | −0.088 [−0.142, −0.035] |
+| DeepSeek V4.1 Flash off | 8.1 | 11.1 [3.8, 20.4] | −0.117 [−0.187, −0.053] | −0.142 [−0.214, −0.077] | 11.1 [3.8, 20.4] | −0.132 [−0.203, −0.066] | −0.142 [−0.214, −0.077] |
+
+- No configuration's score exceeds the timer or the perfect-vision rule under either allowance, and none is
+  significantly above either.
+- But the comparison is no longer clear-cut for the best configurations. With 1 s, 8 of 12 are significantly below the
+  timer and 9 of 12 below the perfect-vision rule; with 2 s, 6 and 8. Kimi K3 low and high and DeepSeek V4.1 Flash high
+  cannot be separated from either baseline under either allowance. These counts treat an interval whose upper end
+  rounds to −0.000 as touching zero; three do: Kimi K3 high against perfect vision (1 s), Gemma 4 31B low against the
+  timer (2 s) and Gemma 4 31B high against perfect vision (2 s).
+- The ranking shifts: models with many near-miss "done"s gain most (DeepSeek V4.1 Flash high, GLM-5.3 Flash high).
+- **Reading:** about half of the early "done"s (48%) are within 2 s of a strict threshold and may be fair readings of
+  the images; the other half are clear errors (over 2 s early, median 4.3 s on OpenCabinet). Under the simulator's
+  definition of success the conclusion stands; with a lenient definition the best models approach, but do not exceed,
+  the simple baselines.
+- **Caveats:** post-hoc (chosen after seeing the results); the allowance is a uniform time window, not a visual
+  judgement; the visual inspection covered six runs.
+
+## 13. Limitations
 
 - **One run per cell.** No repeat at the grid levels, so model sampling noise is not in the intervals (section 7).
 - **Levels are provider settings, not amounts of reasoning.** Sail maps them onto each model's tiers; GLM `low` does
@@ -454,10 +519,11 @@ HTTP 400, 12 on HTTP 500, 11 on read timeouts); the two memory crashes of the Ma
   succeed).
 - **Images only, looks every 10 steps,** three 256 × 256 cameras; joint readings were not available.
 - **Value does not separate false "done" from running out on runs that never succeed** (both score 0).
-- **The checker lags the images by about 1 s,** so some "done" answers just before the labelled success may be right.
+- **The success check is strict,** so some "done" answers in the last 1-2 s before it passes may be fair readings of the
+  images; section 12 measures how much this matters (post hoc).
 - **Adaptation is low-powered** and was declared exploratory before any run.
 
-## 13. Reproduce
+## 14. Reproduce
 
 ```bash
 PYTHONPATH=src python3.12 -m unittest discover -s tests
