@@ -1,0 +1,497 @@
+{
+ "sessions/c2/effort-high/pass1/deepseek-ai__DeepSeek-V4.1-Flash-1017": {
+  "episodes": 168,
+  "paid_replies": 2343,
+  "timeouts": 132,
+  "http_errors": {
+   "500": 4,
+   "404": 125
+  },
+  "looks_saved": 2343,
+  "looks_scored": 1990,
+  "interrupted_attempts": 28,
+  "interrupted_looks": 353,
+  "interrupted_dollars": 0.249,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-high/pass1/google__gemma-4-31B-it": {
+  "episodes": 168,
+  "paid_replies": 2174,
+  "timeouts": 10,
+  "http_errors": {
+   "400": 20,
+   "404": 2
+  },
+  "looks_saved": 2174,
+  "looks_scored": 2006,
+  "interrupted_attempts": 18,
+  "interrupted_looks": 168,
+  "interrupted_dollars": 0.149,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-high/pass1/moonshotai__Kimi-K3": {
+  "episodes": 168,
+  "paid_replies": 1510,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 1510,
+  "looks_scored": 1510,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-high/pass1/zai-org__GLM-5.3-Flash": {
+  "episodes": 168,
+  "paid_replies": 2893,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 2893,
+  "looks_scored": 2893,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-low/pass1/deepseek-ai__DeepSeek-V4.1-Flash-1017": {
+  "episodes": 168,
+  "paid_replies": 2352,
+  "timeouts": 20,
+  "http_errors": {
+   "404": 8,
+   "500": 12
+  },
+  "looks_saved": 2352,
+  "looks_scored": 2073,
+  "interrupted_attempts": 38,
+  "interrupted_looks": 279,
+  "interrupted_dollars": 0.131,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-low/pass1/google__gemma-4-31B-it": {
+  "episodes": 168,
+  "paid_replies": 2203,
+  "timeouts": 12,
+  "http_errors": {
+   "400": 25,
+   "404": 2
+  },
+  "looks_saved": 2194,
+  "looks_scored": 1989,
+  "interrupted_attempts": 38,
+  "interrupted_looks": 205,
+  "interrupted_dollars": 0.167,
+  "paid_replies_not_saved": 9
+ },
+ "sessions/c2/effort-low/pass1/moonshotai__Kimi-K3": {
+  "episodes": 168,
+  "paid_replies": 1833,
+  "timeouts": 8,
+  "http_errors": {},
+  "looks_saved": 1833,
+  "looks_scored": 1752,
+  "interrupted_attempts": 10,
+  "interrupted_looks": 81,
+  "interrupted_dollars": 0.439,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-low/pass1/zai-org__GLM-5.3-Flash": {
+  "episodes": 168,
+  "paid_replies": 3473,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 3473,
+  "looks_scored": 3473,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-medium/pass1/deepseek-ai__DeepSeek-V4.1-Flash-1017": {
+  "episodes": 2,
+  "paid_replies": 61,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 61,
+  "looks_scored": 12,
+  "interrupted_attempts": 8,
+  "interrupted_looks": 49,
+  "interrupted_dollars": 0.018,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-medium/pass1/google__gemma-4-31B-it": {
+  "episodes": 13,
+  "paid_replies": 117,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 117,
+  "looks_scored": 76,
+  "interrupted_attempts": 8,
+  "interrupted_looks": 41,
+  "interrupted_dollars": 0.028,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-medium/pass1/zai-org__GLM-5.3-Flash": {
+  "episodes": 38,
+  "paid_replies": 588,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 588,
+  "looks_scored": 432,
+  "interrupted_attempts": 8,
+  "interrupted_looks": 156,
+  "interrupted_dollars": 0.043,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-minimal/pass1/zai-org__GLM-5.3-Flash": {
+  "episodes": 168,
+  "paid_replies": 2939,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 2939,
+  "looks_scored": 2939,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-off/pass1/deepseek-ai__DeepSeek-V4.1-Flash-1017": {
+  "episodes": 168,
+  "paid_replies": 3047,
+  "timeouts": 8,
+  "http_errors": {},
+  "looks_saved": 3047,
+  "looks_scored": 2911,
+  "interrupted_attempts": 23,
+  "interrupted_looks": 136,
+  "interrupted_dollars": 0.015,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-off/pass1/google__gemma-4-31B-it": {
+  "episodes": 168,
+  "paid_replies": 1650,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 1650,
+  "looks_scored": 1650,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/effort-off/pass1/moonshotai__Kimi-K3": {
+  "episodes": 168,
+  "paid_replies": 3399,
+  "timeouts": 12,
+  "http_errors": {},
+  "looks_saved": 3399,
+  "looks_scored": 3219,
+  "interrupted_attempts": 26,
+  "interrupted_looks": 180,
+  "interrupted_dollars": 0.763,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/pass0/google__gemma-4-31B-it": {
+  "episodes": 8,
+  "paid_replies": 55,
+  "timeouts": 0,
+  "http_errors": {},
+  "looks_saved": 0,
+  "looks_scored": 55,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 55
+ },
+ "sessions/c2/pass0/moonshotai__Kimi-K3": {
+  "episodes": 8,
+  "paid_replies": 42,
+  "timeouts": 1,
+  "http_errors": {},
+  "looks_saved": 0,
+  "looks_scored": 42,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 42
+ },
+ "sessions/c2/pass0/zai-org__GLM-5.3-Flash": {
+  "episodes": 1,
+  "paid_replies": 38,
+  "timeouts": 22,
+  "http_errors": {},
+  "looks_saved": 0,
+  "looks_scored": 6,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 38
+ },
+ "sessions/c2/pass1/deepseek-ai__DeepSeek-V4.1-Flash-1017": {
+  "episodes": 144,
+  "paid_replies": 2207,
+  "timeouts": 62,
+  "http_errors": {
+   "500": 8,
+   "404": 7
+  },
+  "looks_saved": 2207,
+  "looks_scored": 1742,
+  "interrupted_attempts": 55,
+  "interrupted_looks": 465,
+  "interrupted_dollars": 0.339,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/pass1/google__gemma-4-31B-it": {
+  "episodes": 168,
+  "paid_replies": 1725,
+  "timeouts": 17,
+  "http_errors": {},
+  "looks_saved": 0,
+  "looks_scored": 1654,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 1725
+ },
+ "sessions/c2/pass1/moonshotai__Kimi-K3": {
+  "episodes": 168,
+  "paid_replies": 1807,
+  "timeouts": 32,
+  "http_errors": {},
+  "looks_saved": 660,
+  "looks_scored": 1706,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 1147
+ },
+ "sessions/c2/pass1/zai-org__GLM-5.3-Flash": {
+  "episodes": 80,
+  "paid_replies": 1648,
+  "timeouts": 192,
+  "http_errors": {
+   "404": 8
+  },
+  "looks_saved": 1432,
+  "looks_scored": 1015,
+  "interrupted_attempts": 60,
+  "interrupted_looks": 527,
+  "interrupted_dollars": 0.606,
+  "paid_replies_not_saved": 216
+ },
+ "sessions/c2/pass2/deepseek-ai__DeepSeek-V4.1-Flash-1017": {
+  "episodes": 106,
+  "paid_replies": 1461,
+  "timeouts": 14,
+  "http_errors": {
+   "500": 8,
+   "404": 7
+  },
+  "looks_saved": 1461,
+  "looks_scored": 1239,
+  "interrupted_attempts": 22,
+  "interrupted_looks": 222,
+  "interrupted_dollars": 0.158,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c2/pass2/google__gemma-4-31B-it": {
+  "episodes": 168,
+  "paid_replies": 1653,
+  "timeouts": 17,
+  "http_errors": {},
+  "looks_saved": 0,
+  "looks_scored": 1653,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 1653
+ },
+ "sessions/c6/pass1/deepseek-ai__DeepSeek-V4.1-Flash-1017": {
+  "episodes": 84,
+  "paid_replies": 1064,
+  "timeouts": 16,
+  "http_errors": {
+   "404": 8,
+   "500": 12
+  },
+  "looks_saved": 1064,
+  "looks_scored": 855,
+  "interrupted_attempts": 22,
+  "interrupted_looks": 209,
+  "interrupted_dollars": 0.194,
+  "paid_replies_not_saved": 0
+ },
+ "sessions/c6/pass1/google__gemma-4-31B-it": {
+  "episodes": 168,
+  "paid_replies": 1628,
+  "timeouts": 16,
+  "http_errors": {},
+  "looks_saved": 0,
+  "looks_scored": 1628,
+  "interrupted_attempts": 0,
+  "interrupted_looks": 0,
+  "interrupted_dollars": 0.0,
+  "paid_replies_not_saved": 1628
+ },
+ "probe/high/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 1,
+  "http_errors": {
+   "500": 4
+  },
+  "paid_replies_not_saved": 0
+ },
+ "probe/high/google/gemma-4-31B-it": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 8,
+  "http_errors": {
+   "400": 4
+  },
+  "paid_replies_not_saved": 0
+ },
+ "probe/high/moonshotai/Kimi-K3": {
+  "answers": 450,
+  "paid_replies": 451,
+  "timeouts_incl_pilot": 10,
+  "http_errors": {},
+  "paid_replies_not_saved": 1
+ },
+ "probe/high/zai-org/GLM-5.3-Flash": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 0,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/low/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 11,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/low/google/gemma-4-31B-it": {
+  "answers": 450,
+  "paid_replies": 464,
+  "timeouts_incl_pilot": 12,
+  "http_errors": {
+   "400": 5
+  },
+  "paid_replies_not_saved": 14
+ },
+ "probe/low/moonshotai/Kimi-K3": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 8,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/low/zai-org/GLM-5.3-Flash": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 0,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/medium/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+  "answers": 56,
+  "paid_replies": 56,
+  "timeouts_incl_pilot": 0,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/medium/google/gemma-4-31B-it": {
+  "answers": 89,
+  "paid_replies": 89,
+  "timeouts_incl_pilot": 0,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/medium/moonshotai/Kimi-K3": {
+  "answers": 164,
+  "paid_replies": 164,
+  "timeouts_incl_pilot": 0,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/medium/zai-org/GLM-5.3-Flash": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 9,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/minimal/zai-org/GLM-5.3-Flash": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 8,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/off/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 8,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/off/google/gemma-4-31B-it": {
+  "answers": 450,
+  "paid_replies": 469,
+  "timeouts_incl_pilot": 13,
+  "http_errors": {
+   "400": 8
+  },
+  "paid_replies_not_saved": 19
+ },
+ "probe/off/moonshotai/Kimi-K3": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 8,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/default/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+  "answers": 450,
+  "paid_replies": 450,
+  "timeouts_incl_pilot": 21,
+  "http_errors": {},
+  "paid_replies_not_saved": 0
+ },
+ "probe/default/google/gemma-4-31B-it": {
+  "answers": 450,
+  "paid_replies": 462,
+  "timeouts_incl_pilot": 17,
+  "http_errors": {},
+  "paid_replies_not_saved": 12
+ },
+ "probe/default/moonshotai/Kimi-K3": {
+  "answers": 450,
+  "paid_replies": 464,
+  "timeouts_incl_pilot": 18,
+  "http_errors": {},
+  "paid_replies_not_saved": 14
+ },
+ "probe/default/zai-org/GLM-5.3-Flash": {
+  "answers": 450,
+  "paid_replies": 460,
+  "timeouts_incl_pilot": 61,
+  "http_errors": {},
+  "paid_replies_not_saved": 10
+ },
+ "unmatched_ledger": {
+  "probe/xhigh/moonshotai/Kimi-K3": {
+   "replies": 56,
+   "timeouts": 0,
+   "http": {}
+  },
+  "probe/xhigh/zai-org/GLM-5.3-Flash": {
+   "replies": 22,
+   "timeouts": 0,
+   "http": {}
+  }
+ }
+}

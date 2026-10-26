@@ -1,8 +1,59 @@
 # OrcaBench
 
+## Replay benchmark: done-detection and look scheduling (COS 597C Project 1, October 26, 2026)
+
+**Report:** [docs/cos597c_report/report.pdf](docs/cos597c_report/report.pdf) (4 pages). Full record of every design
+decision, error and loss: [docs/replay_report.md](docs/replay_report.md).
+
+An LLM supervisor watches recorded rollouts of learned robot policies and must say when the task is done (the
+*probe*: 450 questions) and decide how long to wait between looks (the *sessions*: 168 episodes, 2 s per look). Both
+are scored automatically by the simulator's success checker. Four open vision-language models on Sail Research (Kimi
+K3, Gemma 4 31B, DeepSeek V4.1 Flash, GLM-5.3 Flash) were run at reasoning levels none (GLM: minimal), low and high.
+
+**Reproduce every table and figure from the recorded data (no API calls, no GPU).** Needs Python 3.11 or 3.12 and
+matplotlib; the PDF also needs `pdflatex`.
+
+```bash
+git clone https://github.com/tom05919/OrcaBench.git && cd OrcaBench
+python3.12 -m pip install matplotlib
+# Recorded rollouts (videos and per-step checker) and every model reply, from the GitHub release:
+gh release download replay-data-2026-10-26 --repo tom05919/OrcaBench
+shasum -a 256 -c SHA256SUMS
+tar -xzf orcabench-replay-runs.tar.gz && tar -xzf orcabench-replay-records.tar.gz
+PYTHONPATH=src python3.12 -m unittest discover -s tests -p 'test_replay*.py'
+python3.12 -B scripts/replay_analyze.py --out results/w1/replay/summary.json
+python3.12 -B scripts/replay_losses.py --out results/w1/replay/losses.json
+python3.12 -B scripts/replay_figures.py --summary results/w1/replay/summary.json --out results/w1/replay/figures
+python3.12 -B scripts/replay_figures.py --summary results/w1/replay/summary.json --out results/w1/replay/figures/paper --no-notes
+python3.12 -B scripts/replay_paper_tables.py --summary results/w1/replay/summary.json --out docs/cos597c_report/results_table.tex
+cd docs/cos597c_report && pdflatex report.tex && pdflatex report.tex
+```
+
+Without `gh`, download the three files from the release page with a browser or `curl -LO`. The archives unpack into
+`runs/` (Git-ignored): `runs/addon/podC/always_defer` and `runs/final/podB/always_defer` (168 rollouts) and
+`runs/replay/` (probe answers, session episodes, every look, and the spending ledger). The full test suite
+(`unittest discover -s tests`) also needs the vendored RoboCasa checkout under `vendor/`; the replay tests do not.
+
+**Run a model yourself (costs money).** Needs `ffmpeg`, `pip install pillow` and a Sail Research key in
+`SAIL_API_KEY` (or a Git-ignored `.env`). The runner resumes where it stopped and refuses to pass `--cap` dollars. For example, one probe pass for Gemma
+at low reasoning:
+
+```bash
+python3.12 -B scripts/replay_run.py probe --models google/gemma-4-31B-it --pass 1 --effort low \
+  --max-tokens 32768 --timeout 900 --workers 6 --cap 5
+python3.12 -B scripts/replay_run.py sessions --models google/gemma-4-31B-it --pass 1 --effort low \
+  --cost-per-look 2 --max-tokens 32768 --timeout 900 --workers 8 --cap 10
+```
+
+Code: `src/robot_benchmark/replay_bench.py` (frames, probe sampling, sessions, API client, spending ledger),
+`scripts/replay_run.py`, `scripts/replay_analyze.py`, `scripts/replay_losses.py`, `scripts/replay_figures.py`,
+`scripts/replay_paper_tables.py`; tests in `tests/test_replay_bench.py`.
+
+## Earlier live benchmark (October 2026, superseded by the replay benchmark above)
+
 **Work in progress — an experimental benchmark for LLM orchestration of robot policies.**
 
-> **Current direction (October 12, 2026): start with [docs/direction.md](docs/direction.md) and [handoff.md](handoff.md).**
+> **Direction of the live benchmark (October 12, 2026): start with [docs/direction.md](docs/direction.md) and [handoff.md](handoff.md).**
 > - **What it measures:** whether an LLM supervisor chooses *when* to interrupt and re-prompt learned robot policies,
 >   and *how often* to check on them, so the pair finishes tasks quickly and reliably. One supervisor supervises
 >   several policies of different ability.

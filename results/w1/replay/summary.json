@@ -1,0 +1,3121 @@
+{
+  "recorded_runs": 168,
+  "recorded_runs_that_succeed": 57,
+  "probe": {
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|high|pass1": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "effort": "high",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.746,
+        "ci95": [
+          0.691,
+          0.797
+        ]
+      },
+      "hit_rate_on_done": 0.763,
+      "correct_rejection_on_not_done": 0.729,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 8,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 40,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 19,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 24,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 370.0,
+      "median_thinking_chars": 1630.0,
+      "median_seconds": 13.9,
+      "dollars": 0.201
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|low|pass1": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "effort": "low",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.761,
+        "ci95": [
+          0.716,
+          0.805
+        ]
+      },
+      "hit_rate_on_done": 0.763,
+      "correct_rejection_on_not_done": 0.759,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 10,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 36,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 16,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 19,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 373.0,
+      "median_thinking_chars": 1555.5,
+      "median_seconds": 23.7,
+      "dollars": 0.117
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|off|pass1": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "effort": "off",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.689,
+        "ci95": [
+          0.633,
+          0.744
+        ]
+      },
+      "hit_rate_on_done": 0.553,
+      "correct_rejection_on_not_done": 0.824,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 7,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 31,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 16,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 5,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 6.0,
+      "median_thinking_chars": 0.0,
+      "median_seconds": 29.1,
+      "dollars": 0.03
+    },
+    "google/gemma-4-31B-it|high|pass1": {
+      "model": "google/gemma-4-31B-it",
+      "effort": "high",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.752,
+        "ci95": [
+          0.708,
+          0.793
+        ]
+      },
+      "hit_rate_on_done": 0.816,
+      "correct_rejection_on_not_done": 0.688,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 9,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 35,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 19,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 42,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 230.0,
+      "median_thinking_chars": 844.5,
+      "median_seconds": 8.0,
+      "dollars": 0.244
+    },
+    "google/gemma-4-31B-it|low|pass1": {
+      "model": "google/gemma-4-31B-it",
+      "effort": "low",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.763,
+        "ci95": [
+          0.721,
+          0.804
+        ]
+      },
+      "hit_rate_on_done": 0.825,
+      "correct_rejection_on_not_done": 0.702,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 12,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 36,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 18,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 34,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 226.5,
+      "median_thinking_chars": 838.5,
+      "median_seconds": 13.8,
+      "dollars": 0.245
+    },
+    "google/gemma-4-31B-it|off|pass1": {
+      "model": "google/gemma-4-31B-it",
+      "effort": "off",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.757,
+        "ci95": [
+          0.719,
+          0.797
+        ]
+      },
+      "hit_rate_on_done": 0.851,
+      "correct_rejection_on_not_done": 0.664,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 14,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 39,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 18,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 42,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 6.0,
+      "median_thinking_chars": 0.0,
+      "median_seconds": 25.5,
+      "dollars": 0.166
+    },
+    "moonshotai/Kimi-K3|high|pass1": {
+      "model": "moonshotai/Kimi-K3",
+      "effort": "high",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.772,
+        "ci95": [
+          0.727,
+          0.814
+        ]
+      },
+      "hit_rate_on_done": 0.851,
+      "correct_rejection_on_not_done": 0.693,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 13,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 40,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 21,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 29,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 361.0,
+      "median_thinking_chars": 1576.0,
+      "median_seconds": 29.8,
+      "dollars": 4.693
+    },
+    "moonshotai/Kimi-K3|low|pass1": {
+      "model": "moonshotai/Kimi-K3",
+      "effort": "low",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.771,
+        "ci95": [
+          0.733,
+          0.809
+        ]
+      },
+      "hit_rate_on_done": 0.86,
+      "correct_rejection_on_not_done": 0.682,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 10,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 38,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 19,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 40,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 92.0,
+      "median_thinking_chars": 343.0,
+      "median_seconds": 29.3,
+      "dollars": 1.924
+    },
+    "moonshotai/Kimi-K3|off|pass1": {
+      "model": "moonshotai/Kimi-K3",
+      "effort": "off",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.709,
+        "ci95": [
+          0.664,
+          0.755
+        ]
+      },
+      "hit_rate_on_done": 0.64,
+      "correct_rejection_on_not_done": 0.777,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 12,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 34,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 17,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 12,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 12.0,
+      "median_thinking_chars": 0.0,
+      "median_seconds": 27.9,
+      "dollars": 1.223
+    },
+    "zai-org/GLM-5.3-Flash|high|pass1": {
+      "model": "zai-org/GLM-5.3-Flash",
+      "effort": "high",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.784,
+        "ci95": [
+          0.739,
+          0.826
+        ]
+      },
+      "hit_rate_on_done": 0.904,
+      "correct_rejection_on_not_done": 0.664,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 10,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 37,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 21,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 45,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 53.0,
+      "median_thinking_chars": 206.0,
+      "median_seconds": 4.1,
+      "dollars": 0.065
+    },
+    "zai-org/GLM-5.3-Flash|low|pass1": {
+      "model": "zai-org/GLM-5.3-Flash",
+      "effort": "low",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.753,
+        "ci95": [
+          0.704,
+          0.799
+        ]
+      },
+      "hit_rate_on_done": 0.833,
+      "correct_rejection_on_not_done": 0.673,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 10,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 33,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 22,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 45,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 7.0,
+      "median_thinking_chars": 0.0,
+      "median_seconds": 3.9,
+      "dollars": 0.052
+    },
+    "zai-org/GLM-5.3-Flash|minimal|pass1": {
+      "model": "zai-org/GLM-5.3-Flash",
+      "effort": "minimal",
+      "pass": "pass1",
+      "probes": 450,
+      "unreadable": 0,
+      "cut_off": 0,
+      "balanced_accuracy": {
+        "mean": 0.751,
+        "ci95": [
+          0.705,
+          0.796
+        ]
+      },
+      "hit_rate_on_done": 0.86,
+      "correct_rejection_on_not_done": 0.643,
+      "said_done_by_negative_kind": {
+        "10 s before success": {
+          "said_done": 9,
+          "n": 50
+        },
+        "2 s before success": {
+          "said_done": 35,
+          "n": 50
+        },
+        "run never succeeds": {
+          "said_done": 20,
+          "n": 44
+        },
+        "unseen task": {
+          "said_done": 56,
+          "n": 192
+        }
+      },
+      "median_output_tokens": 7.0,
+      "median_thinking_chars": 0.0,
+      "median_seconds": 31.0,
+      "dollars": 0.052
+    }
+  },
+  "probe_contrasts": {
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|low - off": {
+      "mean": 0.073,
+      "ci95": [
+        0.021,
+        0.127
+      ],
+      "probes": 450
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|high - off": {
+      "mean": 0.058,
+      "ci95": [
+        0.006,
+        0.109
+      ],
+      "probes": 450
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|high - low": {
+      "mean": -0.015,
+      "ci95": [
+        -0.064,
+        0.031
+      ],
+      "probes": 450
+    },
+    "google/gemma-4-31B-it|low - off": {
+      "mean": 0.006,
+      "ci95": [
+        -0.022,
+        0.033
+      ],
+      "probes": 450
+    },
+    "google/gemma-4-31B-it|high - off": {
+      "mean": -0.006,
+      "ci95": [
+        -0.039,
+        0.026
+      ],
+      "probes": 450
+    },
+    "google/gemma-4-31B-it|high - low": {
+      "mean": -0.012,
+      "ci95": [
+        -0.04,
+        0.018
+      ],
+      "probes": 450
+    },
+    "moonshotai/Kimi-K3|low - off": {
+      "mean": 0.062,
+      "ci95": [
+        0.006,
+        0.117
+      ],
+      "probes": 450
+    },
+    "moonshotai/Kimi-K3|high - off": {
+      "mean": 0.064,
+      "ci95": [
+        0.013,
+        0.114
+      ],
+      "probes": 450
+    },
+    "moonshotai/Kimi-K3|high - low": {
+      "mean": 0.002,
+      "ci95": [
+        -0.039,
+        0.044
+      ],
+      "probes": 450
+    },
+    "zai-org/GLM-5.3-Flash|low - minimal": {
+      "mean": 0.002,
+      "ci95": [
+        -0.043,
+        0.044
+      ],
+      "probes": 450
+    },
+    "zai-org/GLM-5.3-Flash|high - minimal": {
+      "mean": 0.032,
+      "ci95": [
+        -0.007,
+        0.072
+      ],
+      "probes": 450
+    },
+    "zai-org/GLM-5.3-Flash|high - low": {
+      "mean": 0.031,
+      "ci95": [
+        -0.01,
+        0.075
+      ],
+      "probes": 450
+    }
+  },
+  "sessions": {
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|high|c2": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "effort": "high",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 29,
+          "false_done": 43
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.58,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.078,
+          "ci95": [
+            0.045,
+            0.114
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.096,
+          "ci95": [
+            -0.155,
+            -0.043
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.066,
+          "ci95": [
+            -0.109,
+            -0.024
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 6.64,
+        "median_first_wait": 100.0,
+        "false_done": 43,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 2.2,
+        "median_seconds_early": 1.0,
+        "dollars": 0.454
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 89,
+          "success": 7
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 1.0,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.003,
+          "ci95": [
+            0.0,
+            0.007
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.003,
+          "ci95": [
+            0.0,
+            0.007
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.003,
+          "ci95": [
+            0.0,
+            0.007
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 15.75,
+        "median_first_wait": 150.0,
+        "false_done": 89,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 52.25,
+        "median_seconds_early": null,
+        "dollars": 1.256
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 36,
+          "false_done": 132
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.632,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.035,
+          "ci95": [
+            0.016,
+            0.057
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.039,
+          "ci95": [
+            -0.072,
+            -0.011
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.027,
+          "ci95": [
+            -0.05,
+            -0.006
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 11.85,
+        "median_first_wait": 100.0,
+        "false_done": 132,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 4.025,
+        "median_seconds_early": 1.0,
+        "dollars": 1.71
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 30,
+          "discordant": 24,
+          "tied": 10,
+          "blocks": 24,
+          "blocks_with_identical_value": 1,
+          "concordant_share": 0.556,
+          "ci95": [
+            0.362,
+            0.696
+          ]
+        },
+        "declaration_step": {
+          "concordant": 31,
+          "discordant": 30,
+          "tied": 3,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.508,
+          "ci95": [
+            0.377,
+            0.627
+          ]
+        }
+      }
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|low|c2": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "effort": "low",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "false_done": 53,
+          "success": 19
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.38,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.049,
+          "ci95": [
+            0.025,
+            0.075
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.125,
+          "ci95": [
+            -0.182,
+            -0.07
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.095,
+          "ci95": [
+            -0.148,
+            -0.041
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 6.96,
+        "median_first_wait": 100.0,
+        "false_done": 53,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 5.0,
+        "median_seconds_early": 1.95,
+        "dollars": 0.296
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 90,
+          "success": 6
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 0.857,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 16.38,
+        "median_first_wait": 100.0,
+        "false_done": 90,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 60.849999999999994,
+        "median_seconds_early": 18.65,
+        "dollars": 0.888
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "false_done": 143,
+          "success": 25
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.439,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.021,
+          "ci95": [
+            0.008,
+            0.036
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.053,
+          "ci95": [
+            -0.088,
+            -0.022
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.041,
+          "ci95": [
+            -0.07,
+            -0.014
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 12.34,
+        "median_first_wait": 100.0,
+        "false_done": 143,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 6.45,
+        "median_seconds_early": 1.975,
+        "dollars": 1.184
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 28,
+          "discordant": 26,
+          "tied": 10,
+          "blocks": 24,
+          "blocks_with_identical_value": 1,
+          "concordant_share": 0.519,
+          "ci95": [
+            0.333,
+            0.712
+          ]
+        },
+        "declaration_step": {
+          "concordant": 23,
+          "discordant": 39,
+          "tied": 2,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.371,
+          "ci95": [
+            0.274,
+            0.47
+          ]
+        }
+      }
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|off|c2": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "effort": "off",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 41,
+          "false_done": 31
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.82,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.023,
+          "ci95": [
+            0.004,
+            0.047
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.151,
+          "ci95": [
+            -0.221,
+            -0.084
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.121,
+          "ci95": [
+            -0.185,
+            -0.062
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 9.31,
+        "median_first_wait": 100.0,
+        "false_done": 31,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 17.7,
+        "median_seconds_early": 0.9,
+        "dollars": 0.083
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 89,
+          "success": 7
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 1.0,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.002,
+          "ci95": [
+            0.0,
+            0.006
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.002,
+          "ci95": [
+            0.0,
+            0.006
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.002,
+          "ci95": [
+            0.0,
+            0.006
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 23.34,
+        "median_first_wait": 100.0,
+        "false_done": 89,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 46.25,
+        "median_seconds_early": null,
+        "dollars": 0.342
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 48,
+          "false_done": 120
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.842,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.011,
+          "ci95": [
+            0.002,
+            0.022
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.063,
+          "ci95": [
+            -0.105,
+            -0.025
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.051,
+          "ci95": [
+            -0.087,
+            -0.019
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 17.33,
+        "median_first_wait": 100.0,
+        "false_done": 120,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 20.0,
+        "median_seconds_early": 0.9,
+        "dollars": 0.425
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 22,
+          "discordant": 27,
+          "tied": 15,
+          "blocks": 24,
+          "blocks_with_identical_value": 2,
+          "concordant_share": 0.449,
+          "ci95": [
+            0.3,
+            0.574
+          ]
+        },
+        "declaration_step": {
+          "concordant": 33,
+          "discordant": 24,
+          "tied": 7,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.579,
+          "ci95": [
+            0.421,
+            0.745
+          ]
+        }
+      }
+    },
+    "google/gemma-4-31B-it|high|c2": {
+      "model": "google/gemma-4-31B-it",
+      "effort": "high",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 30,
+          "false_done": 42
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.6,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.083,
+          "ci95": [
+            0.034,
+            0.137
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.09,
+          "ci95": [
+            -0.125,
+            -0.057
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.061,
+          "ci95": [
+            -0.099,
+            -0.021
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 5.43,
+        "median_first_wait": 100.0,
+        "false_done": 42,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 5.625,
+        "median_seconds_early": 1.9,
+        "dollars": 0.327
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 90,
+          "success": 6
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 0.857,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 16.82,
+        "median_first_wait": 100.0,
+        "false_done": 90,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 58.224999999999994,
+        "median_seconds_early": 2.35,
+        "dollars": 1.709
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 36,
+          "false_done": 132
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.632,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.036,
+          "ci95": [
+            0.011,
+            0.065
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.039,
+          "ci95": [
+            -0.062,
+            -0.017
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.026,
+          "ci95": [
+            -0.046,
+            -0.007
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 11.94,
+        "median_first_wait": 100.0,
+        "false_done": 132,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 7.475,
+        "median_seconds_early": 1.9,
+        "dollars": 2.037
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 4,
+          "discordant": 11,
+          "tied": 49,
+          "blocks": 24,
+          "blocks_with_identical_value": 16,
+          "concordant_share": 0.267,
+          "ci95": [
+            0.05,
+            0.583
+          ]
+        },
+        "declaration_step": {
+          "concordant": 31,
+          "discordant": 23,
+          "tied": 10,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.574,
+          "ci95": [
+            0.5,
+            0.661
+          ]
+        }
+      }
+    },
+    "google/gemma-4-31B-it|low|c2": {
+      "model": "google/gemma-4-31B-it",
+      "effort": "low",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 30,
+          "false_done": 42
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.6,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.089,
+          "ci95": [
+            0.043,
+            0.143
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.085,
+          "ci95": [
+            -0.141,
+            -0.032
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.055,
+          "ci95": [
+            -0.097,
+            -0.016
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 5.46,
+        "median_first_wait": 100.0,
+        "false_done": 42,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 5.35,
+        "median_seconds_early": 2.625,
+        "dollars": 0.327
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 90,
+          "success": 6
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 0.857,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 16.62,
+        "median_first_wait": 175.0,
+        "false_done": 90,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 70.425,
+        "median_seconds_early": 2.35,
+        "dollars": 1.692
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 36,
+          "false_done": 132
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.632,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.038,
+          "ci95": [
+            0.014,
+            0.067
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.036,
+          "ci95": [
+            -0.067,
+            -0.01
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.024,
+          "ci95": [
+            -0.046,
+            -0.006
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 11.84,
+        "median_first_wait": 100.0,
+        "false_done": 132,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 6.9,
+        "median_seconds_early": 2.35,
+        "dollars": 2.019
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 5,
+          "discordant": 8,
+          "tied": 51,
+          "blocks": 24,
+          "blocks_with_identical_value": 16,
+          "concordant_share": 0.385,
+          "ci95": [
+            0.2,
+            0.5
+          ]
+        },
+        "declaration_step": {
+          "concordant": 24,
+          "discordant": 24,
+          "tied": 16,
+          "blocks": 24,
+          "blocks_with_identical_value": 2,
+          "concordant_share": 0.5,
+          "ci95": [
+            0.38,
+            0.627
+          ]
+        }
+      }
+    },
+    "google/gemma-4-31B-it|off|c2": {
+      "model": "google/gemma-4-31B-it",
+      "effort": "off",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 36,
+          "false_done": 36
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.72,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.113,
+          "ci95": [
+            0.056,
+            0.173
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.061,
+          "ci95": [
+            -0.097,
+            -0.028
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.031,
+          "ci95": [
+            -0.048,
+            -0.012
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 4.26,
+        "median_first_wait": 200.0,
+        "false_done": 36,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 5.85,
+        "median_seconds_early": 4.0,
+        "dollars": 0.189
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 89,
+          "success": 7
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 1.0,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 13.99,
+        "median_first_wait": 200.0,
+        "false_done": 89,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 49.25,
+        "median_seconds_early": null,
+        "dollars": 1.013
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 43,
+          "false_done": 125
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.754,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.048,
+          "ci95": [
+            0.018,
+            0.083
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.026,
+          "ci95": [
+            -0.046,
+            -0.009
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.013,
+          "ci95": [
+            -0.023,
+            -0.004
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 9.82,
+        "median_first_wait": 200.0,
+        "false_done": 125,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 7.2,
+        "median_seconds_early": 4.0,
+        "dollars": 1.202
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 11,
+          "discordant": 5,
+          "tied": 48,
+          "blocks": 24,
+          "blocks_with_identical_value": 16,
+          "concordant_share": 0.688,
+          "ci95": [
+            0.562,
+            0.812
+          ]
+        },
+        "declaration_step": {
+          "concordant": 23,
+          "discordant": 22,
+          "tied": 19,
+          "blocks": 24,
+          "blocks_with_identical_value": 3,
+          "concordant_share": 0.511,
+          "ci95": [
+            0.366,
+            0.636
+          ]
+        }
+      }
+    },
+    "moonshotai/Kimi-K3|high|c2": {
+      "model": "moonshotai/Kimi-K3",
+      "effort": "high",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 31,
+          "false_done": 41
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.62,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.102,
+          "ci95": [
+            0.044,
+            0.171
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.071,
+          "ci95": [
+            -0.139,
+            -0.023
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.042,
+          "ci95": [
+            -0.083,
+            0.002
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 4.42,
+        "median_first_wait": 150.0,
+        "false_done": 41,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 2.95,
+        "median_seconds_early": 2.75,
+        "dollars": 4.383
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 90,
+          "success": 6
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 0.857,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.002,
+          "ci95": [
+            0.0,
+            0.007
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.002,
+          "ci95": [
+            0.0,
+            0.007
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.002,
+          "ci95": [
+            0.0,
+            0.007
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 12.42,
+        "median_first_wait": 200.0,
+        "false_done": 90,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 54.4,
+        "median_seconds_early": 6.15,
+        "dollars": 17.311
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 37,
+          "false_done": 131
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.649,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.045,
+          "ci95": [
+            0.016,
+            0.08
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.029,
+          "ci95": [
+            -0.061,
+            -0.005
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.016,
+          "ci95": [
+            -0.037,
+            0.002
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 8.99,
+        "median_first_wait": 200.0,
+        "false_done": 131,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 3.2,
+        "median_seconds_early": 2.9,
+        "dollars": 21.694
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 26,
+          "discordant": 34,
+          "tied": 4,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.433,
+          "ci95": [
+            0.264,
+            0.59
+          ]
+        },
+        "declaration_step": {
+          "concordant": 27,
+          "discordant": 29,
+          "tied": 8,
+          "blocks": 24,
+          "blocks_with_identical_value": 1,
+          "concordant_share": 0.482,
+          "ci95": [
+            0.39,
+            0.589
+          ]
+        }
+      }
+    },
+    "moonshotai/Kimi-K3|low|c2": {
+      "model": "moonshotai/Kimi-K3",
+      "effort": "low",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 29,
+          "false_done": 43
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.58,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.11,
+          "ci95": [
+            0.066,
+            0.16
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.064,
+          "ci95": [
+            -0.118,
+            -0.012
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.034,
+          "ci95": [
+            -0.066,
+            -0.003
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 4.6,
+        "median_first_wait": 180.0,
+        "false_done": 43,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 2.45,
+        "median_seconds_early": 2.3,
+        "dollars": 1.699
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 89,
+          "success": 7
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 1.0,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.008,
+          "ci95": [
+            0.0,
+            0.023
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.008,
+          "ci95": [
+            0.0,
+            0.023
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.008,
+          "ci95": [
+            0.0,
+            0.023
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 14.8,
+        "median_first_wait": 200.0,
+        "false_done": 89,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 32.35,
+        "median_seconds_early": null,
+        "dollars": 8.683
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 36,
+          "false_done": 132
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.632,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.051,
+          "ci95": [
+            0.025,
+            0.082
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.023,
+          "ci95": [
+            -0.051,
+            0.003
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.01,
+          "ci95": [
+            -0.029,
+            0.007
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 10.43,
+        "median_first_wait": 200.0,
+        "false_done": 132,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 3.325,
+        "median_seconds_early": 2.3,
+        "dollars": 10.382
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 30,
+          "discordant": 22,
+          "tied": 12,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.577,
+          "ci95": [
+            0.478,
+            0.667
+          ]
+        },
+        "declaration_step": {
+          "concordant": 35,
+          "discordant": 25,
+          "tied": 4,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.583,
+          "ci95": [
+            0.469,
+            0.712
+          ]
+        }
+      }
+    },
+    "moonshotai/Kimi-K3|off|c2": {
+      "model": "moonshotai/Kimi-K3",
+      "effort": "off",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 38,
+          "false_done": 34
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.76,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.053,
+          "ci95": [
+            0.014,
+            0.099
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.121,
+          "ci95": [
+            -0.167,
+            -0.077
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.091,
+          "ci95": [
+            -0.15,
+            -0.03
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 10.03,
+        "median_first_wait": 100.0,
+        "false_done": 34,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 9.975,
+        "median_seconds_early": 3.375,
+        "dollars": 3.179
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 89,
+          "success": 7
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 1.0,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.005,
+          "ci95": [
+            0.0,
+            0.014
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.005,
+          "ci95": [
+            0.0,
+            0.014
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.005,
+          "ci95": [
+            0.0,
+            0.014
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 26.01,
+        "median_first_wait": 100.0,
+        "false_done": 89,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 50.75,
+        "median_seconds_early": null,
+        "dollars": 13.184
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 45,
+          "false_done": 123
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.789,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.025,
+          "ci95": [
+            0.006,
+            0.048
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.049,
+          "ci95": [
+            -0.08,
+            -0.02
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.036,
+          "ci95": [
+            -0.069,
+            -0.007
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 19.16,
+        "median_first_wait": 100.0,
+        "false_done": 123,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 13.05,
+        "median_seconds_early": 3.375,
+        "dollars": 16.363
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 21,
+          "discordant": 27,
+          "tied": 16,
+          "blocks": 24,
+          "blocks_with_identical_value": 2,
+          "concordant_share": 0.438,
+          "ci95": [
+            0.279,
+            0.6
+          ]
+        },
+        "declaration_step": {
+          "concordant": 34,
+          "discordant": 27,
+          "tied": 3,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.557,
+          "ci95": [
+            0.431,
+            0.661
+          ]
+        }
+      }
+    },
+    "zai-org/GLM-5.3-Flash|high|c2": {
+      "model": "zai-org/GLM-5.3-Flash",
+      "effort": "high",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 28,
+          "false_done": 44
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.56,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.049,
+          "ci95": [
+            0.019,
+            0.077
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.125,
+          "ci95": [
+            -0.183,
+            -0.065
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.095,
+          "ci95": [
+            -0.152,
+            -0.038
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 7.88,
+        "median_first_wait": 100.0,
+        "false_done": 44,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 5.45,
+        "median_seconds_early": 0.775,
+        "dollars": 0.136
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 90,
+          "success": 6
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 0.857,
+        "false_done_on_never_succeeding_runs": 89,
+        "value": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 24.23,
+        "median_first_wait": 100.0,
+        "false_done": 90,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 58.2,
+        "median_seconds_early": 17.35,
+        "dollars": 0.729
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 34,
+          "false_done": 134
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.596,
+        "false_done_on_never_succeeding_runs": 111,
+        "value": {
+          "mean": 0.021,
+          "ci95": [
+            0.006,
+            0.037
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.054,
+          "ci95": [
+            -0.089,
+            -0.021
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.041,
+          "ci95": [
+            -0.072,
+            -0.014
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 17.22,
+        "median_first_wait": 100.0,
+        "false_done": 134,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 8.225,
+        "median_seconds_early": 0.8,
+        "dollars": 0.865
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 21,
+          "discordant": 19,
+          "tied": 24,
+          "blocks": 24,
+          "blocks_with_identical_value": 4,
+          "concordant_share": 0.525,
+          "ci95": [
+            0.381,
+            0.688
+          ]
+        },
+        "declaration_step": {
+          "concordant": 25,
+          "discordant": 33,
+          "tied": 6,
+          "blocks": 24,
+          "blocks_with_identical_value": 1,
+          "concordant_share": 0.431,
+          "ci95": [
+            0.382,
+            0.483
+          ]
+        }
+      }
+    },
+    "zai-org/GLM-5.3-Flash|low|c2": {
+      "model": "zai-org/GLM-5.3-Flash",
+      "effort": "low",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 31,
+          "false_done": 41
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.62,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.064,
+          "ci95": [
+            0.019,
+            0.113
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.109,
+          "ci95": [
+            -0.166,
+            -0.058
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.08,
+          "ci95": [
+            -0.146,
+            -0.012
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 8.26,
+        "median_first_wait": 100.0,
+        "false_done": 41,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 2.7,
+        "median_seconds_early": 2.75,
+        "dollars": 0.114
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 89,
+          "success": 6,
+          "timeout": 1
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 0.857,
+        "false_done_on_never_succeeding_runs": 88,
+        "value": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 29.98,
+        "median_first_wait": 100.0,
+        "false_done": 89,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 44.6,
+        "median_seconds_early": 9.65,
+        "dollars": 0.697
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 37,
+          "false_done": 130,
+          "timeout": 1
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.649,
+        "false_done_on_never_succeeding_runs": 110,
+        "value": {
+          "mean": 0.028,
+          "ci95": [
+            0.007,
+            0.052
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.047,
+          "ci95": [
+            -0.081,
+            -0.019
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.034,
+          "ci95": [
+            -0.069,
+            -0.005
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 20.67,
+        "median_first_wait": 100.0,
+        "false_done": 130,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 3.1,
+        "median_seconds_early": 2.8,
+        "dollars": 0.811
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 21,
+          "discordant": 22,
+          "tied": 21,
+          "blocks": 24,
+          "blocks_with_identical_value": 6,
+          "concordant_share": 0.488,
+          "ci95": [
+            0.304,
+            0.7
+          ]
+        },
+        "declaration_step": {
+          "concordant": 23,
+          "discordant": 37,
+          "tied": 4,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.383,
+          "ci95": [
+            0.268,
+            0.491
+          ]
+        }
+      }
+    },
+    "zai-org/GLM-5.3-Flash|minimal|c2": {
+      "model": "zai-org/GLM-5.3-Flash",
+      "effort": "minimal",
+      "cost": 2.0,
+      "sessions_complete": 8,
+      "sessions": 8,
+      "leave-alone": {
+        "episodes": 72,
+        "passes": {
+          "pass1": 72
+        },
+        "outcomes": {
+          "success": 30,
+          "false_done": 42
+        },
+        "runs_that_succeed": 50,
+        "success_on_succeeding_runs": 0.6,
+        "false_done_on_never_succeeding_runs": 22,
+        "value": {
+          "mean": 0.043,
+          "ci95": [
+            0.016,
+            0.075
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "detector_value": 0.173,
+        "timer_value": 0.144,
+        "oracle_value": 0.284,
+        "minus_detector": {
+          "mean": -0.13,
+          "ci95": [
+            -0.197,
+            -0.066
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "minus_timer": {
+          "mean": -0.101,
+          "ci95": [
+            -0.172,
+            -0.036
+          ],
+          "n": 72,
+          "clusters": 12
+        },
+        "looks_per_episode": 7.67,
+        "median_first_wait": 100.0,
+        "false_done": 42,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 4.3,
+        "median_seconds_early": 3.8,
+        "dollars": 0.106
+      },
+      "unseen": {
+        "episodes": 96,
+        "passes": {
+          "pass1": 96
+        },
+        "outcomes": {
+          "false_done": 91,
+          "success": 4,
+          "timeout": 1
+        },
+        "runs_that_succeed": 7,
+        "success_on_succeeding_runs": 0.571,
+        "false_done_on_never_succeeding_runs": 88,
+        "value": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "detector_value": 0.0,
+        "timer_value": 0.0,
+        "oracle_value": 0.032,
+        "minus_detector": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "minus_timer": {
+          "mean": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "n": 96,
+          "clusters": 16
+        },
+        "looks_per_episode": 24.86,
+        "median_first_wait": 100.0,
+        "false_done": 91,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 71.95,
+        "median_seconds_early": 5.15,
+        "dollars": 0.565
+      },
+      "all": {
+        "episodes": 168,
+        "passes": {
+          "pass1": 168
+        },
+        "outcomes": {
+          "success": 34,
+          "false_done": 133,
+          "timeout": 1
+        },
+        "runs_that_succeed": 57,
+        "success_on_succeeding_runs": 0.596,
+        "false_done_on_never_succeeding_runs": 110,
+        "value": {
+          "mean": 0.019,
+          "ci95": [
+            0.005,
+            0.035
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "detector_value": 0.074,
+        "timer_value": 0.062,
+        "oracle_value": 0.14,
+        "minus_detector": {
+          "mean": -0.056,
+          "ci95": [
+            -0.094,
+            -0.021
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "minus_timer": {
+          "mean": -0.043,
+          "ci95": [
+            -0.079,
+            -0.013
+          ],
+          "n": 168,
+          "clusters": 28
+        },
+        "looks_per_episode": 17.49,
+        "median_first_wait": 100.0,
+        "false_done": 133,
+        "missed_done": 0,
+        "invalid": 0,
+        "median_lag_seconds": 4.675,
+        "median_seconds_early": 4.85,
+        "dollars": 0.671
+      },
+      "adaptation_within_blocks": {
+        "first_wait": {
+          "concordant": 26,
+          "discordant": 24,
+          "tied": 14,
+          "blocks": 24,
+          "blocks_with_identical_value": 2,
+          "concordant_share": 0.52,
+          "ci95": [
+            0.391,
+            0.635
+          ]
+        },
+        "declaration_step": {
+          "concordant": 23,
+          "discordant": 35,
+          "tied": 6,
+          "blocks": 24,
+          "blocks_with_identical_value": 0,
+          "concordant_share": 0.397,
+          "ci95": [
+            0.321,
+            0.483
+          ]
+        }
+      }
+    }
+  },
+  "reliability": {
+    "moonshotai/Kimi-K3|off|probe": {
+      "attempts": 468,
+      "timeouts": 8,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "zai-org/GLM-5.3-Flash|high|probe": {
+      "attempts": 460,
+      "timeouts": 0,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "zai-org/GLM-5.3-Flash|low|probe": {
+      "attempts": 460,
+      "timeouts": 0,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "google/gemma-4-31B-it|off|probe": {
+      "attempts": 473,
+      "timeouts": 13,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "zai-org/GLM-5.3-Flash|minimal|probe": {
+      "attempts": 468,
+      "timeouts": 8,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "google/gemma-4-31B-it|low|probe": {
+      "attempts": 473,
+      "timeouts": 12,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "moonshotai/Kimi-K3|high|probe": {
+      "attempts": 471,
+      "timeouts": 10,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|off|probe": {
+      "attempts": 468,
+      "timeouts": 8,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "moonshotai/Kimi-K3|low|probe": {
+      "attempts": 468,
+      "timeouts": 8,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|high|probe": {
+      "attempts": 461,
+      "timeouts": 1,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|low|probe": {
+      "attempts": 471,
+      "timeouts": 11,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "google/gemma-4-31B-it|high|probe": {
+      "attempts": 468,
+      "timeouts": 8,
+      "replies": 450,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|off|session": {
+      "attempts": 3055,
+      "timeouts": 8,
+      "replies": 2911,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "moonshotai/Kimi-K3|off|session": {
+      "attempts": 3411,
+      "timeouts": 12,
+      "replies": 3219,
+      "cut_off": 0,
+      "unreadable": 33
+    },
+    "google/gemma-4-31B-it|low|session": {
+      "attempts": 2206,
+      "timeouts": 12,
+      "replies": 1989,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|low|session": {
+      "attempts": 2372,
+      "timeouts": 20,
+      "replies": 2073,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "moonshotai/Kimi-K3|low|session": {
+      "attempts": 1841,
+      "timeouts": 8,
+      "replies": 1752,
+      "cut_off": 0,
+      "unreadable": 12
+    },
+    "google/gemma-4-31B-it|high|session": {
+      "attempts": 2184,
+      "timeouts": 10,
+      "replies": 2006,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "zai-org/GLM-5.3-Flash|minimal|session": {
+      "attempts": 2939,
+      "timeouts": 0,
+      "replies": 2939,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "google/gemma-4-31B-it|off|session": {
+      "attempts": 1650,
+      "timeouts": 0,
+      "replies": 1650,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "zai-org/GLM-5.3-Flash|low|session": {
+      "attempts": 3473,
+      "timeouts": 0,
+      "replies": 3473,
+      "cut_off": 0,
+      "unreadable": 0
+    },
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017|high|session": {
+      "attempts": 2475,
+      "timeouts": 132,
+      "replies": 1990,
+      "cut_off": 0,
+      "unreadable": 2
+    },
+    "zai-org/GLM-5.3-Flash|high|session": {
+      "attempts": 2893,
+      "timeouts": 0,
+      "replies": 2893,
+      "cut_off": 0,
+      "unreadable": 8
+    },
+    "moonshotai/Kimi-K3|high|session": {
+      "attempts": 1510,
+      "timeouts": 0,
+      "replies": 1510,
+      "cut_off": 0,
+      "unreadable": 0
+    }
+  },
+  "spent_dollars": {
+    "ledger_raw": 163.03,
+    "estimated": 138.71,
+    "by_use": {
+      "default runs (main runs, not analysed)": {
+        "raw": 65.64,
+        "estimated": 63.53,
+        "timeouts": 483
+      },
+      "default runs (main runs, not analysed)|deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+        "raw": 4.89,
+        "estimated": 4.69,
+        "timeouts": 113
+      },
+      "default runs (main runs, not analysed)|google/gemma-4-31B-it": {
+        "raw": 4.53,
+        "estimated": 4.05,
+        "timeouts": 67
+      },
+      "default runs (main runs, not analysed)|moonshotai/Kimi-K3": {
+        "raw": 52.98,
+        "estimated": 51.8,
+        "timeouts": 50
+      },
+      "default runs (main runs, not analysed)|zai-org/GLM-5.3-Flash": {
+        "raw": 3.23,
+        "estimated": 2.98,
+        "timeouts": 253
+      },
+      "grid probes (with their 10-probe pilots)": {
+        "raw": 21.64,
+        "estimated": 9.72,
+        "timeouts": 87
+      },
+      "grid probes (with their 10-probe pilots)|deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+        "raw": 0.58,
+        "estimated": 0.38,
+        "timeouts": 20
+      },
+      "grid probes (with their 10-probe pilots)|google/gemma-4-31B-it": {
+        "raw": 1.45,
+        "estimated": 0.7,
+        "timeouts": 33
+      },
+      "grid probes (with their 10-probe pilots)|moonshotai/Kimi-K3": {
+        "raw": 19.33,
+        "estimated": 8.47,
+        "timeouts": 26
+      },
+      "grid probes (with their 10-probe pilots)|zai-org/GLM-5.3-Flash": {
+        "raw": 0.27,
+        "estimated": 0.17,
+        "timeouts": 8
+      },
+      "grid sessions": {
+        "raw": 72.3,
+        "estimated": 62.17,
+        "timeouts": 202
+      },
+      "grid sessions|deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+        "raw": 5.46,
+        "estimated": 4.36,
+        "timeouts": 160
+      },
+      "grid sessions|google/gemma-4-31B-it": {
+        "raw": 6.1,
+        "estimated": 5.61,
+        "timeouts": 22
+      },
+      "grid sessions|moonshotai/Kimi-K3": {
+        "raw": 58.39,
+        "estimated": 49.84,
+        "timeouts": 20
+      },
+      "grid sessions|zai-org/GLM-5.3-Flash": {
+        "raw": 2.35,
+        "estimated": 2.35,
+        "timeouts": 0
+      },
+      "medium runs (stopped, not analysed)": {
+        "raw": 1.21,
+        "estimated": 1.1,
+        "timeouts": 9
+      },
+      "medium runs (stopped, not analysed)|deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+        "raw": 0.04,
+        "estimated": 0.04,
+        "timeouts": 0
+      },
+      "medium runs (stopped, not analysed)|google/gemma-4-31B-it": {
+        "raw": 0.13,
+        "estimated": 0.13,
+        "timeouts": 0
+      },
+      "medium runs (stopped, not analysed)|moonshotai/Kimi-K3": {
+        "raw": 0.72,
+        "estimated": 0.72,
+        "timeouts": 0
+      },
+      "medium runs (stopped, not analysed)|zai-org/GLM-5.3-Flash": {
+        "raw": 0.32,
+        "estimated": 0.21,
+        "timeouts": 9
+      },
+      "pilot sessions (pass 0)": {
+        "raw": 0.97,
+        "estimated": 0.93,
+        "timeouts": 23
+      },
+      "pilot sessions (pass 0)|google/gemma-4-31B-it": {
+        "raw": 0.03,
+        "estimated": 0.03,
+        "timeouts": 0
+      },
+      "pilot sessions (pass 0)|moonshotai/Kimi-K3": {
+        "raw": 0.86,
+        "estimated": 0.84,
+        "timeouts": 1
+      },
+      "pilot sessions (pass 0)|zai-org/GLM-5.3-Flash": {
+        "raw": 0.09,
+        "estimated": 0.06,
+        "timeouts": 22
+      },
+      "xhigh runs (stopped, not analysed)": {
+        "raw": 1.27,
+        "estimated": 1.27,
+        "timeouts": 0
+      },
+      "xhigh runs (stopped, not analysed)|moonshotai/Kimi-K3": {
+        "raw": 1.27,
+        "estimated": 1.27,
+        "timeouts": 0
+      },
+      "xhigh runs (stopped, not analysed)|zai-org/GLM-5.3-Flash": {
+        "raw": 0.01,
+        "estimated": 0.01,
+        "timeouts": 0
+      }
+    }
+  }
+}
