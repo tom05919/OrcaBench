@@ -75,17 +75,14 @@ look costs time (the model has to be called and answer) and money, so looking co
 rarely means stopping long after the robot has finished, and stopping before it has finished fails the task.
 Vision-language models have been tested as success detectors on curated video clips~\cite{successdetectors}.
 Closest to our setting, Hu et al.~\cite{whatmatters} study hierarchical agents in which a vision-language planner
-hands subgoals to learned robot policies, and compare ways of deciding when a subgoal is over: a fixed horizon, a
-horizon predicted by the planner, and a success detector. The success detector did best overall, though on short
-tasks a fixed horizon matched it (75.8\% against 74.7\% success). Their study treats stopping as one design choice
-among many: in simulation the success detector reads privileged simulator state, and systems are scored by task
-success alone, so neither the cost of a check nor how late a stop comes counts. We isolate this decision. Our
-supervisor must judge completion from the cameras alone and decide when to check, each check costs time, and we
-score it against a timer and a perfect-vision rule that use no language model.
-In Anthropic's Embody study~\cite{embody}, twelve models supervised a frozen policy on LIBERO by accepting, adjusting
-or replacing each of its actions; on familiar tasks every model did substantially worse than the policy alone, and the
-strongest model ranked below two weaker ones because it overrode the policy more often than warranted. Our
-supervisor cannot change the robot's actions at all, yet it also loses to simple rules, for a different reason: it
+hands subgoals to learned robot policies, and compare ways to end a subgoal: a fixed horizon, a horizon predicted by
+the planner, and a success detector. The detector did best overall, though a fixed horizon matched it on short tasks.
+But in simulation their detector reads privileged simulator state, and systems are scored by success alone, so neither the cost of a check nor a late stop counts. We isolate this decision: our
+supervisor judges completion from the cameras alone, decides when to check, pays time for each check, and is scored
+against a timer and a perfect-vision rule that use no language model.
+In Anthropic's Embody study~\cite{embody}, twelve models that could accept, adjust or replace each action of a
+frozen LIBERO policy all did much worse than the policy alone on familiar tasks, the strongest by overriding
+it more often than warranted. Our supervisor cannot change the robot's actions, yet it also loses to simple rules: it
 stops too early.
 
 \textbf{Contributions.} (1)~A benchmark that scores both skills automatically on recorded runs of real learned
@@ -143,8 +140,8 @@ included, scores close to 0 there (all results are in the repository).
 \textbf{Done-detection test.} To measure perception alone, we ask 450 single questions with no history: the task
 instruction and the camera images at one moment (plus 2~s and 5~s earlier), ``is the task finished?''. 114 moments
 are finished (the moment the robot finishes and 5~s later) and 336 are not (10~s and 2~s before it finishes, and
-moments of runs that never finish). Moments in the last 2~s before finishing are not used, because the success check
-is strict and a run can look finished for a second or two before it passes (Section~\ref{sec:limits}). The \emph{done-detection score} is balanced accuracy, the mean of the accuracy on
+moments of runs that never finish). Moments in the last 2~s before finishing are not used, since a run can look
+finished a second or two before the strict success check passes (Section~\ref{sec:limits}). The \emph{done-detection score} is balanced accuracy, the mean of the accuracy on
 finished and on unfinished moments (50 = chance), because plain accuracy would reward always answering ``not
 finished''.
 
@@ -225,8 +222,8 @@ The done-detection test (Figure~\ref{fig:detection}) isolates perception. Every 
 balanced accuracy, and the intervals overlap heavily, so the test does not separate the models much. Their errors are
 where the supervision failures are: shown the cameras 2~s before the robot finishes, configurations answer
 ``finished'' 62--80\% of the time, and on moments from runs that never finish they answer ``finished'' 36--50\% of the
-time. Some moments 2~s before finishing may already look finished, since the success check is strict
-(Section~\ref{sec:limits}), so the first rate likely overstates the error; the second is less affected. Turning reasoning on raises the score of Kimi K3 by 6.4 points (95\% CI 1.3 to 11.4, same questions) and of
+time. The first rate likely overstates the error, since some runs already look finished 2~s before the strict
+check passes (Section~\ref{sec:limits}); the second is less affected. Turning reasoning on raises the score of Kimi K3 by 6.4 points (95\% CI 1.3 to 11.4, same questions) and of
 DeepSeek V4.1 Flash by 5.8 (0.6 to 10.9), mostly by saying ``finished'' more readily when it is finished; it does not
 detectably change Gemma~4 ($-0.6$, $-3.9$ to 2.6) or GLM-5.3 Flash ($+3.2$, $-0.7$ to 7.2).
 
@@ -291,7 +288,7 @@ and all model replies are in the repository's release \texttt{replay-data-2026-1
 \bibitem{innermonologue} W.~Huang et al. Inner monologue: Embodied reasoning through planning with language models. CoRL, 2022.
 \bibitem{successdetectors} Y.~Du et al. Vision-language models as success detectors. CoLLAs, 2023.
 \bibitem{whatmatters} J.~Hu et al. What matters in orchestrating robot policies: A systematic study of hierarchical VLA agents. arXiv:2606.10267, 2026.
-\bibitem{embody} S.~Berman, M.~Ilie, J.~Deng and D.~Freeman. Claude plays robotics. Anthropic, July 2026. \url{https://www.anthropic.com/research/claude-plays-robotics}.
+\bibitem{embody} S.~Berman et al. Claude plays robotics. Anthropic, 2026. \url{anthropic.com/research/claude-plays-robotics}.
 \end{thebibliography}}
 
 \end{document}
